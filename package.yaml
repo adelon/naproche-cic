@@ -1,0 +1,52 @@
+name: napcic
+version: 0.1.0.0
+license: GPL-3
+github: adelon/napcic
+
+extra-source-files:
+  - readme.md
+  - license.md
+
+dependencies:
+  - base >= 4.7 && < 5
+  - containers
+  - directory
+  - megaparsec
+  - mtl
+  - parser-combinators
+  - text
+  - transformers
+  - unordered-containers
+  # - text-short
+
+default-extensions:
+  - ApplicativeDo
+  - BlockArguments
+  - FlexibleContexts
+  - FlexibleInstances
+  - GADTs
+  - GeneralizedNewtypeDeriving
+  - InstanceSigs
+  - LambdaCase
+  - OverloadedStrings
+  - PartialTypeSignatures
+  - ScopedTypeVariables
+  - TypeFamilies
+
+ghc-options:
+  - -Wall
+  - -fno-warn-unused-do-bind
+
+executables:
+  napcic:
+    main: Main.hs
+    source-dirs: source/
+
+tests:
+  napcic-test:
+    main: Spec.hs
+    source-dirs: test/
+    dependencies:
+      - napcic
+      - hspec
+      - hspec-megaparsec
