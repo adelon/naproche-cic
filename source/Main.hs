@@ -6,7 +6,7 @@ module Main where
 
 import Base.Parser
 import Base.Registry (initRegistry)
-import Parse
+import Parse.Document
 
 import Data.Void
 import System.Directory
