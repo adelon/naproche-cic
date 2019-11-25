@@ -28,21 +28,29 @@ Theorem proving and proof verification in the system SAD
 ## On error messages
 
 
+Another author on this topic: Brett A. Becker
+
+
 ### Helium
 
 [Helium's Repo](https://github.com/Helium4Haskell/helium)
 
 [Contraint solver](https://github.com/Helium4Haskell/Top)
 
-[Heeren | Helium, for leaning Haskell](http://www.open.ou.nl/bhr/heeren-helium.pdf)
+Heeren |
+[Helium, for leaning Haskell](http://www.open.ou.nl/bhr/heeren-helium.pdf)
 
 
 ### Elm
 
-[Evan Czaplicki | The Syntax Cliff (blog)](https://elm-lang.org/news/the-syntax-cliff)
+Evan Czaplicki |
+[The Syntax Cliff (blog)](https://elm-lang.org/news/the-syntax-cliff)
 
-[Evan Czaplicki | Compilers as assistants (blog)](https://elm-lang.org/news/compilers-as-assistants)
+Evan Czaplicki |
+[Compilers as assistants (blog)](https://elm-lang.org/news/compilers-as-assistants)
 
+Evan Czaplicki |
+[Compiler Errors for Humans (blog)](https://elm-lang.org/news/compiler-errors-for-humans)
 
 
 ## Things to formalize
