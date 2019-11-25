@@ -12,3 +12,6 @@
 | surf   | surface
 | typ    | type (as this is a keyword in haskell)
 | var    | variable
+| aff    | affirmation
+| asm    | assumption
+| stmt   | statement
