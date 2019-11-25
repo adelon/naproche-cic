@@ -24,3 +24,4 @@ cabal.project.local~
 .vscode/*
 *.cabal
 stack.yaml.lock
+work/out/*
