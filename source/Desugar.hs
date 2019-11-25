@@ -18,7 +18,7 @@ desugar = \case
   e `Surf.Is` adj
     -> e `Core.Is` Core.Adj (Surf.unAdj adj)
   es `Surf.Are` Surf.DistributiveAdj adj
-    -> fold ((`Core.Is` Core.Adj adj) `fmap` es)
+    -> fold ((`Core.Is` Core.Adj adj) <$> es)
   es `Surf.Are` Surf.CollectiveAdj adj
     -> Array es `Core.Is` Core.Adj adj
 

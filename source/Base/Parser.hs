@@ -64,7 +64,7 @@ primOperators =
   ]
 
 getOperators :: MonadState Registry m => m [[Operator Parser Expr]]
-getOperators = fmap operators get
+getOperators = operators <$> get
 
 -- TODO: Also handle priority and associativity.
 registerOperator :: MonadState Registry m => Text -> Text -> m ()
@@ -109,7 +109,7 @@ letter = do
   return (Text.singleton l)
 
 iden :: Parser Expr
-iden = Const `fmap` do
+iden = Const <$> do
   Lex.string "\\iden{"
   name <- identifier
   Lex.char '}'
@@ -117,10 +117,10 @@ iden = Const `fmap` do
   return name
 
 constant :: Parser Expr
-constant = Const `fmap` identifier
+constant = Const <$> identifier
 
 identifier :: Parser Text
-identifier = pack `fmap` many1 Lex.letterChar
+identifier = pack <$> many1 Lex.letterChar
 
 
 
@@ -142,7 +142,7 @@ environment env p = do
 environments :: [Text] -> Parser a -> Parser a
 environments envs p = do
   Lex.string "\\begin{"
-  env <- asum (fmap Lex.string envs)
+  env <- asum (Lex.string <$> envs)
   Lex.char '}'
   Lex.space
   content <- p

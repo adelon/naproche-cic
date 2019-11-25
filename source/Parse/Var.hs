@@ -9,12 +9,12 @@ import Data.Foldable (asum)
 
 
 var :: Parser Var
-var = fmap Var (letter <|> try greek <|> bb)
+var = Var <$> (letter <|> try greek <|> bb)
 
 greek :: Parser Text
 greek = do
   exact "\\"
-  l <- asum (fmap makeSymbolParser greeks)
+  l <- asum (makeSymbolParser <$> greeks)
   return l
 
 greeks :: [(Text,Text)]
@@ -31,7 +31,7 @@ greeks =
 bb :: Parser Text
 bb = do
   exact "\\mathbb{"
-  l <- asum (fmap makeSymbolParser bbs)
+  l <- asum (makeSymbolParser <$> bbs)
   exact "}"
   return l
 

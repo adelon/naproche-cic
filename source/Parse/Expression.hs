@@ -28,6 +28,6 @@ expr = label "expression" do
 
 term :: Parser Expr
 term = parenthesized expr
-  <|> try (fmap Free var)
+  <|> try (Free <$> var)
   <|> try iden
   <|> constant
