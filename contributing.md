@@ -3,23 +3,50 @@
 
 ## Literature on similar systems
 
-| Author | Work
-| ------ | ----
-| [Mohan Ganesalingam](https://www.crunchbase.com/person/mohan-ganesalingam) | [The Language of Mathematics](https://www.springer.com/gp/book/9783642370113)
-| [Aarne Ranta](http://www.cse.chalmers.se/~aarne/) | [Type Theoretical Grammar](https://books.google.de/books?hl=sv&lr=&id=A5m13eGOcqYC)
-| [Andrei Paskevich](http://tertium.org/) | [The syntax and semantics of the ForTheL language](https://www.google.com/url?sa=t&source=web&cd=1&ved=2ahUKEwi8zZHH7IDmAhXCYlAKHWSeCqUQFjAAegQIBhAC&url=http%3A%2F%2Fnevidal.org%2Fdownload%2Fforthel.pdf&usg=AOvVaw1fLxbYbrfL5lXF7uDVVrwE)
-| Alexander Lyaletski + Andrei Paskevich + Konstantin Verchinine | Theorem proving and proof verification in the system SAD
+
+[Mohan Ganesalingam](https://www.crunchbase.com/person/mohan-ganesalingam) |
+[The Language of Mathematics](https://www.springer.com/gp/book/9783642370113)
+
+[Aarne Ranta](http://www.cse.chalmers.se/~aarne/) |
+[Type Theoretical Grammar](https://books.google.de/books?hl=sv&lr=&id=A5m13eGOcqYC)
+
+[Andrei Paskevich](http://tertium.org/) |
+[The syntax and semantics of the ForTheL language](https://www.google.com/url?sa=t&source=web&cd=1&ved=2ahUKEwi8zZHH7IDmAhXCYlAKHWSeCqUQFjAAegQIBhAC&url=http%3A%2F%2Fnevidal.org%2Fdownload%2Fforthel.pdf&usg=AOvVaw1fLxbYbrfL5lXF7uDVVrwE)
+
+Alexander Lyaletski + Andrei Paskevich + Konstantin Verchinine |
+Theorem proving and proof verification in the system SAD
 
 
 ## Lean specific resources
 
 [mathlib](https://github.com/leanprover-community/mathlib)
 
-[Hales' review of Lean](https://jiggerwit.wordpress.com/2018/09/18/a-review-of-the-lean-theorem-prover/)
+[Thomas Hales | Review of Lean](https://jiggerwit.wordpress.com/2018/09/18/a-review-of-the-lean-theorem-prover/)
+
+
+
+## On error messages
+
+
+### Helium
+
+[Helium's Repo](https://github.com/Helium4Haskell/helium)
+
+[Contraint solver](https://github.com/Helium4Haskell/Top)
+
+[Heeren | Helium, for leaning Haskell](http://www.open.ou.nl/bhr/heeren-helium.pdf)
+
+
+### Elm
+
+[Evan Czaplicki | The Syntax Cliff (blog)](https://elm-lang.org/news/the-syntax-cliff)
+
+[Evan Czaplicki | Compilers as assistants (blog)](https://elm-lang.org/news/compilers-as-assistants)
 
 
 
 ## Things to formalize
+
 
 ### Number theory
 
@@ -31,6 +58,7 @@ Key points: very little structures, very little prerequisites, relatively rich v
 
 ### Linear algebra
 
+(...)
 
 ### Set theory
 
