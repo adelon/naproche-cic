@@ -139,14 +139,10 @@ identifier = pack <$> many1 Lex.letterChar
 
 environment :: Text -> Parser a -> Parser a
 environment env p = do
-  Lex.string "\\begin{"
-  Lex.string env
-  Lex.char '}'
+  exact ("\\begin{" <> env <> "}")
   Lex.space
   content <- p
-  Lex.string "\\end{"
-  Lex.string env
-  Lex.char '}'
+  exact ("\\end{" <> env <> "}")
   Lex.space
   return content
 

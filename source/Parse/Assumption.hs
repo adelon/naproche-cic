@@ -18,6 +18,6 @@ assumption = pretyping <|> Assumption <$> statement
 pretyping :: Parser Assumption
 pretyping = do
   word "let"
-  info <- math typing
+  asm <- math typing
   period
-  return (AssumptionPretyping info)
+  return (AssumptionPretyping asm)
