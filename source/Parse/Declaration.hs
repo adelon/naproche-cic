@@ -2,6 +2,8 @@ module Parse.Declaration where
 
 
 import Base.Parser
+import Parse.Assumption (Assumption, assumption)
+import Parse.Statement (Statement, statement)
 
 
 data Declaration
@@ -15,11 +17,16 @@ decl = DeclAxiom <$> axiom
   <|> DeclTheorem <$> theorem
 
 
-data Axiom
+data Axiom = Axiom
+  { assumptions :: [Assumption]
+  , content :: Statement
+  }
 
 axiom :: Parser Axiom
 axiom = environment "axiom" do
-  error "Declaration.axiom unfinished"
+  asms <- many1 assumption
+  stmt <- statement
+  return (Axiom asms stmt)
 
 
 data Definition
