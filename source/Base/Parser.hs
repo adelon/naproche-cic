@@ -4,17 +4,19 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-
+import Language.Common (Var)
 
 import Control.Monad.Combinators.Expr as Export
 import Control.Monad.State.Strict
 import Data.Foldable (asum)
 import Data.Set (Set)
+import Data.Map (Map)
 import Data.Text as Export (Text, pack)
 import Data.Void
 import Numeric.Natural (Natural)
 import Text.Megaparsec as Export hiding (State)
 
+import qualified Data.Map.Strict as Map
 --import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Text.Megaparsec.Char as Lex
@@ -27,6 +29,7 @@ type Parser = ParsecT Void Text (State Registry)
 data Registry = Registry
   { collectiveAdjs :: Set Text
   , distributiveAdjs :: Set Text
+  , symbolicNotions :: Map Var Expr
   , operators :: [[Operator Parser Expr]]
   , idCount :: Natural
   }
@@ -35,33 +38,41 @@ initRegistry :: Registry
 initRegistry = Registry
   { collectiveAdjs = mempty
   , distributiveAdjs = mempty
+  , symbolicNotions = primSymbolicNotions
   , operators = primOperators
   , idCount = 0
   }
+  where
 
-makeOp :: Text -> a -> Parser a
-makeOp op constr = do
-  exact op
-  return constr
+    primSymbolicNotions :: Map Var Expr
+    primSymbolicNotions = Map.fromList
+      [ ("ℕ", Const "nat")
+      ]
+
+    primOperators :: [[Operator Parser Expr]]
+    primOperators =
+      [ [ InfixR (makePrimOp "+" "prim_plus")
+        ]
+      , [ InfixN (makeOp "=" \x y -> Prop (x `Equals` y))
+        ]
+      , [ InfixR (makeOp "\\times" (Times))
+        , InfixR (makeOp "\\sqcup" (Plus))
+        ]
+      , [ InfixR (makeOp "\\land" \x y -> Prop (x `And` y))
+        , InfixR (makeOp "\\lor"  \x y -> Prop (x `Or`  y))
+        ]
+      ]
+
+    makeOp :: Text -> a -> Parser a
+    makeOp op constr = do
+      exact op
+      return constr
+
 
 makePrimOp :: Text -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = do
   exact op
   return (\x y -> Const prim `App` x `App` y)
-
-primOperators :: [[Operator Parser Expr]]
-primOperators =
-  [ [ InfixR (makePrimOp "+" "prim_plus")
-    ]
-  , [ InfixN (makeOp "=" \x y -> Prop (x `Equals` y))
-    ]
-  , [ InfixR (makeOp "\\times" (Times))
-    , InfixR (makeOp "\\sqcup" (Plus))
-    ]
-  , [ InfixR (makeOp "\\land" \x y -> Prop (x `And` y))
-    , InfixR (makeOp "\\lor"  \x y -> Prop (x `Or`  y))
-    ]
-  ]
 
 getOperators :: MonadState Registry m => m [[Operator Parser Expr]]
 getOperators = operators <$> get
