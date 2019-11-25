@@ -12,3 +12,6 @@
   and functions that will expect only `Prop`s. We can embed expressions into `Prop` via squashing.
 - Should parsers typically bring their own data types with them,
   defined in the same module?
+- Should we implicitly universally quantify all free variables in formulae? Usually type inference
+  should be strong enough to figure out the correct type of those variables, so the user could
+  omit the quantification.
