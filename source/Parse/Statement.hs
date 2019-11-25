@@ -13,6 +13,7 @@ data Statement
   = Var `Is` Adj
   | Negated Statement
   | IfThen Statement Statement
+  deriving (Show, Eq)
 
 statement :: Parser Statement
 statement = undefined

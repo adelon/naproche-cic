@@ -10,9 +10,10 @@ data Declaration
   = DeclAxiom Axiom
   | DeclDefinition Definition
   | DeclTheorem Theorem
+  deriving (Show, Eq)
 
-decl :: Parser Declaration
-decl = DeclAxiom <$> axiom
+declaration :: Parser Declaration
+declaration = DeclAxiom <$> axiom
   <|> DeclDefinition <$> definition
   <|> DeclTheorem <$> theorem
 
@@ -20,7 +21,7 @@ decl = DeclAxiom <$> axiom
 data Axiom = Axiom
   { assumptions :: [Assumption]
   , content :: Statement
-  }
+  } deriving (Show, Eq)
 
 axiom :: Parser Axiom
 axiom = environment "axiom" do
@@ -29,14 +30,14 @@ axiom = environment "axiom" do
   return (Axiom asms stmt)
 
 
-data Definition
+data Definition = Definition deriving (Show, Eq)
 
 definition :: Parser Definition
 definition = environment "definition" do
   error "Declaration.defn unfinished"
 
 
-data Theorem
+data Theorem = Theorem deriving (Show, Eq)
 
 theorem :: Parser Theorem
 theorem = environments ["theorem", "lemma", "proposition"] do

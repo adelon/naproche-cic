@@ -10,6 +10,7 @@ import Parse.Statement (Statement, statement)
 data Assumption
   = AssumptionPretyping (Typing Var Typ)
   | Assumption Statement
+  deriving (Show, Eq)
 
 assumption :: Parser Assumption
 assumption = pretyping <|> Assumption <$> statement

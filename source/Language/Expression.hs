@@ -11,8 +11,8 @@ import Numeric.Natural (Natural)
 
 type Typ = Expr
 
-data Typing a b = a `Inhabits` b
-data Proof a b  = a `Proves` b
+data Typing a b = a `Inhabits` b deriving (Show, Eq)
+data Proof a b  = a `Proves` b deriving (Show, Eq)
 
 data Expr
   = Hole
