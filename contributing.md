@@ -11,6 +11,14 @@
 | Alexander Lyaletski + Andrei Paskevich + Konstantin Verchinine | Theorem proving and proof verification in the system SAD
 
 
+## Lean specific resources
+
+[mathlib](https://github.com/leanprover-community/mathlib)
+
+[Hales' review of Lean](https://jiggerwit.wordpress.com/2018/09/18/a-review-of-the-lean-theorem-prover/)
+
+
+
 ## Things to formalize
 
 ### Number theory
@@ -20,5 +28,12 @@ Key points: very little structures, very little prerequisites, relatively rich v
 [Paper](https://homes.cs.washington.edu/~thickstn/docs/lean.pdf) on formalizing some elementary number theory in Lean.
 [This repo](https://github.com/jthickstun/lean) contains the corresponding Lean code.
 
+
 ### Linear algebra
 
+
+### Set theory
+
+[set theory in Lean](https://leanprover.github.io/logic_and_proof/sets_in_lean.html) (from "Logic and Proof")
+
+[ZF in Agda](https://github.com/shinji-kono/zf-in-agda)
