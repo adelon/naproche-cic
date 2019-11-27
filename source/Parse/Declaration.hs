@@ -13,8 +13,8 @@ data Declaration
   deriving (Show, Eq)
 
 declaration :: Parser Declaration
-declaration = DeclAxiom <$> axiom
-  <|> DeclDefinition <$> definition
+declaration = DeclAxiom <$> try axiom
+  <|> DeclDefinition <$> try definition
   <|> DeclTheorem <$> theorem
 
 
