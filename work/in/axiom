@@ -1,4 +1,4 @@
 \begin{axiom}
   Let $n\in \mathbb{N}$.
-  It is not the case that $n = n + n$.
+  Then $n = n$.
 \end{axiom}

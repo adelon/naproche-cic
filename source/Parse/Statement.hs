@@ -20,7 +20,7 @@ data Statement
   deriving (Show, Eq)
 
 statement :: Parser Statement
-statement = negated <|> is
+statement = prop <|> negated <|> is
 
 is :: Parser Statement
 is = do
@@ -30,6 +30,13 @@ is = do
   return (v `Is` adj)
 
 adjective = undefined
+
+prop :: Parser Statement
+prop = PropStatement <$> do
+  optional (word "then")
+  p <- Squashed <$> math expr
+  period
+  return p
 
 negated :: Parser Statement
 negated = Negated <$> do
