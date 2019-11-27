@@ -92,7 +92,8 @@ registerOperator op prim = do
 many1 :: Parser a -> Parser [a]
 many1 = some
 
-
+many1Till :: Parser a -> Parser end -> Parser [a]
+many1Till = someTill
 
 
 
@@ -140,10 +141,8 @@ identifier = pack <$> many1 Lex.letterChar
 environment :: Text -> Parser a -> Parser a
 environment env p = do
   exact ("\\begin{" <> env <> "}")
-  Lex.space
   content <- p
   exact ("\\end{" <> env <> "}")
-  Lex.space
   return content
 
 environments :: [Text] -> Parser a -> Parser a
@@ -161,9 +160,9 @@ environments envs p = do
 
 surroundedBy :: Text -> Text -> Parser a -> Parser a
 surroundedBy open close p = do
-  word open
+  exact open
   content <- p
-  word close
+  exact close
   return content
 
 -- | Turns a parser into a parser that parses the same thing,
