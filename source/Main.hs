@@ -8,11 +8,12 @@ import Base.Parser
 import Base.Registry (initRegistry)
 import Parse.Document
 
+import Control.Monad.State.Strict
+import Data.List ((\\))
+import Data.Text (Text)
 import Data.Void
 import System.Directory
-import Data.List ((\\))
-import Control.Monad.State.Strict
-import Data.Text (Text)
+import Text.Megaparsec.Error (errorBundlePretty)
 
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
@@ -37,7 +38,7 @@ work file = do
   let outPath = "./work/out/" <> file
   result <- parseFromFile document inPath
   case result of
-    Left err -> Text.writeFile outPath (Text.pack (show err))
+    Left err -> Text.writeFile outPath (Text.pack (errorBundlePretty err))
     Right doc -> Text.writeFile outPath (process doc)
 
 
