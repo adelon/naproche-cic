@@ -17,12 +17,25 @@ Alexander Lyaletski + Andrei Paskevich + Konstantin Verchinine |
 Theorem proving and proof verification in the system SAD
 
 
+## Type thoery
+
+Thorsten Altenkirch | [ıve Type Theory](http://www.cs.nott.ac.uk/~psztxa/publ/fomus19.pdf)
+
+Per Martin-Löf | [Intuitionistic Type Theory](http://archive-pml.github.io/martin-lof/pdfs/Bibliopolis-Book-retypeset-1984.pdf)
+
+[Homotopy type theory](https://homotopytypetheory.org/book/)
+
+Martín Escardó | [Introduction to Univalent Foundations of Mathematics with Agda](https://www.cs.bham.ac.uk/~mhe/HoTT-UF-in-Agda-Lecture-Notes/HoTT-UF-Agda.html)
+
+[Calculus of Inductive Constructions (Coq manual)](Calculus of Inductive Constructions)
+
+
+
 ## Lean specific resources
 
 [mathlib](https://github.com/leanprover-community/mathlib)
 
 [Thomas Hales | Review of Lean](https://jiggerwit.wordpress.com/2018/09/18/a-review-of-the-lean-theorem-prover/)
-
 
 
 ## On error messages
