@@ -114,6 +114,9 @@ exact s = do
 period :: Parser ()
 period = void (exact ".")
 
+comma :: Parser ()
+comma = void (exact ",")
+
 letter :: Parser Text
 letter = do
   l <- Lex.letterChar
