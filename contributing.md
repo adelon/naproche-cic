@@ -86,3 +86,18 @@ Key points: very little structures, very little prerequisites, relatively rich v
 [set theory in Lean](https://leanprover.github.io/logic_and_proof/sets_in_lean.html) (from "Logic and Proof")
 
 [ZF in Agda](https://github.com/shinji-kono/zf-in-agda)
+
+
+## Constructive mathematics
+
+
+nlab
+
+
+Lombardi + Quitté | Commutative algebra: Constructive methods
+
+
+Andrej Bauer |
+Five Stages of Accepting Constructive Mathematics
+[(Talk)](https://www.youtube.com/watch?v=zmhd8clDd_Y)
+[(Paper)](https://www.ams.org/journals/bull/2017-54-03/S0273-0979-2016-01556-4/S0273-0979-2016-01556-4.pdf)
