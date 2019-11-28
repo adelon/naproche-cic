@@ -5,29 +5,39 @@ import Language.Expression
 
 import Parse.Var (var)
 
+import Prelude hiding (pi)
 
 
 annotated :: Parser (Typing Expr Typ)
 annotated = do
-  e1 <- expr
+  e <- expression
   exact ":" <|> exact "\\in"
-  e2 <- expr
-  return (e1 `Inhabits` e2)
+  ty <- expression
+  return (e `Inhabits` ty)
 
 typing :: Parser (Typing Var Typ)
 typing = do
   v <- var
   exact ":" <|> exact "\\in"
-  ty <- expr
+  ty <- expression
   return (v `Inhabits` ty)
 
-expr :: Parser Expr
-expr = label "expression" do
+expression :: Parser Expr
+expression = label "expression" do
   ops <- getOperators
   makeExprParser term ops
 
 term :: Parser Expr
-term = parenthesized expr
+term = parenthesized expression
   <|> try (Free <$> var)
   <|> try iden
+  <|> pi
   <|> constant
+
+pi :: Parser Expr
+pi = do
+  try (command "Pi")
+  exact "_"
+  v `Inhabits` ty <- braced typing
+  e <- expression
+  return (Pi v ty e)

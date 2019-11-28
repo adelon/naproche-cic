@@ -111,6 +111,11 @@ exact s = do
   Lex.space
   return s
 
+command :: Text -> Parser Text
+command cmd = do
+  exact (Text.cons '\\' cmd)
+  return cmd
+
 period :: Parser ()
 period = void (exact ".")
 
