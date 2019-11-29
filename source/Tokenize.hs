@@ -2,7 +2,7 @@ module Tokenize (Tok(..), Located(..), TokStream(..), printTok, toks) where
 
 
 import Prelude hiding (Word)
-import Data.List.NonEmpty (NonEmpty (..))
+import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Data.Proxy
 import Data.Void
 import Text.Megaparsec
@@ -65,17 +65,23 @@ pxy :: Proxy TokStream
 pxy = Proxy
 
 instance Stream TokStream where
+
   type Token  TokStream = Located Tok
   type Tokens TokStream = [Located Tok]
 
+  tokenToChunk :: Proxy TokStream -> Token TokStream -> Tokens TokStream
   tokenToChunk Proxy x = [x]
 
+  tokensToChunk :: Proxy TokStream -> [Token TokStream] -> Tokens TokStream
   tokensToChunk Proxy xs = xs
 
+  chunkToTokens :: Proxy TokStream -> Tokens TokStream -> [Token TokStream]
   chunkToTokens Proxy = id
 
+  chunkLength :: Proxy TokStream -> Tokens TokStream -> Int
   chunkLength Proxy = length
 
+  chunkEmpty :: Proxy TokStream -> Tokens TokStream -> Bool
   chunkEmpty Proxy = null
 
   take1_ :: TokStream -> Maybe (Token TokStream, TokStream)
@@ -85,6 +91,22 @@ instance Stream TokStream where
       let ts' = TokStream (Text.drop (tokenLength t) raw) ts
       in  Just (t,ts')
 
+  takeN_ :: Int -> TokStream -> Maybe (Tokens TokStream, TokStream)
+  takeN_ n | n <= 0 = \stream -> Just ([], stream)
+  takeN_ n = \case
+    TokStream _ [] -> Nothing
+    TokStream raw toks ->
+      let (consumed, toks') = splitAt n toks
+      in case nonEmpty consumed of
+        Nothing -> Just (consumed, TokStream raw toks')
+        Just toksConsumed -> Just (consumed, TokStream (Text.drop (tokensLength pxy toksConsumed) raw) toks')
+
+
+  takeWhile_ :: (Token TokStream -> Bool) -> TokStream -> (Tokens TokStream, TokStream)
+  takeWhile_ = undefined
+
+  showTokens :: Proxy TokStream -> NonEmpty (Token TokStream) -> String
+  showTokens = undefined
   -- ...
 
 toks :: Tokenizer [Tok]
