@@ -1,4 +1,4 @@
-module Tokenize where
+module Tokenize (Tok(..), Located(..), TokStream(..), printTok, toks) where
 
 
 import Prelude hiding (Word)
@@ -9,7 +9,10 @@ import Text.Megaparsec
 import Data.Text (Text)
 
 import qualified Data.Text as Text
+import qualified Text.Megaparsec.Char as Lex
 
+
+type Tokenizer = Parsec Void Text
 
 data Tok
   = Word Text
@@ -83,3 +86,38 @@ instance Stream TokStream where
       in  Just (t,ts')
 
   -- ...
+
+toks :: Tokenizer [Tok]
+toks = some tok
+
+tok :: Tokenizer Tok
+tok = word <|> command <|> begin <|> end <|> open <|> close
+
+word :: Tokenizer Tok
+word = do
+  w <- some Lex.letterChar
+  Lex.space
+  return (Word (Text.pack w))
+
+command :: Tokenizer Tok
+command = do
+  Lex.char '\\'
+  cmd <- some Lex.letterChar
+  Lex.space
+  return (Command (Text.pack cmd))
+
+begin :: Tokenizer Tok
+begin = do
+  return (BeginEnv undefined)
+
+end :: Tokenizer Tok
+end = do
+  return (EndEnv undefined)
+
+open :: Tokenizer Tok
+open = do
+  return (Open undefined)
+
+close :: Tokenizer Tok
+close = do
+  return (Close undefined)
