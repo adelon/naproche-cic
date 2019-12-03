@@ -1,5 +1,13 @@
 module Tokenize (Tok(..), Located(..), TokStream(..), printTok, toks) where
 
+{-
+  This module defines the tokenizer, which takes TEX input in the form of Text
+  and turn is into a list of tokens for further parsing.
+
+  Follows this section (by the main author of megaparsec):
+  https://markkarpov.com/tutorial/megaparsec.html#working-with-custom-input-streams
+-}
+
 
 import Prelude hiding (Word)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
