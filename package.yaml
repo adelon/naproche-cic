@@ -37,6 +37,9 @@ ghc-options:
   - -Wall
   - -fno-warn-unused-do-bind
 
+library:
+  source-dirs: source/
+
 executables:
   napcic:
     main: Main.hs

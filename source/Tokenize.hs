@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards   #-}
 
-module Tokenize (Tok(..), Located(..), TokStream(..), printTok, toks) where
+module Tokenize where
 
 {-
   This module defines the tokenizer, which takes TEX input in the form of Text

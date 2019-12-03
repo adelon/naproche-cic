@@ -1,12 +1,15 @@
 module TokenizerSpec where
 
 
+import Tokenize
+
 import Test.Hspec
 import Test.Hspec.Megaparsec
-
-import Tokenizer
-
+import Text.Megaparsec (parse)
+ 
 
 spec :: Spec
 spec = do
-  parse command "" "\\cmd" `shouldParse` "cmd"
+  describe "command" do
+    it "works" do  
+      parse command "" "\\cmd" `shouldParse` Command "cmd"
