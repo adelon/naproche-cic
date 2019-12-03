@@ -12,7 +12,7 @@ import Numeric.Natural (Natural)
 type Typ = Expr
 
 data Typing a b = a `Inhabits` b deriving (Show, Eq)
-data Proof a b  = a `Proves` b deriving (Show, Eq)
+data Proof a b = a `Proves` b deriving (Show, Eq)
 
 data Expr
   = Hole
@@ -22,9 +22,9 @@ data Expr
   | Bottom
   | Top
   | Prop Prop
-  | Expr `Times` Expr   -- Product
-  | Expr `Plus` Expr    -- Coproduct
-  | Expr `To` Expr      -- Exponential
+  | Expr `Times` Expr -- Product
+  | Expr `Plus` Expr -- Coproduct
+  | Expr `To` Expr -- Exponential
   | Pi Var Typ Expr
   | Sigma Var Typ Expr
   | Lambda Var Typ Expr

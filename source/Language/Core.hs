@@ -24,7 +24,7 @@ type StructParam = Typing Var StructName
 data StructDecl = StructDecl
   StructName
   [Typing Var StructName] -- ^ Structure parameters
-  [Typing Var Expr]       -- ^ Structure constants and operations
+  [Typing Var Expr] -- ^ Structure constants and operations
   [Prop]
 
 newtype Adj = Adj Text deriving (Eq, Show, IsString)

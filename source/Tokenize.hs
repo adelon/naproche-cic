@@ -66,7 +66,7 @@ pxy = Proxy
 
 instance Stream TokStream where
 
-  type Token  TokStream = Located Tok
+  type Token TokStream = Located Tok
   type Tokens TokStream = [Located Tok]
 
   tokenToChunk :: Proxy TokStream -> Token TokStream -> Tokens TokStream
