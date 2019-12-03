@@ -9,6 +9,8 @@ import Data.Foldable (asum)
 import Data.Functor ((<$))
 
 
+-- | Parses a pattern. Success is indicated by returning a list
+ -- of the variables used in the slots of the pattern.
 pattern :: Pattern -> Parser [Var]
 pattern (Pattern []) = return []
 pattern (Pattern (s:pat)) = do
@@ -17,7 +19,8 @@ pattern (Pattern (s:pat)) = do
     Nothing -> pattern (Pattern pat)
     Just v -> (v :) <$> pattern (Pattern pat)
 
-
+-- | Parses a shape. Success is indicated by returning @Nothing@
+-- for words and @Just Var@ for variables filling a slot.
 shape :: Shape -> Parser (Maybe Var)
 shape = \case
   Word w -> Nothing <$ asum (word <$> w)
