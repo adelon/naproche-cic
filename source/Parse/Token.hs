@@ -33,13 +33,12 @@ data Located a = Located
   , tokenVal :: a
   } deriving (Show, Eq, Ord)
 
+-- | A token stream for as input stream for a parser. Contains the raw input before tokenization
+-- as @Text@ for showing error messages.
 data TokStream = TokStream
-  { rawInput :: Text -- for showing lines in error messages
+  { rawInput :: Text
   , unTokStream :: [Located Tok]
-  }
-
-pxy :: Proxy TokStream
-pxy = Proxy
+  } deriving (Show, Eq)
 
 
 instance Stream TokStream where
@@ -125,6 +124,9 @@ instance Stream TokStream where
           Just nePre -> tokensLength pxy nePre
       restOfLine = Text.takeWhile (/= '\n') postStr
 
+pxy :: Proxy TokStream
+pxy = Proxy
+
 -- | Parses only the specified token. Note the polymorphic type. We do not want to depend on
 -- or import any of the particularities of the main parser (such as state) at the moment.
 exactly :: (MonadParsec e s p, Token s ~ Located Tok) => Tok -> p Tok
@@ -148,15 +150,19 @@ exactly c = token matcher expectation
         pos :: SourcePos
         pos = initialPos ""
 
+-- | @word@ parses a single word token. Case-insensitive.
 word :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
-word w = exactly (Word w)
+word w = exactly (Word (Text.toCaseFold w))
 
+-- | @word@ parses a single symbol token.
 symbol :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 symbol s = exactly (Symbol s)
 
+-- | Parses a list separated by "," or ", and".
 sepByComma :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p [a]
 sepByComma p = p `sepBy` (comma *> optional (word "and"))
 
+-- | Parses a list of at least one item separated by "," or ", and".
 sepByComma1 :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p [a]
 sepByComma1 p = p `sepBy1` (comma *> optional (word "and"))
 
