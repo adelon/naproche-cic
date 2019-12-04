@@ -2,7 +2,6 @@ module Language.Core where
 
 
 import Language.Expression
-import Language.Common
 
 import qualified Data.Sequence as Seq
 

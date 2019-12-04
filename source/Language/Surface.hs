@@ -2,13 +2,11 @@ module Language.Surface where
 
 
 import Language.Expression
-import Language.Common
 
 import qualified Data.Sequence as Seq
 
 import Data.Sequence (Seq, (<|), (|>))
 import Data.Text (Text)
-import Data.String (IsString)
 
 
 {-

@@ -1,12 +1,9 @@
 module Parse.Document where
 
 
-import Base.Parser
-import Language.Expression
+import Base.Parser (Parser, many1)
 
 import Parse.Declaration
-import Parse.Expression
-import Parse.Instruction
 
 
 newtype Document = Document [Declaration] deriving (Show)
