@@ -5,7 +5,6 @@ import Base.Parser
 import Language.Common (Var)
 import Language.Expression
 import Parse.Expression
-import Parse.Var
 
 import Data.Text (Text)
 
@@ -14,11 +13,11 @@ type Adj = Text
 
 
 data Statement
-  = StatementQuantified [Var] Statement
+  = StatementQuantified [Typing Var Typ] Statement
   | StatementImplication Statement Statement
   | StatementNegated Statement
   | StatementChain Chain
-  deriving (Show, Eq, Ord)
+  deriving (Show, Eq)
 
 
 statement :: Parser Statement
@@ -50,8 +49,21 @@ headed = quantified <|> ifThen <|> negated
       stmt2 <- statement
       return (StatementImplication stmt1 stmt2)
 
-
+quantifierChain :: Parser [Typing Var Typ]
 quantifierChain = error "Parse.Statement.quantifierChain incomplete"
+
+quantifiedNotion :: Parser (Typing Var Typ)
+quantifiedNotion = label "quantified notion" (universal <|> existential <|> no)
+  where
+    universal = do
+      word "all"
+      varInfo <- notion
+      -- TODO this needs to be registered as local variable information.
+      return varInfo
+
+    existential = error "Parse.Statement.quantifiedNotion incomplete"
+
+    no = error "Parse.Statement.quantifiedNotion incomplete"
 
 
 chained :: Parser Statement
@@ -68,3 +80,12 @@ chained = StatementChain <$> (andOrChain <|> neitherNorChain)
 data Chain
   = Chain
   deriving (Show, Eq, Ord)
+
+notion :: Parser (Typing Var Typ)
+notion = notionExpr
+  where
+    notionExpr = math typing
+
+
+atomic :: Parser Statement
+atomic = error "Parse.Statement.atomic incomplete"
