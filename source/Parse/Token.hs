@@ -14,13 +14,16 @@ import Tokenize
 
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Data.Proxy
+import Data.Void (Void)
 import Data.Text (Text)
+import Data.Set (Set)
 import Prelude hiding (Word)
 import Text.Megaparsec
 
-import qualified Data.Text as Text
 import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Set as Set
+import qualified Data.Text as Text
 
 
 data Located a = Located
@@ -37,6 +40,8 @@ data TokStream = TokStream
 
 pxy :: Proxy TokStream
 pxy = Proxy
+
+type Parser = ParsecT Void TokStream (State ())
 
 instance Stream TokStream where
 
@@ -120,3 +125,26 @@ instance Stream TokStream where
           Nothing -> 0
           Just nePre -> tokensLength pxy nePre
       restOfLine = Text.takeWhile (/= '\n') postStr
+
+
+liftTok :: Tok -> Located Tok
+liftTok t = Located pos pos 0 t
+  where
+    pos :: SourcePos
+    pos = initialPos ""
+
+-- | Parses only the specified token.
+exactly :: Tok -> Parser Tok
+exactly c = token matcher expectation
+  where
+    -- This set describes which items were expected. In this case it is just
+    -- the single token @c@ that we lift into this set.
+    expectation :: Set (ErrorItem (Located Tok))
+    expectation = Set.singleton (Tokens (liftTok c :| []))
+
+    -- Matching function for token parsing.
+    matcher :: Token TokStream -> Maybe Tok
+    matcher (Located _start _end _length t) =
+      if t == c
+        then Just t
+        else Nothing
