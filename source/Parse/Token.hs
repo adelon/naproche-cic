@@ -10,11 +10,11 @@ module Parse.Token where
 -}
 
 
-import Tokenize
+import Tokenize (Tok(..), printTok)
 
+import Control.Monad (void)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Data.Proxy
-import Data.Void (Void)
 import Data.Text (Text)
 import Data.Set (Set)
 import Prelude hiding (Word)
@@ -41,7 +41,6 @@ data TokStream = TokStream
 pxy :: Proxy TokStream
 pxy = Proxy
 
-type Parser = ParsecT Void TokStream (State ())
 
 instance Stream TokStream where
 
@@ -126,15 +125,9 @@ instance Stream TokStream where
           Just nePre -> tokensLength pxy nePre
       restOfLine = Text.takeWhile (/= '\n') postStr
 
-
-liftTok :: Tok -> Located Tok
-liftTok t = Located pos pos 0 t
-  where
-    pos :: SourcePos
-    pos = initialPos ""
-
--- | Parses only the specified token.
-exactly :: Tok -> Parser Tok
+-- | Parses only the specified token. Note the polymorphic type. We do not want to depend on
+-- or import any of the particularities of the main parser (such as state) at the moment.
+exactly :: (MonadParsec e s p, Token s ~ Located Tok) => Tok -> p Tok
 exactly c = token matcher expectation
   where
     -- This set describes which items were expected. In this case it is just
@@ -148,3 +141,27 @@ exactly c = token matcher expectation
       if t == c
         then Just t
         else Nothing
+
+    liftTok :: Tok -> Located Tok
+    liftTok t = Located pos pos 0 t
+      where
+        pos :: SourcePos
+        pos = initialPos ""
+
+word :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
+word w = exactly (Word w)
+
+symbol :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
+symbol s = exactly (Symbol s)
+
+sepByComma :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p [a]
+sepByComma p = p `sepBy` (comma *> optional (word "and"))
+
+sepByComma1 :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p [a]
+sepByComma1 p = p `sepBy1` (comma *> optional (word "and"))
+
+comma :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
+comma = void (symbol ",")
+
+period :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
+period = void (symbol ".")

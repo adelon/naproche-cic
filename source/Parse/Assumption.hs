@@ -13,7 +13,7 @@ data Assumption
   deriving (Show, Eq)
 
 assumption :: Parser Assumption
-assumption = pretyping <|> Assumption <$> (exact "suppose" *> statement)
+assumption = pretyping <|> Assumption <$> (word "suppose" *> statement)
 
 pretyping :: Parser Assumption
 pretyping = do
