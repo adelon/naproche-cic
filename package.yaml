@@ -43,7 +43,11 @@ library:
 executables:
   napcic:
     main: Main.hs
-    source-dirs: source/
+    source-dirs: app/
+    dependencies:
+      - napcic
+      - hspec
+      - hspec-megaparsec
 
 tests:
   napcic-test:
