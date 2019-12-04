@@ -10,15 +10,15 @@ module Tokenize where
   https://markkarpov.com/tutorial/megaparsec.html#working-with-custom-input-streams
 -}
 
-
-import Prelude hiding (Word)
+import Data.Char
+import Data.Foldable (asum)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Data.Proxy
-import Data.Void
-import Text.Megaparsec
 import Data.Text (Text)
+import Data.Void
+import Prelude hiding (Word)
+import Text.Megaparsec
 
-import Data.Foldable (asum)
 
 import qualified Data.Text as Text
 import qualified Data.List as List
@@ -163,27 +163,33 @@ instance Stream TokStream where
           Just nePre -> tokensLength pxy nePre
       restOfLine = Text.takeWhile (/= '\n') postStr
 
--- | Instead of adding explicit state to our tokenizer, we define mutually recursive parsers
--- @toks@ and @mathToks@ that switch between the two tokenizing modes of normal mode and math mode.
-toks, mathToks :: Tokenizer [Tok]
-toks = do
-  t <- tok
-  case t of
-    BeginEnv "math" -> (t :) <$> mathToks
-    _ -> (t :) <$> toks
-mathToks = do
-  t <- mathTok
-  case t of
-    EndEnv "math" -> (t :) <$> toks
-    _ -> (t :) <$> mathToks
+-- | Parses tokens, switching tokenizing mode when encountering math environments.
+toks :: Tokenizer [Tok]
+toks = go id
+  where
+    -- Instead of adding explicit state to our tokenizer we implement a token parser using two
+    -- mutually recursive helper functions.
+    go f = do
+      r <- optional tok
+      case r of
+        Nothing -> return (f [])
+        Just t@(BeginEnv "math") -> go' (f . (t:))
+        Just t -> go (f . (t:))
+    go' f = do
+      r <- optional mathTok
+      case r of
+        Nothing -> return (f [])
+        Just t@(EndEnv "math") -> go (f . (t:))
+        Just t -> go' (f . (t:))
+{-# INLINE toks #-}
 
 -- | Parses a single normal mode token.
 tok :: Tokenizer Tok
-tok = word <|> begin <|> end <|> open <|> close <|> command
+tok = word <|> symbol <|> begin <|> end <|> open <|> close <|> command
 
 -- | Parses a single math mode token.
 mathTok :: Tokenizer Tok
-mathTok = var <|> begin <|> end <|> open <|> close <|> command
+mathTok = var <|> symbol <|> begin <|> end <|> open <|> close <|> command
 
 -- | Parses a word. Words are returned casefolded, since we want to ignore their case later on.
 word :: Tokenizer Tok
@@ -239,6 +245,14 @@ var = Variable <$> lexeme (letter <|> bb <|> greek)
       Lex.string cmd
       return symb
 
+symbol :: Tokenizer Tok
+symbol = lexeme do
+  symb <- some (satisfy (\c -> isDigit c || c `elem` symbols))
+  return (Symbol (Text.pack symb))
+    where
+      symbols :: [Char]
+      symbols = ".,:;!?@"
+
 -- | Parses a TEX-style command.
 command :: Tokenizer Tok
 command = lexeme do
@@ -260,19 +274,21 @@ end = lexeme do
   try (Lex.string "\\end{")
   env <- some Lex.letterChar
   Lex.char '}'
-  return (BeginEnv (Text.pack env))
+  return (EndEnv (Text.pack env))
 
 -- | Parses an opening delimiter.
 open :: Tokenizer Tok
-open = paren <|> brace
+open = lexeme (paren <|> brace)
   where
     brace = Open Brace <$ lexeme (try (Lex.string "\\{"))
     paren = Open Paren <$ lexeme (Lex.char '(')
 
 -- | Parses a closing delimiter.
 close :: Tokenizer Tok
-close = do
-  return (Close undefined)
+close = lexeme (paren <|> brace)
+  where
+    brace = Open Brace <$ lexeme (try (Lex.string "\\}"))
+    paren = Open Paren <$ lexeme (Lex.char ')')
 
 -- | Turns a tokenizer into one that consumes trailing whitespace.
 lexeme :: Tokenizer a -> Tokenizer a
