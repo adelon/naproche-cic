@@ -93,11 +93,42 @@ data Chain
   = Chain
   deriving (Show, Eq, Ord)
 
-notion :: Parser (Typing Var Typ)
+
+
+type Notion = Typing Var Typ
+
+notion :: Parser Notion
 notion = notionExpr
   where
     notionExpr = math typing
 
 
-atomic :: Parser Statement
-atomic = error "Parse.Statement.atomic incomplete"
+data AtomicStatement
+  = Thesis   -- ^ The current goal.
+  | Contrary -- ^ Negation of the current goal.
+  | Contradiction -- ^ Bottom.
+  | SymbolicStatement Prop
+  | IsAdj Notion Adj
+
+atomicStatement :: Parser AtomicStatement
+atomicStatement = symbolicStatement <|> isAdj <|> constStatement
+  where
+    symbolicStatement :: Parser AtomicStatement
+    symbolicStatement = error "Parse.Statement.atomicStatement incomplete"
+
+    isAdj :: Parser AtomicStatement
+    isAdj = do
+      n <- notion
+      word "is"
+      adj <- adjective
+      return (IsAdj n adj)
+      
+
+    constStatement, thesis, contrary, contradiction :: Parser AtomicStatement
+    constStatement = thesis <|> contrary <|> contradiction
+    thesis = Thesis <$ try (optional (word "the") *> word "thesis")
+    contrary = Contrary <$ try (optional (word "the") *> word "contrary")
+    contradiction = Contradiction <$ try (optional (word "a") *> word "contradiction")
+
+adjective :: Parser Adj
+adjective = error "Parse.Statement.adjective incomplete"
