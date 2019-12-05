@@ -13,12 +13,17 @@ type Adj = Text
 
 
 data Statement
-  = StatementQuantified [Typing Var Typ] Statement
+  = StatementQuantified [(Quantifier, Typing Var Typ)] Statement
   | StatementImplication Statement Statement
   | StatementNegated Statement
   | StatementChain Chain
   deriving (Show, Eq)
 
+data Quantifier 
+  = Universal 
+  | Existential 
+  | Nonexistential 
+  deriving (Show, Eq, Ord)
 
 statement :: Parser Statement
 statement = headed <|> chained
@@ -31,9 +36,9 @@ headed = quantified <|> ifThen <|> negated
 
     quantified :: Parser Statement
     quantified = do
-      vars <- quantifierChain
+      info <- quantifierChain
       stmt <- statement
-      return (StatementQuantified vars stmt)
+      return (StatementQuantified info stmt)
 
     negated :: Parser Statement
     negated = do
@@ -49,21 +54,28 @@ headed = quantified <|> ifThen <|> negated
       stmt2 <- statement
       return (StatementImplication stmt1 stmt2)
 
-quantifierChain :: Parser [Typing Var Typ]
+quantifierChain :: Parser [(Quantifier, Typing Var Typ)]
 quantifierChain = error "Parse.Statement.quantifierChain incomplete"
 
-quantifiedNotion :: Parser (Typing Var Typ)
-quantifiedNotion = label "quantified notion" (universal <|> existential <|> no)
+quantifiedNotion :: Parser (Quantifier, Typing Var Typ)
+quantifiedNotion = label "quantified notion" (universal <|> existential <|> nonexistential)
   where
+    universal, existential, nonexistential :: Parser (Quantifier, Typing Var Typ)
     universal = do
       word "all"
       varInfo <- notion
       -- TODO this needs to be registered as local variable information.
-      return varInfo
-
-    existential = error "Parse.Statement.quantifiedNotion incomplete"
-
-    no = error "Parse.Statement.quantifiedNotion incomplete"
+      return (Universal, varInfo)
+    existential = do
+      word "some"
+      varInfo <- notion
+      -- TODO this needs to be registered as local variable information.
+      return (Existential, varInfo)
+    nonexistential = do
+      word "no"
+      varInfo <- notion
+      -- TODO this needs to be registered as local variable information.
+      return (Nonexistential, varInfo)
 
 
 chained :: Parser Statement
