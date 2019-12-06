@@ -10,7 +10,7 @@ module Parse.Token where
 -}
 
 
-import Tokenize (Tok(..), printTok)
+import Tokenize (Tok(..), Delim(..), printTok)
 
 import Control.Monad (void)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
@@ -157,6 +157,47 @@ word w = exactly (Word (Text.toCaseFold w))
 -- | @word@ parses a single symbol token.
 symbol :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 symbol s = exactly (Symbol s)
+
+-- | @command@ parses a single command token.
+command :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
+command cmd = exactly (Command cmd)
+
+-- | @begin@ and @end@ each parse a single begin and end token.
+begin, end :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
+begin env = exactly (BeginEnv env)
+end env = exactly (EndEnv env)
+
+surroundedBy :: Applicative p => p t -> p a -> p b -> p b
+surroundedBy open close p = do
+  open
+  content <- p
+  close
+  return content
+{-# INLINE surroundedBy #-}
+
+environment :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p a -> p a
+environment env = surroundedBy (begin env) (end env)
+
+math :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
+math = environment "math"
+
+delimited :: (MonadParsec e s p, Token s ~ Located Tok) => Delim -> p a -> p a
+delimited delim = surroundedBy (exactly (Open delim)) (exactly (Close delim))
+{-# INLINE delimited #-}
+
+grouped :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
+grouped = delimited Invis
+
+braced :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
+braced = delimited Brace
+
+parenthesized :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
+parenthesized = delimited Paren
+
+bracketed :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
+bracketed = delimited Bracket
+
+
 
 -- | Parses a list separated by "," or ", and".
 sepByComma :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p [a]
