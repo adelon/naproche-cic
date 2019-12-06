@@ -137,7 +137,6 @@ exactly c = token matcher expectation
     expectation :: Set (ErrorItem (Located Tok))
     expectation = Set.singleton (Tokens (liftTok c :| []))
 
-    -- Matching function for token parsing.
     matcher :: Token TokStream -> Maybe Tok
     matcher (Located _start _end _length t) =
       if t == c
@@ -161,6 +160,20 @@ symbol s = exactly (Symbol s)
 -- | @command@ parses a single command token.
 command :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 command cmd = exactly (Command cmd)
+
+-- | @variable@ parses any variable token.
+variable :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
+variable = label "variable" $ token matcher Set.empty
+  where
+    -- We do not use @satisfy isVariable@ for the implementation, since this
+    -- yields an unnecessary @MonadFail@ constraint. This way we know enough
+    -- to have a simpler type signature and we also have fine control over
+    -- the error behavior.
+    matcher :: Token TokStream -> Maybe Text
+    matcher (Located _start _end _length t) = case t of
+        Variable v -> Just v
+        _ -> Nothing
+
 
 -- | @begin@ and @end@ each parse a single begin and end token.
 begin, end :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
