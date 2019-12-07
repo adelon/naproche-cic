@@ -15,5 +15,3 @@ import Base.Parser as Export (Registry(..), initRegistry)
 -- | Increments @idCount@ by 1.
 incrIdCount :: Registry -> Registry
 incrIdCount regis@Registry{idCount} = regis{idCount = succ idCount}
-
-

@@ -5,6 +5,7 @@ import Base.Parser
 import Language.Expression
 import Parse.Expression (typing)
 import Parse.Statement (Statement, statement)
+import Parse.Token
 
 
 data Assumption

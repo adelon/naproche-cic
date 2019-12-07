@@ -10,7 +10,7 @@ module Parse.Token where
 -}
 
 
-import Tokenize (Tok(..), Delim(..), printTok)
+import Tokenize (Tok(..), Delim(..), printTok, Located(..))
 
 import Control.Monad (void)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
@@ -24,14 +24,6 @@ import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Set as Set
 import qualified Data.Text as Text
-
-
-data Located a = Located
-  { startPos :: SourcePos
-  , endPos :: SourcePos
-  , tokenLength :: Int
-  , tokenVal :: a
-  } deriving (Show, Eq, Ord)
 
 -- | A token stream for as input stream for a parser. Contains the raw input before tokenization
 -- as @Text@ for showing error messages.

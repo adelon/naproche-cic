@@ -5,9 +5,12 @@ import Base.Parser
 import Language.Common (Var)
 import Language.Expression
 import Parse.Expression
+import Parse.Token
+import Tokenize (Tok(..), Located(..))
 
 import Data.Text (Text)
 
+import qualified Data.Set as Set
 
 type Adj = Text
 
@@ -19,10 +22,10 @@ data Statement
   | StatementChain Chain
   deriving (Show, Eq)
 
-data Quantifier 
-  = Universal 
-  | Existential 
-  | Nonexistential 
+data Quantifier
+  = Universal
+  | Existential
+  | Nonexistential
   deriving (Show, Eq, Ord)
 
 statement :: Parser Statement
@@ -122,7 +125,7 @@ atomicStatement = symbolicStatement <|> isAdj <|> constStatement
       word "is"
       adj <- adjective
       return (IsAdj n adj)
-      
+
 
     constStatement, thesis, contrary, contradiction :: Parser AtomicStatement
     constStatement = thesis <|> contrary <|> contradiction
@@ -131,4 +134,11 @@ atomicStatement = symbolicStatement <|> isAdj <|> constStatement
     contradiction = Contradiction <$ try (optional (word "a") *> word "contradiction")
 
 adjective :: Parser Adj
-adjective = error "Parse.Statement.adjective incomplete"
+adjective = do
+  adjs <- getAdjs
+  let
+    isAdj :: Token TokStream -> Bool
+    isAdj t = tokenVal t `elem` (Set.map Word adjs)
+  result <- satisfy isAdj
+  let Word adj = tokenVal result
+  return adj

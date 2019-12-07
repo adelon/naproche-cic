@@ -3,7 +3,8 @@ module Parse.Pattern where
 import Base.Parser
 import Language.Common (Var)
 import Language.Pattern (Pattern(..), Shape(..))
-import Parse.Var (var)
+import Parse.Expression (var)
+import Parse.Token (word)
 
 import Data.Foldable (asum)
 import Data.Functor ((<$))

@@ -4,6 +4,7 @@ module Parse.Declaration where
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
 import Parse.Statement (Statement, statement)
+import Parse.Token (environment)
 
 
 data Declaration
@@ -40,5 +41,5 @@ definition = environment "definition" do
 data Theorem = Theorem deriving (Show, Eq)
 
 theorem :: Parser Theorem
-theorem = environments ["theorem", "lemma", "proposition"] do
+theorem = environment "proposition" do
   error "Declaration.theorem unfinished"

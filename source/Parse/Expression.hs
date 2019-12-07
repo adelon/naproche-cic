@@ -2,8 +2,8 @@ module Parse.Expression where
 
 import Base.Parser
 import Language.Expression
-
-import Parse.Var (var)
+import Parse.Token
+import Language.Common (Var(..))
 
 import Prelude hiding (pi)
 
@@ -11,14 +11,14 @@ import Prelude hiding (pi)
 annotated :: Parser (Typing Expr Typ)
 annotated = do
   e <- expression
-  exact ":" <|> exact "\\in"
+  symbol ":" <|> command "in"
   ty <- expression
   return (e `Inhabits` ty)
 
 typing :: Parser (Typing Var Typ)
 typing = do
   v <- var
-  exact ":" <|> exact "\\in"
+  symbol ":" <|> command "in"
   ty <- expression
   return (v `Inhabits` ty)
 
@@ -29,15 +29,17 @@ expression = label "expression" do
 
 term :: Parser Expr
 term = parenthesized expression
-  <|> try (Free <$> var)
-  <|> try iden
+  <|> (Free <$> var)
   <|> pi
-  <|> constant
 
 pi :: Parser Expr
 pi = do
   try (command "Pi")
-  exact "_"
+  symbol "_"
   v `Inhabits` ty <- braced typing
   e <- expression
   return (Pi v ty e)
+
+var :: Parser Var
+var = Var <$> variable
+{-# INLINE var #-}

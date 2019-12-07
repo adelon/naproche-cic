@@ -4,26 +4,23 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Language.Common (Var)
+import Parse.Token
 
 import Control.Monad.Combinators.Expr as Export
 import Control.Monad.State.Strict
-import Data.Foldable (asum)
 import Data.Set (Set)
 import Data.Map (Map)
 import Data.Text as Export (Text, pack)
 import Data.Void
 import Numeric.Natural (Natural)
-import Text.Megaparsec as Export hiding (State)
+import Text.Megaparsec as Export hiding (State, parse)
 
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
-import qualified Data.Text as Text
-import qualified Text.Megaparsec.Char as Lex
 
 
 -- TODO: Replace `Void` with proper error component.
-type Parser = ParsecT Void Text (State Registry)
+type Parser = ParsecT Void TokStream (State Registry)
 
 -- Windows 3.1 sends kind regards!
 data Registry = Registry
@@ -45,143 +42,50 @@ initRegistry = Registry
   where
     primOperators :: [[Operator Parser Expr]]
     primOperators =
-      [ [ InfixR (makePrimOp "+" "prim_plus")
+      [ [ InfixR (makePrimOp (symbol "+") "prim_plus")
         ]
-      , [ InfixN (makeOp "=" \x y -> Prop (x `Equals` y))
+      , [ InfixN (makeOp (symbol "=") \x y -> Prop (x `Equals` y))
         ]
-      , [ InfixR (makeOp "\\times" (Times))
-        , InfixR (makeOp "\\sqcup" (Plus))
+      , [ InfixR (makeOp (command "times") (Times))
+        , InfixR (makeOp (command "sqcup") (Plus))
         ]
-      , [ InfixR (makeOp "\\land" \x y -> Prop (x `And` y))
-        , InfixR (makeOp "\\lor"  \x y -> Prop (x `Or`  y))
+      , [ InfixR (makeOp (command "land") \x y -> Prop (x `And` y))
+        , InfixR (makeOp (command "lor")  \x y -> Prop (x `Or`  y))
         ]
       ]
 
-    makeOp :: Text -> a -> Parser a
-    makeOp op constr = exact op >> return constr
+    makeOp :: Parser op -> a -> Parser a
+    makeOp op constr = op >> return constr
+    {-# INLINE makeOp #-}
 
     primOfNotions :: Map Text Expr
     primOfNotions = Map.fromList [("successor", Const "succ")]
 
-makePrimOp :: Text -> Text -> Parser (Expr -> Expr -> Expr)
-makePrimOp op prim = do
-  exact op
-  return (\x y -> Const prim `App` x `App` y)
+makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)
+makePrimOp op prim = op >> return (\x y -> Const prim `App` x `App` y)
 
-getOperators :: MonadState Registry m => m [[Operator Parser Expr]]
+getOperators :: Parser [[Operator Parser Expr]]
 getOperators = operators <$> get
+{-# INLINE getOperators #-}
 
 -- TODO: Also handle priority and associativity.
-registerOperator :: MonadState Registry m => Text -> Text -> m ()
+registerOperator :: Parser op -> Text -> Parser ()
 registerOperator op prim = do
   st <- get
   let ops = operators st
   let ops' = ops <> [[InfixR (makePrimOp op prim)]]
   put st{operators = ops'}
 
-getAdjs :: MonadState Registry p => p (Set Text)
+getAdjs :: Parser (Set Text)
 getAdjs = do
   st <- get
   return (collectiveAdjs st `Set.union` distributiveAdjs st)
-
-
+{-# INLINE getAdjs #-}
 
 many1 :: Parser a -> Parser [a]
 many1 = some
+{-# INLINE many1 #-}
 
 many1Till :: Parser a -> Parser end -> Parser [a]
 many1Till = someTill
-
-
-
--- `word` parses a word, ignoring case, and consume trailing whitespace.
-word :: Text -> Parser Text
-word w = do
-  w' <- Lex.string' w
-  Lex.space
-  return w'
-
--- | Parses a specified literal and consumes trailing whitespace.
-exact :: Text -> Parser Text
-exact s = do
-  Lex.string s
-  Lex.space
-  return s
-
-command :: Text -> Parser Text
-command cmd = do
-  exact (Text.cons '\\' cmd)
-  return cmd
-
-period :: Parser ()
-period = void (exact ".")
-
-comma :: Parser ()
-comma = void (exact ",")
-
-letter :: Parser Text
-letter = do
-  l <- Lex.letterChar
-  Lex.space
-  return (Text.singleton l)
-
-iden :: Parser Expr
-iden = Const <$> do
-  Lex.string "\\iden{"
-  name <- identifier
-  Lex.char '}'
-  Lex.space
-  return name
-
-constant :: Parser Expr
-constant = Const <$> identifier
-
-identifier :: Parser Text
-identifier = pack <$> many1 Lex.letterChar
-
-
-
-
-
-environment :: Text -> Parser a -> Parser a
-environment env p = do
-  exact ("\\begin{" <> env <> "}")
-  content <- p
-  exact ("\\end{" <> env <> "}")
-  return content
-
-environments :: [Text] -> Parser a -> Parser a
-environments envs p = do
-  Lex.string "\\begin{"
-  env <- asum (Lex.string <$> envs)
-  Lex.char '}'
-  Lex.space
-  content <- p
-  Lex.string "\\end{"
-  Lex.string env
-  Lex.char '}'
-  Lex.space
-  return content
-
-surroundedBy :: Text -> Text -> Parser a -> Parser a
-surroundedBy open close p = do
-  exact open
-  content <- p
-  exact close
-  return content
-
--- | Turns a parser into a parser that parses the same thing,
--- but requires it to be embedded in a math environment.
-math :: Parser a -> Parser a
-math p = try (surroundedBy "$" "$" p)
-  <|> try (surroundedBy "\\[" "\\]" p)
-  <|> (surroundedBy "\\(" "\\)" p)
-
-braced :: Parser a -> Parser a
-braced = surroundedBy "{" "}"
-
-parenthesized :: Parser a -> Parser a
-parenthesized = surroundedBy "(" ")"
-
-bracketed :: Parser a -> Parser a
-bracketed = surroundedBy "[" "]"
+{-# INLINE many1Till #-}
