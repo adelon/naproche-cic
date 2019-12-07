@@ -17,7 +17,7 @@ import Numeric.Natural (Natural)
 import Text.Megaparsec as Export hiding (State)
 
 import qualified Data.Map.Strict as Map
---import qualified Data.Set as Set
+import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Text.Megaparsec.Char as Lex
 
@@ -29,7 +29,7 @@ type Parser = ParsecT Void Text (State Registry)
 data Registry = Registry
   { collectiveAdjs :: Set Text
   , distributiveAdjs :: Set Text
-  , symbolicNotions :: Map Var Expr
+  , ofNotions :: Map Text Expr
   , operators :: [[Operator Parser Expr]]
   , idCount :: Natural
   }
@@ -38,17 +38,11 @@ initRegistry :: Registry
 initRegistry = Registry
   { collectiveAdjs = mempty
   , distributiveAdjs = mempty
-  , symbolicNotions = primSymbolicNotions
   , operators = primOperators
+  , ofNotions = primOfNotions
   , idCount = 0
   }
   where
-
-    primSymbolicNotions :: Map Var Expr
-    primSymbolicNotions = Map.fromList
-      [ ("ℕ", Const "nat")
-      ]
-
     primOperators :: [[Operator Parser Expr]]
     primOperators =
       [ [ InfixR (makePrimOp "+" "prim_plus")
@@ -64,10 +58,10 @@ initRegistry = Registry
       ]
 
     makeOp :: Text -> a -> Parser a
-    makeOp op constr = do
-      exact op
-      return constr
+    makeOp op constr = exact op >> return constr
 
+    primOfNotions :: Map Text Expr
+    primOfNotions = Map.fromList [("successor", Const "succ")]
 
 makePrimOp :: Text -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = do
@@ -85,7 +79,10 @@ registerOperator op prim = do
   let ops' = ops <> [[InfixR (makePrimOp op prim)]]
   put st{operators = ops'}
 
-
+getAdjs :: MonadState Registry p => p (Set Text)
+getAdjs = do
+  st <- get
+  return (collectiveAdjs st `Set.union` distributiveAdjs st)
 
 
 
