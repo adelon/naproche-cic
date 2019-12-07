@@ -185,12 +185,15 @@ close = lexeme (paren <|> brace)
     brace = Open Brace <$ lexeme (try (Lex.string "\\}"))
     paren = Open Paren <$ lexeme (Lex.char ')')
 
--- | Turns a tokenizer into one that consumes trailing whitespace.
+-- | Turns a tokenizer into one that tracks the source position of the token
+-- and consumes trailing whitespace.
 lexeme :: Tokenizer a -> Tokenizer (Located a)
 lexeme p = do
-  startPos <- getSourcePos
+  start <- getSourcePos
   t <- p
+  stop <- getSourcePos
   Lex.space
-  endPos <- getSourcePos
-  let tokenLength = 1 -- TODO
-  return (Located startPos endPos tokenLength t)
+  -- We calculate the length of the token naively, assuming
+  -- that a token never spans multiple lines.
+  let l = unPos (sourceLine start) - unPos (sourceLine stop)
+  return (Located start stop l t)
