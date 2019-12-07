@@ -152,14 +152,17 @@ exactly c = token matcher expectation
 -- | @word@ parses a single word token. Case-insensitive.
 word :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 word w = exactly (Word (Text.toCaseFold w))
+{-# INLINE word #-}
 
 -- | @word@ parses a single symbol token.
 symbol :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 symbol s = exactly (Symbol s)
+{-# INLINE symbol #-}
 
 -- | @command@ parses a single command token.
 command :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 command cmd = exactly (Command cmd)
+{-# INLINE command #-}
 
 -- | @variable@ parses any variable token.
 variable :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
@@ -173,55 +176,76 @@ variable = label "variable" $ token matcher Set.empty
     matcher (Located _start _end _length t) = case t of
         Variable v -> Just v
         _ -> Nothing
+{-# INLINE variable #-}
 
-
--- | @begin@ and @end@ each parse a single begin and end token.
-begin, end :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
+-- | @begin@ parses a single begin.
+begin :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 begin env = exactly (BeginEnv env)
+{-# INLINE begin #-}
+
+-- | @end@ parses a single end token.
+end :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 end env = exactly (EndEnv env)
+{-# INLINE end #-}
 
 surroundedBy :: Applicative p => p t -> p a -> p b -> p b
-surroundedBy open close p = do
-  open
+surroundedBy start stop p = do
+  start
   content <- p
-  close
+  stop
   return content
 {-# INLINE surroundedBy #-}
 
 environment :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p a -> p a
 environment env = surroundedBy (begin env) (end env)
+{-# INLINE environment #-}
 
 math :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
 math = environment "math"
+{-# INLINE math #-}
+
+open :: (MonadParsec e s p, Token s ~ Located Tok) => Delim -> p Tok
+open delim = exactly (Open delim)
+{-# INLINE open #-}
+
+close :: (MonadParsec e s p, Token s ~ Located Tok) => Delim -> p Tok
+close delim = exactly (Close delim)
+{-# INLINE close #-}
 
 delimited :: (MonadParsec e s p, Token s ~ Located Tok) => Delim -> p a -> p a
-delimited delim = surroundedBy (exactly (Open delim)) (exactly (Close delim))
+delimited delim = surroundedBy (open delim) (close delim)
 {-# INLINE delimited #-}
 
 grouped :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
 grouped = delimited Invis
+{-# INLINE grouped #-}
 
 braced :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
 braced = delimited Brace
+{-# INLINE braced #-}
 
 parenthesized :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
 parenthesized = delimited Paren
+{-# INLINE parenthesized #-}
 
 bracketed :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
 bracketed = delimited Bracket
-
-
+{-# INLINE bracketed #-}
 
 -- | Parses a list separated by "," or ", and".
 sepByComma :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p [a]
 sepByComma p = p `sepBy` (comma *> optional (word "and"))
+{-# INLINE sepByComma #-}
 
 -- | Parses a list of at least one item separated by "," or ", and".
 sepByComma1 :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p [a]
 sepByComma1 p = p `sepBy1` (comma *> optional (word "and"))
+{-# INLINE sepByComma1 #-}
 
 comma :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 comma = void (symbol ",")
+{-# INLINE comma #-}
 
 period :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 period = void (symbol ".")
+{-# INLINE period #-}
