@@ -11,8 +11,8 @@ import Numeric.Natural (Natural)
 
 type Typ = Expr
 
-data Typing a b = a `Inhabits` b deriving (Show, Eq)
-data Proof a b = a `Proves` b deriving (Show, Eq)
+data Typing a b = a `Inhabits` b deriving (Show, Eq, Ord)
+data Proof a b = a `Proves` b deriving (Show, Eq, Ord)
 
 data Expr
   = Hole
@@ -30,7 +30,7 @@ data Expr
   | Lambda Var Typ Expr
   | Expr `App` Expr
   | Array [Expr]
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 infixr 4 `To`
 infixl 6 `App`
@@ -44,5 +44,5 @@ data Prop
   | Expr `Or` Expr
   | Expr `Implies` Expr
   | Forall
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 

@@ -112,6 +112,7 @@ data AtomicStatement
   | Contradiction -- ^ Bottom.
   | SymbolicStatement Prop
   | IsAdj Notion Adj
+  deriving (Show, Eq, Ord)
 
 atomicStatement :: Parser AtomicStatement
 atomicStatement = symbolicStatement <|> isAdj <|> constStatement
