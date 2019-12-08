@@ -4,7 +4,7 @@ module Parse.Declaration where
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
 import Parse.Statement (Statement, statement)
-import Parse.Token (environment)
+import Parse.Token (environment, period)
 
 
 data Declaration
@@ -20,14 +20,14 @@ declaration = DeclAxiom <$> try axiom
 
 
 data Axiom = Axiom
-  { assumptions :: [Assumption]
-  , content :: Statement
+  { assumptions :: ![Assumption]
+  , content :: !Statement
   } deriving (Show, Eq)
 
 axiom :: Parser Axiom
 axiom = environment "axiom" do
   asms <- many1 assumption
-  stmt <- statement
+  stmt <- statement `endedBy` period
   return (Axiom asms stmt)
 
 
@@ -35,11 +35,12 @@ data Definition = Definition deriving (Show, Eq)
 
 definition :: Parser Definition
 definition = environment "definition" do
-  error "Declaration.defn unfinished"
+  error "Declaration.definition unfinished"
 
 
-data Theorem = Theorem deriving (Show, Eq)
+data Theorem = Theorem Statement deriving (Show, Eq)
 
 theorem :: Parser Theorem
-theorem = environment "proposition" do
-  error "Declaration.theorem unfinished"
+theorem = environment "theorem" do
+  thm <- statement `endedBy` period
+  return (Theorem thm

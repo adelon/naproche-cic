@@ -25,10 +25,10 @@ typing = do
 expression :: Parser Expr
 expression = label "expression" do
   ops <- getOperators
-  makeExprParser term ops
+  makeExprParser expression' ops
 
-term :: Parser Expr
-term = parenthesized expression
+expression' :: Parser Expr
+expression' = parenthesized expression
   <|> (Free <$> var)
   <|> pi
 

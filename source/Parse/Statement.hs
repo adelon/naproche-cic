@@ -20,6 +20,8 @@ data Statement
   | StatementImplication Statement Statement
   | StatementNegated Statement
   | StatementChain Chain
+  -- v TODO: remove, this is just for prototyping.
+  | AtomicStatement AtomicStatement
   deriving (Show, Eq)
 
 data Quantifier
@@ -29,7 +31,7 @@ data Quantifier
   deriving (Show, Eq, Ord)
 
 statement :: Parser Statement
-statement = headed <|> chained
+statement = AtomicStatement <$> atomicStatement
 
 
 headed :: Parser Statement
@@ -66,17 +68,17 @@ quantifiedNotion = label "quantified notion" (universal <|> existential <|> none
     universal, existential, nonexistential :: Parser (Quantifier, Typing Var Typ)
     universal = do
       word "all"
-      varInfo <- notion
+      varInfo <- undefined
       -- TODO this needs to be registered as local variable information.
       return (Universal, varInfo)
     existential = do
       word "some"
-      varInfo <- notion
+      varInfo <- undefined
       -- TODO this needs to be registered as local variable information.
       return (Existential, varInfo)
     nonexistential = do
       word "no"
-      varInfo <- notion
+      varInfo <- undefined
       -- TODO this needs to be registered as local variable information.
       return (Nonexistential, varInfo)
 
@@ -94,16 +96,11 @@ chained = StatementChain <$> (andOrChain <|> neitherNorChain)
 
 data Chain
   = Chain
+  | End AtomicStatement
   deriving (Show, Eq, Ord)
 
 
 
-type Notion = Typing Var Typ
-
-notion :: Parser Notion
-notion = notionExpr
-  where
-    notionExpr = math typing
 
 
 data AtomicStatement
@@ -111,35 +108,67 @@ data AtomicStatement
   | Contrary -- ^ Negation of the current goal.
   | Contradiction -- ^ Bottom.
   | SymbolicStatement Prop
-  | IsAdj Notion Adj
+  | PredicativeAdj Term Adj
   deriving (Show, Eq, Ord)
 
 atomicStatement :: Parser AtomicStatement
-atomicStatement = symbolicStatement <|> isAdj <|> constStatement
+atomicStatement = predicativeAdj <|> constStatement
   where
-    symbolicStatement :: Parser AtomicStatement
-    symbolicStatement = error "Parse.Statement.atomicStatement incomplete"
-
-    isAdj :: Parser AtomicStatement
-    isAdj = do
-      n <- notion
-      word "is"
-      adj <- adjective
-      return (IsAdj n adj)
-
-
     constStatement, thesis, contrary, contradiction :: Parser AtomicStatement
     constStatement = thesis <|> contrary <|> contradiction
     thesis = Thesis <$ try (optional (word "the") *> word "thesis")
     contrary = Contrary <$ try (optional (word "the") *> word "contrary")
     contradiction = Contradiction <$ try (optional (word "a") *> word "contradiction")
 
+    predicativeAdj :: Parser AtomicStatement
+    predicativeAdj = do
+      n <- term
+      word "is"
+      adj <- adjective
+      return (PredicativeAdj n adj)
+
+data Term
+  = TermDefiniteSymbolic Expr
+  | TermDefiniteNoun
+  | TermQuantified Quantifier Notion
+  deriving (Show, Eq, Ord)
+
+term :: Parser Term
+term = do
+  (quant, noun) <- quantifiedTerm
+  return (TermQuantified quant noun)
+
+quantifiedTerm :: Parser (Quantifier, Notion)
+quantifiedTerm = label "quantified term" (universal <|> existential <|> nonexistential)
+  where
+    universal, existential, nonexistential :: Parser (Quantifier, Notion)
+    universal = do
+      try (word "every")
+      noun <- notion
+      return (Universal, noun)
+    existential = do
+      try (word "some")
+      noun <- notion
+      return (Existential, noun)
+    nonexistential = do
+      try (word "no")
+      noun <- notion
+      return (Nonexistential, noun)
+
+type Notion = Text
+
+notion :: Parser Notion
+notion = do
+  notions <- getNotions
+  let isNotion t = tokenVal t `elem` (Set.map Word notions)
+  result <- satisfy isNotion
+  let Word noun = tokenVal result
+  return noun
+
 adjective :: Parser Adj
-adjective = do
+adjective = label "adjective" do
   adjs <- getAdjs
-  let
-    isAdj :: Token TokStream -> Bool
-    isAdj t = tokenVal t `elem` (Set.map Word adjs)
+  let isAdj t = tokenVal t `elem` (Set.map Word adjs)
   result <- satisfy isAdj
   let Word adj = tokenVal result
   return adj

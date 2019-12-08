@@ -4,7 +4,7 @@ module Parse.Assumption where
 import Base.Parser
 import Language.Expression
 import Parse.Expression (typing)
-import Parse.Statement (Statement, statement)
+import Parse.Statement
 import Parse.Token
 
 

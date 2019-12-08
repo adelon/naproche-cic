@@ -26,6 +26,7 @@ type Parser = ParsecT Void TokStream (State Registry)
 data Registry = Registry
   { collectiveAdjs :: Set Text
   , distributiveAdjs :: Set Text
+  , nounNotions :: Set Text
   , ofNotions :: Map Text Expr
   , operators :: [[Operator Parser Expr]]
   , idCount :: Natural
@@ -33,10 +34,11 @@ data Registry = Registry
 
 initRegistry :: Registry
 initRegistry = Registry
-  { collectiveAdjs = mempty
+  { collectiveAdjs = primCollectiveAdjs
   , distributiveAdjs = mempty
   , operators = primOperators
   , ofNotions = primOfNotions
+  , nounNotions = primNounNotions
   , idCount = 0
   }
   where
@@ -58,8 +60,14 @@ initRegistry = Registry
     makeOp op constr = op >> return constr
     {-# INLINE makeOp #-}
 
+    primCollectiveAdjs :: Set Text
+    primCollectiveAdjs = Set.fromList ["even", "odd"]
+
     primOfNotions :: Map Text Expr
     primOfNotions = Map.fromList [("successor", Const "succ")]
+
+    primNounNotions :: Set Text
+    primNounNotions = Set.fromList ["integer", "boolean"]
 
 makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = op >> return (\x y -> Const prim `App` x `App` y)
@@ -81,6 +89,10 @@ getAdjs = do
   st <- get
   return (collectiveAdjs st `Set.union` distributiveAdjs st)
 {-# INLINE getAdjs #-}
+
+getNotions :: Parser (Set Text)
+getNotions = nounNotions <$> get
+{-# INLINE getNotions #-}
 
 many1 :: Parser a -> Parser [a]
 many1 = some
