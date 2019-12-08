@@ -207,5 +207,5 @@ lexeme p = do
   Lex.space
   -- We calculate the length of the token naively, assuming
   -- that a token never spans multiple lines.
-  let l = unPos (sourceLine start) - unPos (sourceLine stop)
+  let l = unPos (sourceLine start) - unPos (sourceLine stop) + 1
   return (Located start stop l t)
