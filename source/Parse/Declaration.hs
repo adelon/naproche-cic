@@ -26,7 +26,7 @@ data Axiom = Axiom
 
 axiom :: Parser Axiom
 axiom = environment "axiom" do
-  asms <- many1 assumption
+  asms <- many assumption
   stmt <- statement `endedBy` period
   return (Axiom asms stmt)
 
@@ -43,4 +43,4 @@ data Theorem = Theorem Statement deriving (Show, Eq)
 theorem :: Parser Theorem
 theorem = environment "theorem" do
   thm <- statement `endedBy` period
-  return (Theorem thm
+  return (Theorem thm)
