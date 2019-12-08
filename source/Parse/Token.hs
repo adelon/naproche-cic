@@ -146,6 +146,19 @@ word :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 word w = exactly (Word (Text.toCaseFold w))
 {-# INLINE word #-}
 
+anyWord :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
+anyWord = label "any word" $ token matcher Set.empty
+  where
+    -- We do not use @satisfy isWord@ for the implementation, since this
+    -- yields an unnecessary @MonadFail@ constraint. This way we know enough
+    -- to have a simpler type signature and we also have fine control over
+    -- the error behavior.
+    matcher :: Token TokStream -> Maybe Text
+    matcher (Located _start _end _length t) = case t of
+        Word w -> Just w
+        _ -> Nothing
+{-# INLINE anyWord #-}
+
 -- | @word@ parses a single symbol token.
 symbol :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 symbol s = exactly (Symbol s)

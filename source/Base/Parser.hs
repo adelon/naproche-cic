@@ -89,3 +89,9 @@ many1 = some
 many1Till :: Parser a -> Parser end -> Parser [a]
 many1Till = someTill
 {-# INLINE many1Till #-}
+
+-- | Parser negation. @never p@ succeeds iff when @p@ fails.
+-- Consumes nothing and does not change any parser state.
+never :: Parser a -> Parser ()
+-- The name @notFollowedBy@ is a bit unintuitive (seems like a binary combinator).
+never = notFollowedBy

@@ -1,28 +1,31 @@
 module Parse.Pattern where
 
 import Base.Parser
-import Language.Common (Var)
 import Language.Pattern (Pattern(..), Shape(..))
-import Parse.Expression (var)
-import Parse.Token (word)
+import Parse.Token (word, anyWord)
 
 import Data.Foldable (asum)
-import Data.Functor ((<$))
 
 
 -- | Parses a pattern. Success is indicated by returning a list
- -- of the variables used in the slots of the pattern.
-pattern :: Pattern -> Parser [Var]
-pattern (Pattern []) = return []
-pattern (Pattern (s:pat)) = do
-  mv <- shape s
-  case mv of
-    Nothing -> pattern (Pattern pat)
-    Just v -> (v :) <$> pattern (Pattern pat)
-
--- | Parses a shape. Success is indicated by returning @Nothing@
--- for words and @Just Var@ for variables filling a slot.
-shape :: Shape -> Parser (Maybe Var)
-shape = \case
-  Word w -> Nothing <$ asum (word <$> w)
-  Slot -> Just <$> var
+-- of the results of the parser used for slots of the pattern.
+pattern :: Parser a -> Pattern -> Parser [a]
+pattern _p (Pattern []) = return []
+pattern p (Pattern (s : s' : pat)) = do
+  case s of
+    Word w -> case s' of
+      -- This is intended to disambiguate things like
+      -- "x converges" and "x converges to y".
+      Slot -> do
+        try (asum (word <$> w) >> never anyWord) >> pattern p (Pattern (s' : pat))
+      Word _w -> do
+        asum (word <$> w) >> pattern p (Pattern (s' : pat))
+    Slot -> do
+      r <- p
+      (r :) <$> pattern p (Pattern (s' : pat))
+pattern p (Pattern (s : pat)) = do
+  case s of
+    Word w -> asum (word <$> w) >> pattern p (Pattern pat)
+    Slot -> do
+      r <- p
+      (r :) <$> pattern p (Pattern pat)
