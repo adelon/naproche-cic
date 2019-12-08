@@ -95,3 +95,11 @@ many1Till = someTill
 never :: Parser a -> Parser ()
 -- The name @notFollowedBy@ is a bit unintuitive (seems like a binary combinator).
 never = notFollowedBy
+{-# INLINE never #-}
+
+endedBy :: Parser a -> Parser end -> Parser a
+p `endedBy` end = do
+  result <- p
+  end
+  return result
+{-# INLINE endedBy #-}
