@@ -80,11 +80,23 @@ toks = go id
 
 -- | Parses a single normal mode token.
 tok :: Tokenizer (Located Tok)
-tok = word <|> symbol <|> begin <|> end <|> open <|> close <|> command
+tok = word <|> symbol <|> begin <|> end <|> open <|> close <|> command <|> mathBegin
 
 -- | Parses a single math mode token.
 mathTok :: Tokenizer (Located Tok)
-mathTok = var <|> symbol <|> begin <|> end <|> open <|> close <|> command
+mathTok = var <|> symbol <|> begin <|> end <|> open <|> close <|> command <|> mathEnd
+
+-- | Parses a single begin math token.
+mathBegin :: Tokenizer (Located Tok)
+mathBegin = lexeme do
+  try (Lex.string "\\(" <|> Lex.string "\\[" <|> Lex.string "$")
+  return (BeginEnv "math")
+
+-- | Parses a single end math token.
+mathEnd :: Tokenizer (Located Tok)
+mathEnd = lexeme do
+  try (Lex.string "\\)" <|> Lex.string "\\]" <|> Lex.string "$")
+  return (EndEnv "math")
 
 -- | Parses a word. Words are returned casefolded, since we want to ignore their case later on.
 word :: Tokenizer (Located Tok)
@@ -100,7 +112,7 @@ var = lexeme $ Variable <$> (letter <|> bb <|> greek)
     letter = Text.singleton <$> Lex.letterChar
 
     greek :: Tokenizer Text
-    greek = do
+    greek = try do
       Lex.char '\\'
       l <- asum (makeSymbolParser <$> greeks)
       return l
@@ -150,7 +162,7 @@ symbol = lexeme do
 
 -- | Parses a TEX-style command.
 command :: Tokenizer (Located Tok)
-command = lexeme do
+command = lexeme $ try do
   Lex.char '\\'
   cmd <- some Lex.letterChar
   return (Command (Text.pack cmd))

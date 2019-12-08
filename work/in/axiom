@@ -1,4 +1,4 @@
 \begin{axiom}
-  Let $n\in \mathbb{N}$.
-  Then $n = n$.
+  Let \( n\in \mathbb{N} \).
+  Then \( n = n \).
 \end{axiom}
