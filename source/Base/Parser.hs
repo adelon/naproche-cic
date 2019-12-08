@@ -4,14 +4,14 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Parse.Token
+import Parse.Token (TokStream, symbol, command)
 
-import Control.Monad.Combinators.Expr as Export
-import Control.Monad.State.Strict
-import Data.Set (Set)
+import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
+import Control.Monad.State.Strict (State, get, put)
 import Data.Map (Map)
+import Data.Set (Set)
 import Data.Text as Export (Text, pack)
-import Data.Void
+import Data.Void (Void)
 import Numeric.Natural (Natural)
 import Text.Megaparsec as Export hiding (State, parse)
 
