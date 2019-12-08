@@ -1,14 +1,15 @@
 # ...
 
-## Variable conventions
+## Variable conventions and abbreviations
 
 | Abbrev | Meaning
 | ------ | -------
 | adj    | adjective
 | aff    | affirm / affirmation
 | asm    | assume / assumption
-| cont   | continuation
-| dec    | decrement
+| bot    | bottom
+| cont   | continuation / continue
+| decr   | decrement
 | decl   | declaration
 | def    | definition
 | eps    | epsilon
@@ -17,12 +18,15 @@
 | expr   | expression
 | fun    | function
 | hypo   | hypothesis
-| inc    | increment
+| incr   | increment
+| init   | initial
 | instr  | instruction
+| op     | operator
 | param  | parameter
 | pat    | pattern
 | prim   | primitive
 | prop   | proposition / property
+| quant  | quantifier / quantified / quantification
 | sig    | signature
 | st     | state
 | stmt   | statement
@@ -30,5 +34,7 @@
 | sub    | substitution / substitute
 | surf   | surface
 | symb   | symbol / symbolic
+| thm    | theorem
+| tok    | token
 | typ    | type (as this is a keyword in haskell)
 | var    | variable
