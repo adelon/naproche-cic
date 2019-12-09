@@ -39,6 +39,8 @@ data Prop
   = Falsum
   | Verum
   | Squashed Expr
+  | Predicate Text
+  | Prop `PredApp` Expr
   | Expr `Equals` Expr
   | Expr `And` Expr
   | Expr `Or` Expr

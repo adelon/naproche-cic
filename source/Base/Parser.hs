@@ -4,10 +4,11 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Parse.Token (TokStream, symbol, command)
+import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
 import Control.Monad.State.Strict (State, get, put)
+import Data.List.NonEmpty (NonEmpty)
 import Data.Map (Map)
 import Data.Set (Set)
 import Data.Text as Export (Text, pack)
@@ -15,6 +16,7 @@ import Data.Void (Void)
 import Numeric.Natural (Natural)
 import Text.Megaparsec as Export hiding (State, parse)
 
+import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
@@ -29,6 +31,7 @@ data Registry = Registry
   , nounNotions :: Set Text
   , ofNotions :: Map Text Expr
   , operators :: [[Operator Parser Expr]]
+  , relators :: Map Tok (Expr -> Expr -> Prop)
   , idCount :: Natural
   }
 
@@ -37,6 +40,7 @@ initRegistry = Registry
   { collectiveAdjs = primCollectiveAdjs
   , distributiveAdjs = mempty
   , operators = primOperators
+  , relators = primRelators
   , ofNotions = primOfNotions
   , nounNotions = primNounNotions
   , idCount = 0
@@ -54,6 +58,12 @@ initRegistry = Registry
       , [ InfixR (makeOp (command "land") \x y -> Prop (x `And` y))
         , InfixR (makeOp (command "lor")  \x y -> Prop (x `Or`  y))
         ]
+      ]
+    primRelators :: Map Tok (Expr -> Expr -> Prop)
+    primRelators = Map.fromList
+      [ (Symbol "=", \x y -> x `Equals` y)
+      , (Symbol "<", \x y -> Predicate "prim_less" `PredApp` x `PredApp` y)
+      , (Command "leq", \x y -> Predicate "prim_less_eq" `PredApp` x `PredApp` y)
       ]
 
     makeOp :: Parser op -> a -> Parser a
@@ -75,6 +85,10 @@ makePrimOp op prim = op >> return (\x y -> Const prim `App` x `App` y)
 getOperators :: Parser [[Operator Parser Expr]]
 getOperators = operators <$> get
 {-# INLINE getOperators #-}
+
+getRelators :: Parser (Map Tok (Expr -> Expr -> Prop))
+getRelators = relators <$> get
+{-# INLINE getRelators #-}
 
 -- TODO: Also handle priority and associativity.
 registerOperator :: Parser op -> Text -> Parser ()
@@ -115,3 +129,10 @@ p `endedBy` end = do
   end
   return result
 {-# INLINE endedBy #-}
+
+-- | @sepEndedBy1 p sep@ parses one or more occurrences
+-- of @p@, separated by @sep@ and mandatorily ended by @sep@.
+-- Returns a nonempty list of the results of @p@.
+sepEndedBy1 :: Parser a -> Parser sep -> Parser (NonEmpty a)
+sepEndedBy1 = NonEmpty.endBy1
+{-# INLINE sepEndedBy1 #-}
