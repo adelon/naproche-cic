@@ -2,10 +2,11 @@ module Parse.Prop where
 
 
 import Base.Parser (Parser, getRelators, many1)
-import Parse.Token (Tok, exactly)
+import Parse.Token (printTok, exactly)
 import Parse.Expression (expression)
-import Language.Expression (Expr)
+import Language.Expression (Expr, Prop)
 
+import Data.Text (unpack)
 import Data.Foldable (asum)
 
 import qualified Data.Map.Strict as Map
@@ -13,7 +14,7 @@ import qualified Data.Map.Strict as Map
 
 data RelatorChain
   = ChainBegin Expr
-  | ChainRelator RelatorChain Tok Expr
+  | ChainRelator RelatorChain (Expr -> Expr -> Prop) Expr
 
 prop :: Parser RelatorChain
 prop = do
@@ -21,14 +22,21 @@ prop = do
   ch <- many1 chain
   return (makeChain e ch)
   where
-    chain = error "Parse.Prop.prop/chain"
+    chain :: Parser (Expr, (Expr -> Expr -> Prop))
+    chain = do
+      rel <- relator
+      e <- expression
+      return (e, rel)
     makeChain e = \case
       [] -> ChainBegin e
       ((e', rel) : ch') -> ChainRelator (makeChain e ch') rel e'
 
 
-relator :: Parser Tok
+relator :: Parser (Expr -> Expr -> Prop)
 relator = do
   relators <- getRelators
   let rels = Map.keys relators
-  asum (exactly <$> rels)
+  rel <- asum (exactly <$> rels)
+  case Map.lookup rel relators of
+    Just rel' -> return rel'
+    Nothing -> fail $ unpack $ "unknown relator" <> printTok rel
