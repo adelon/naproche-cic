@@ -3,9 +3,9 @@ module Parse.Statement where
 
 import Base.Parser
 import Language.Common (Var)
-import Language.Expression
-import Parse.Expression
-import Parse.Token
+import Language.Expression (Expr, Typ, Typing(..))
+import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
+import Parse.Token (word, comma)
 import Tokenize (Tok(..), Located(..))
 
 import Data.Text (Text)
@@ -107,12 +107,12 @@ data AtomicStatement
   = Thesis   -- ^ The current goal.
   | Contrary -- ^ Negation of the current goal.
   | Contradiction -- ^ Bottom.
-  | SymbolicStatement Prop
+  | SymbolicStatement SymbolicStatement
   | PredicativeAdj Term Adj
   deriving (Show, Eq, Ord)
 
 atomicStatement :: Parser AtomicStatement
-atomicStatement = predicativeAdj <|> constStatement
+atomicStatement = predicativeAdj <|> constStatement <|> (SymbolicStatement <$> symbolicStatement)
   where
     constStatement, thesis, contrary, contradiction :: Parser AtomicStatement
     constStatement = thesis <|> contrary <|> contradiction
