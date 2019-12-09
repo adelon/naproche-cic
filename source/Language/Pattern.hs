@@ -1,10 +1,9 @@
-module Language.Pattern (Pattern(..), Shape(..)) where
+module Language.Pattern (Pattern, Shape(..)) where
 
 
 import Data.List.NonEmpty as NonEmpty
 import Data.String (IsString(..))
 import Data.Text (Text, pack)
-import GHC.Exts (IsList(..))
 
 data Shape
   = Slot
