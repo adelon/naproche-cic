@@ -1,7 +1,7 @@
 module Parse.Pattern where
 
 import Base.Parser
-import Language.Pattern (Pattern(..), Shape(..))
+import Language.Pattern (Pattern, Shape(..))
 import Parse.Token (word, anyWord)
 
 import Data.Foldable (asum)
@@ -10,10 +10,11 @@ import Data.List.NonEmpty as NonEmpty
 
 import qualified Data.Set as Set
 
-
+-- Also returns the pattern that succeeded.
 patterns :: Parser a -> Set Pattern -> Parser (Pattern, [a])
 patterns slot pats = asum $ try . patternMarked slot <$> Set.toDescList pats
 
+patternMarked :: Parser a -> Pattern -> Parser (Pattern, [a])
 patternMarked slot pat = (\x -> (pat, x)) <$> pattern slot pat
 
 -- | Parses a pattern. Success is indicated by returning a list
