@@ -207,5 +207,5 @@ lexeme p = do
   Lex.space
   stop <- getSourcePos
   stopOffset <- getOffset
-  let l = stopOffset - startOffset + 1
+  let l = stopOffset - startOffset
   return (Located start stop l t)
