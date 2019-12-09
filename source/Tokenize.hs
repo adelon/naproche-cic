@@ -202,10 +202,10 @@ close = lexeme (paren <|> brace)
 lexeme :: Tokenizer a -> Tokenizer (Located a)
 lexeme p = do
   start <- getSourcePos
+  startOffset <- getOffset
   t <- p
   Lex.space
   stop <- getSourcePos
-  -- We calculate the length of the token naively, assuming
-  -- that a token never spans multiple lines.
-  let l = unPos (sourceLine start) - unPos (sourceLine stop) + 1
+  stopOffset <- getOffset
+  let l = stopOffset - startOffset + 1
   return (Located start stop l t)
