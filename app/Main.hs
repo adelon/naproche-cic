@@ -38,31 +38,30 @@ work file = do
   let inPath = "./work/in/" <> file
   let outPath = "./work/out/" <> file
   let debugPath = "./work/out/" <> file <> ".tokens"
-  (result, raw) <- tokenize inPath
+  result <- tokenize inPath
   case result of
     Left err -> Text.writeFile debugPath (Text.pack (errorBundlePretty err))
     Right stream -> do
       Text.writeFile debugPath (dumpTokens stream)
-      result' <- parse document inPath stream raw
+      result' <- parse document inPath stream
       case result' of
         Left err -> Text.writeFile outPath (Text.pack (errorBundlePretty err))
         Right doc -> Text.writeFile outPath ((pack . show) doc)
 
 
-dumpTokens :: [Located Tok] -> Text
-dumpTokens = pack . show . fmap tokenVal
+dumpTokens :: TokStream -> Text
+dumpTokens = pack . show . fmap tokenVal . unTokStream
 
-
-tokenize :: FilePath -> IO (Either (ParseErrorBundle Text Void) [Located Tok], Text)
+tokenize :: FilePath -> IO (Either (ParseErrorBundle Text Void) TokStream)
 tokenize path = do
   raw <- Text.readFile path
   let result = runParser toks path raw
-  return (result, raw)
+  case result of
+    Left err -> return (Left err)
+    Right stream -> return (Right (TokStream raw stream))
 
 
-parse :: Parser a -> String -> [Located Tok] -> Text
-  -> IO (Either (ParseErrorBundle TokStream Void) a)
-parse p path stream raw = do
-  let stream' = TokStream raw stream
-  let (result, _finalState) = runState (runParserT p path stream') initRegistry
+parse :: Parser a -> String -> TokStream -> IO (Either (ParseErrorBundle TokStream Void) a)
+parse p path stream = do
+  let (result, _finalState) = runState (runParserT p path stream) initRegistry
   return result
