@@ -4,7 +4,7 @@ module Parse.Declaration where
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
 import Parse.Statement (Statement, statement)
-import Parse.Token (environment, period)
+import Parse.Token (environment, period, word)
 
 
 data Declaration
@@ -27,6 +27,7 @@ data Axiom = Axiom
 axiom :: Parser Axiom
 axiom = environment "axiom" do
   asms <- many assumption
+  word "then"
   stmt <- statement `endedBy` period
   return (Axiom asms stmt)
 
