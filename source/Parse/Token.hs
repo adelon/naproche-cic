@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 
-module Parse.Token where
+module Parse.Token (module Parse.Token, module Export) where
 
 
 {-
@@ -10,7 +10,7 @@ module Parse.Token where
 -}
 
 
-import Tokenize (Tok(..), Delim(..), printTok, Located(..))
+import Tokenize as Export (Tok(..), Delim(..), printTok, Located(..))
 
 import Control.Monad (void)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
