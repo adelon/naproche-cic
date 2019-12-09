@@ -160,15 +160,15 @@ type Notion = Text
 notion :: Parser Notion
 notion = do
   notions <- getNotions
-  let isNotion t = tokenVal t `elem` (Set.map Word notions)
+  let isNotion t = unLocated t `elem` (Set.map Word notions)
   result <- satisfy isNotion
-  let Word noun = tokenVal result
+  let Word noun = unLocated result
   return noun
 
 adjective :: Parser Adj
 adjective = label "adjective" do
   adjs <- getAdjs
-  let isAdj t = tokenVal t `elem` (Set.map Word adjs)
+  let isAdj t = unLocated t `elem` (Set.map Word adjs)
   result <- satisfy isAdj
-  let Word adj = tokenVal result
+  let Word adj = unLocated result
   return adj

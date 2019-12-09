@@ -50,7 +50,7 @@ work file = do
 
 
 dumpTokens :: TokStream -> Text
-dumpTokens = pack . show . fmap tokenVal . unTokStream
+dumpTokens = pack . show . fmap unLocated . unTokStream
 
 tokenize :: FilePath -> IO (Either (ParseErrorBundle Text Void) TokStream)
 tokenize path = do

@@ -55,7 +55,7 @@ data Located a = Located
   { startPos :: SourcePos
   , endPos :: SourcePos
   , tokenLength :: Int
-  , tokenVal :: a
+  , unLocated :: a
   } deriving (Show, Eq, Ord)
 
 -- | Parses tokens, switching tokenizing mode when encountering math environments.
