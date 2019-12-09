@@ -1,16 +1,19 @@
 module Parse.Statement where
 
 
-import Base.Parser
+import Base.Parser (Parser, label, try, (<|>), satisfy, optional, getNominals, getAdjs)
 import Language.Common (Var)
 import Language.Expression (Expr, Typ, Typing(..))
+import Parse.Expression (expression)
+import Parse.Pattern (patterns)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
-import Parse.Token (word, comma)
+import Parse.Token (math, word, comma)
 import Tokenize (Tok(..), Located(..))
 
 import Data.Text (Text)
 
 import qualified Data.Set as Set
+import qualified Data.Map.Strict as Map
 
 type Adj = Text
 
@@ -130,7 +133,7 @@ atomicStatement = predicativeAdj <|> constStatement <|> (SymbolicStatement <$> s
 data Term
   = TermDefiniteSymbolic Expr
   | TermDefiniteNoun
-  | TermQuantified Quantifier Notion
+  | TermQuantified Quantifier Expr
   deriving (Show, Eq, Ord)
 
 term :: Parser Term
@@ -155,15 +158,14 @@ quantifiedTerm = label "quantified term" (universal <|> existential <|> nonexist
       noun <- notion
       return (Nonexistential, noun)
 
-type Notion = Text
+type Notion = Expr
 
-notion :: Parser Notion
+notion :: Parser Expr
 notion = do
-  notions <- getNotions
-  let isNotion t = unLocated t `elem` (Set.map Word notions)
-  result <- satisfy isNotion
-  let Word noun = unLocated result
-  return noun
+  nominals <- getNominals
+  (pat, es) <- patterns (math expression) (Map.keysSet nominals)
+  let Just maker = Map.lookup pat nominals
+  return (maker es)
 
 adjective :: Parser Adj
 adjective = label "adjective" do

@@ -1,9 +1,10 @@
--- Basic parser data types and helper functions.
+{-# LANGUAGE OverloadedLists #-}
 
 module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
+import Language.Pattern (Pattern)
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
@@ -28,8 +29,7 @@ type Parser = ParsecT Void TokStream (State Registry)
 data Registry = Registry
   { collectiveAdjs :: Set Text
   , distributiveAdjs :: Set Text
-  , nounNotions :: Set Text
-  , ofNotions :: Map Text Expr
+  , nominals :: Map Pattern ([Expr] -> Expr)
   , operators :: [[Operator Parser Expr]]
   , relators :: Map Tok (Expr -> Expr -> Prop)
   , idCount :: Natural
@@ -39,10 +39,9 @@ initRegistry :: Registry
 initRegistry = Registry
   { collectiveAdjs = primCollectiveAdjs
   , distributiveAdjs = mempty
+  , nominals = primNominals
   , operators = primOperators
   , relators = primRelators
-  , ofNotions = primOfNotions
-  , nounNotions = primNounNotions
   , idCount = 0
   }
   where
@@ -73,11 +72,11 @@ initRegistry = Registry
     primCollectiveAdjs :: Set Text
     primCollectiveAdjs = Set.fromList ["even", "odd"]
 
-    primOfNotions :: Map Text Expr
-    primOfNotions = Map.fromList [("successor", Const "succ")]
-
-    primNounNotions :: Set Text
-    primNounNotions = Set.fromList ["integer", "boolean"]
+    primNominals :: _
+    primNominals = Map.fromList 
+      [(["successor","of"], const $ Const "succ")
+      ,(["natural"], const $ Const "nat")
+      ]
 
 makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = op >> return (\x y -> Const prim `App` x `App` y)
@@ -104,9 +103,9 @@ getAdjs = do
   return (collectiveAdjs st `Set.union` distributiveAdjs st)
 {-# INLINE getAdjs #-}
 
-getNotions :: Parser (Set Text)
-getNotions = nounNotions <$> get
-{-# INLINE getNotions #-}
+getNominals :: Parser _
+getNominals = nominals <$> get
+{-# INLINE getNominals #-}
 
 many1 :: Parser a -> Parser [a]
 many1 = some
