@@ -17,7 +17,6 @@ dependencies:
   - text
   - transformers
   - unordered-containers
-  # - text-short
 
 default-extensions:
   - ApplicativeDo
