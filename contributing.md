@@ -19,7 +19,7 @@ Theorem proving and proof verification in the system SAD
 
 ## Type thoery
 
-Thorsten Altenkirch | [ıve Type Theory](http://www.cs.nott.ac.uk/~psztxa/publ/fomus19.pdf)
+Thorsten Altenkirch | [Naive Type Theory](http://www.cs.nott.ac.uk/~psztxa/publ/fomus19.pdf)
 
 Per Martin-Löf | [Intuitionistic Type Theory](http://archive-pml.github.io/martin-lof/pdfs/Bibliopolis-Book-retypeset-1984.pdf)
 
