@@ -25,8 +25,8 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 
--- | A token stream for as input stream for a parser. Contains the raw input before tokenization
--- as @Text@ for showing error messages.
+-- | A token stream for as input stream for a parser. Contains the raw input
+-- before tokenization as @Text@ for showing error messages.
 data TokStream = TokStream
   { rawInput :: Text
   , unTokStream :: [Located Tok]
@@ -42,7 +42,7 @@ instance Stream TokStream where
   tokenToChunk Proxy x = [x]
 
   tokensToChunk :: Proxy TokStream -> [Token TokStream] -> Tokens TokStream
-  tokensToChunk Proxy xs = xs
+  tokensToChunk Proxy = id
 
   chunkToTokens :: Proxy TokStream -> Tokens TokStream -> [Token TokStream]
   chunkToTokens Proxy = id
@@ -68,14 +68,14 @@ instance Stream TokStream where
       let (consumed, ts') = splitAt n ts
       in case nonEmpty consumed of
         Nothing -> Just (consumed, TokStream raw ts')
-        Just toksConsumed -> Just (consumed, TokStream (Text.drop (tokensLength pxy toksConsumed) raw) ts')
+        Just consumed' -> Just (consumed, TokStream (Text.drop (tokensLength pxy consumed') raw) ts')
 
   takeWhile_ :: (Token TokStream -> Bool) -> TokStream -> (Tokens TokStream, TokStream)
   takeWhile_ f (TokStream raw s) =
     let (x, s') = List.span f s
     in case nonEmpty x of
       Nothing -> (x, TokStream raw s')
-      Just nex -> (x, TokStream (Text.drop (tokensLength pxy nex) raw) s')
+      Just ts -> (x, TokStream (Text.drop (tokensLength pxy ts) raw) s')
 
   showTokens :: Proxy TokStream -> NonEmpty (Token TokStream) -> String
   showTokens Proxy ts = Text.unpack $ Text.intercalate " " $ NonEmpty.toList $ printTok <$> tokenVal <$> ts
@@ -84,48 +84,43 @@ instance Stream TokStream where
   tokensLength Proxy xs = sum (tokenLength <$> xs)
 
   reachOffset :: Int -> PosState TokStream -> (String, PosState TokStream)
-  reachOffset o PosState {..} =
+  reachOffset offset PosState {..} =
     ( Text.unpack prefix <> Text.unpack restOfLine
     , PosState
-        { pstateInput = TokStream
-            { rawInput = postStr
-            , unTokStream = post
-            }
-        , pstateOffset = max pstateOffset o
-        , pstateSourcePos = newSourcePos
-        , pstateTabWidth = pstateTabWidth
-        , pstateLinePrefix = Text.unpack prefix
+      { pstateInput = TokStream
+        { rawInput = postRaw
+        , unTokStream = post
         }
+      , pstateOffset = max pstateOffset offset
+      , pstateSourcePos = newSourcePos
+      , pstateTabWidth = pstateTabWidth
+      , pstateLinePrefix = Text.unpack prefix
+      }
     )
     where
       prefix :: Text
-      prefix =
-        if sameLine
-          then Text.pack pstateLinePrefix <> preStr
-          else preStr
-      sameLine = sourceLine newSourcePos == sourceLine pstateSourcePos
-      newSourcePos =
-        case post of
-          [] -> pstateSourcePos
-          (x:_) -> startPos x
-      (pre, post) = splitAt (o - pstateOffset) (unTokStream pstateInput)
-      (preStr, postStr) = Text.splitAt tokensConsumed (rawInput pstateInput)
-      tokensConsumed =
-        case nonEmpty pre of
-          Nothing -> 0
-          Just nePre -> tokensLength pxy nePre
-      restOfLine = Text.takeWhile (/= '\n') postStr
+      prefix = case sourceLine newSourcePos == sourceLine pstateSourcePos of
+        True -> Text.pack pstateLinePrefix <> preRaw
+        False -> preRaw
+      newSourcePos = case post of
+        [] -> pstateSourcePos -- Leave the source position untouched.
+        (t:_) -> startPos t
+      (pre, post) = splitAt (offset - pstateOffset) (unTokStream pstateInput)
+      (preRaw, postRaw) = Text.splitAt tokensConsumed (rawInput pstateInput)
+      tokensConsumed = case nonEmpty pre of
+        Nothing -> 0
+        Just nePre -> tokensLength pxy nePre
+      restOfLine = Text.takeWhile (/= '\n') postRaw
 
 pxy :: Proxy TokStream
 pxy = Proxy
 
--- | Parses only the specified token. Note the polymorphic type. We do not want to depend on
--- or import any of the particularities of the main parser (such as state) at the moment.
+-- | Parses only the specified token. Note the polymorphic type.
+-- We do not want to depend on or import any of the particularities
+-- of the main parser (such as state) at the moment.
 exactly :: (MonadParsec e s p, Token s ~ Located Tok) => Tok -> p Tok
 exactly c = token matcher expectation
   where
-    -- This set describes which items were expected. In this case it is just
-    -- the single token @c@ that we lift into this set.
     expectation :: Set (ErrorItem (Located Tok))
     expectation = Set.singleton (Tokens (liftTok c :| []))
 
@@ -159,17 +154,17 @@ anyWord = label "any word" $ token matcher Set.empty
         _ -> Nothing
 {-# INLINE anyWord #-}
 
--- | @word@ parses a single symbol token.
+-- | @word@ parses a single symbol token. Case-sensitive.
 symbol :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 symbol s = exactly (Symbol s)
 {-# INLINE symbol #-}
 
--- | @command@ parses a single command token.
+-- | @command@ parses a single command token. Case-sensitive.
 command :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 command cmd = exactly (Command cmd)
 {-# INLINE command #-}
 
--- | @variable@ parses any variable token.
+-- | @variable@ parses any variable token. Case-sensitive.
 variable :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 variable = label "variable" $ token matcher Set.empty
   where
@@ -183,12 +178,10 @@ variable = label "variable" $ token matcher Set.empty
         _ -> Nothing
 {-# INLINE variable #-}
 
--- | @begin@ parses a single begin.
 begin :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 begin env = exactly (BeginEnv env)
 {-# INLINE begin #-}
 
--- | @end@ parses a single end token.
 end :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 end env = exactly (EndEnv env)
 {-# INLINE end #-}
