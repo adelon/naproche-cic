@@ -1,5 +1,7 @@
 # Naproche-CIC
 
+A prototype for a [controlled natural language](https://en.wikipedia.org/wiki/Controlled_natural_language)
+for mathematics with type-theoretical semantics.
 
 ## Building
 
