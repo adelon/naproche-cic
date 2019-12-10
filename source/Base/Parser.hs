@@ -49,13 +49,8 @@ initRegistry = Registry
     primOperators =
       [ [ InfixR (makePrimOp (symbol "+") "prim_plus")
         ]
-      , [ InfixN (makeOp (symbol "=") \x y -> Prop (x `Equals` y))
-        ]
       , [ InfixR (makeOp (command "times") (Times))
         , InfixR (makeOp (command "sqcup") (Plus))
-        ]
-      , [ InfixR (makeOp (command "land") \x y -> Prop (x `And` y))
-        , InfixR (makeOp (command "lor")  \x y -> Prop (x `Or`  y))
         ]
       ]
     primRelators :: Map Tok (Expr -> Expr -> Prop)
