@@ -72,7 +72,7 @@ initRegistry = Registry
     primCollectiveAdjs :: Set Text
     primCollectiveAdjs = Set.fromList ["even", "odd"]
 
-    primNominals :: _
+    primNominals :: Map Pattern ([Expr] -> Expr)
     primNominals = Map.fromList 
       [(["successor","of"], const $ Const "succ")
       ,(["natural"], const $ Const "nat")
@@ -103,7 +103,7 @@ getAdjs = do
   return (collectiveAdjs st `Set.union` distributiveAdjs st)
 {-# INLINE getAdjs #-}
 
-getNominals :: Parser _
+getNominals :: Parser (Map Pattern ([Expr] -> Expr))
 getNominals = nominals <$> get
 {-# INLINE getNominals #-}
 
