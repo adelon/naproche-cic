@@ -1,9 +1,10 @@
-module Language.Pattern (Pattern, Shape(..)) where
+module Language.Pattern where
 
 
-import Data.List.NonEmpty as NonEmpty
+import Data.Sequence1 as Seq1
 import Data.String (IsString(..))
 import Data.Text (Text, pack)
+import Data.Tree (Tree(..), Forest)
 
 data Shape
   = Slot
@@ -13,7 +14,9 @@ data Shape
 instance IsString Shape where
   fromString w = Word [pack w]
 
-type Pattern = NonEmpty Shape
+type Patterns = Forest Shape
+
+type Pattern = Seq1 Shape
 
 -- Note that the Ord instance is defined so that for overlapping
 -- patterns, the one with more words is greater than the one with

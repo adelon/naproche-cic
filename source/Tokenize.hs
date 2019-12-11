@@ -5,11 +5,6 @@ module Tokenize where
   and turn is into a list of tokens for further parsing.
 -}
 
-import Data.Char
-import Data.Foldable (asum)
-import Data.Text (Text)
-import Data.Void
-import Prelude hiding (Word)
 import Text.Megaparsec
 
 import qualified Data.Text as Text

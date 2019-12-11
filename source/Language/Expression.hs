@@ -5,9 +5,8 @@ module Language.Expression
 
 
 import Language.Common (Var)
+import Language.Pattern (Pattern)
 
-import Data.Text (Text)
-import Numeric.Natural (Natural)
 
 type Typ = Expr
 
@@ -17,6 +16,7 @@ data Proof a b = a `Proves` b deriving (Show, Eq, Ord)
 data Expr
   = Hole
   | Const Text
+  | ConstPattern Pattern
   | Bound Natural
   | Free Var
   | Bottom

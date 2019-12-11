@@ -5,8 +5,6 @@ import Language.Expression
 import Parse.Token
 import Language.Common (Var(..))
 
-import Prelude hiding (pi)
-
 
 annotated :: Parser (Typing Expr Typ)
 annotated = do

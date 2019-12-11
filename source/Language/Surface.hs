@@ -5,9 +5,6 @@ import Language.Expression
 
 import qualified Data.Sequence as Seq
 
-import Data.Sequence (Seq, (<|), (|>))
-import Data.Text (Text)
-
 
 {-
 

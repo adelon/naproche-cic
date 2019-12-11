@@ -6,8 +6,6 @@ import Language.Expression (Expr(..))
 import qualified Language.Surface as Surf
 import qualified Language.Core as Core
 
-import Data.Foldable (fold)
-
 
 desugar :: Surf.Phrase -> Core.Phrase
 desugar = \case

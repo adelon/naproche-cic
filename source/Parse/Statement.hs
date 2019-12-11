@@ -3,17 +3,14 @@ module Parse.Statement where
 
 import Base.Parser (Parser, label, try, (<|>), satisfy, optional, getNominals, getAdjs)
 import Language.Common (Var)
-import Language.Expression (Expr, Typ, Typing(..))
+import Language.Expression (Expr(..), Typ, Typing(..))
 import Parse.Expression (expression)
 import Parse.Pattern (patterns)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
 import Parse.Token (math, word, comma)
 import Tokenize (Tok(..), Located(..))
 
-import Data.Text (Text)
-
 import qualified Data.Set as Set
-import qualified Data.Map.Strict as Map
 
 type Adj = Text
 
@@ -163,9 +160,8 @@ type Notion = Expr
 notion :: Parser Expr
 notion = do
   nominals <- getNominals
-  (pat, es) <- patterns (math expression) (Map.keysSet nominals)
-  let Just maker = Map.lookup pat nominals
-  return (maker es)
+  (pat, es) <- patterns (math expression) nominals
+  return (foldl App (ConstPattern pat) es)
 
 adjective :: Parser Adj
 adjective = label "adjective" do

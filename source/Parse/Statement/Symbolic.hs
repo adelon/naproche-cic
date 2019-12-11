@@ -6,9 +6,7 @@ import Language.Expression (Expr, Prop)
 import Parse.Expression (expression)
 import Parse.Token (Tok, printTok, exactly, math)
 
-import Data.Text (unpack)
-import Data.Foldable (asum)
-
+import qualified Data.Text as Text
 import qualified Data.Map.Strict as Map
 
 
@@ -71,4 +69,4 @@ relator = do
   rel <- asum (exactly <$> relToks)
   case Map.lookup rel rels of
     Just predicate -> return (rel, predicate)
-    Nothing -> fail $ unpack $ "unknown relator" <> printTok rel
+    Nothing -> fail $ Text.unpack $ "unknown relator" <> printTok rel

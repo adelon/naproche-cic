@@ -11,10 +11,7 @@ import Parse.Token (TokStream(..))
 import Tokenize
 
 import Control.Monad.State.Strict
-import Data.List ((\\))
-import Data.Text (Text)
-import Data.Void
-import System.Directory
+import System.Directory (getDirectoryContents)
 import Text.Megaparsec.Error (errorBundlePretty)
 
 import qualified Data.Text as Text

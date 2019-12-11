@@ -1,32 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Kernel.CoC where
 
-import Data.Text (Text)
 import qualified Data.Text as Text
-import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Map (Map)
 import qualified Data.Map as Map
 
 data LambdaCalculus
-  = Var Text 
+  = Var Text
   | App LambdaCalculus LambdaCalculus
   | Lam Text LambdaCalculus LambdaCalculus
   | Pi Text LambdaCalculus LambdaCalculus
-  | Star 
-  | Box 
+  | Star
+  | Box
   deriving (Eq, Ord, Show)
 
 format :: LambdaCalculus -> IO ()
 format = putStrLn . go 0
   where
     go _ (Var v) = Text.unpack v
-    go n (App t1 t2) = go n t1 ++ newLine (n + 2) 
+    go n (App t1 t2) = go n t1 ++ newLine (n + 2)
                     ++ go (n + 2) t2
-    go n (Lam v a t) = "λ(" ++ Text.unpack v ++ " : " 
+    go n (Lam v a t) = "λ(" ++ Text.unpack v ++ " : "
                     ++ go n a ++ ") ->" ++ newLine (n + 2)
                     ++ go (n + 2) t
-    go n (Pi v a t) = "Λ(" ++ Text.unpack v ++ " : " 
+    go n (Pi v a t) = "Λ(" ++ Text.unpack v ++ " : "
                    ++ go n a ++ ") -> " ++ go (n + 2) t
     go _ Star = "*"
     go _ Box = "☐"
@@ -58,10 +55,10 @@ renameVars taken = go Set.empty
 -- | Function arrow
 infixr -->
 (-->) :: LambdaCalculus -> LambdaCalculus -> LambdaCalculus
-(-->) a b = Pi (renameVar "x" (fv b)) a b 
+(-->) a b = Pi (renameVar "x" (fv b)) a b
 
 -- | Substitute a free variable with an expression.
-substFor :: Text -> LambdaCalculus -> LambdaCalculus 
+substFor :: Text -> LambdaCalculus -> LambdaCalculus
          -> LambdaCalculus
 v `substFor` substitute = go Set.empty
   where
@@ -72,7 +69,7 @@ v `substFor` substitute = go Set.empty
     go _ x = x
 
 betaReduce :: LambdaCalculus -> LambdaCalculus
-betaReduce (App l1 l2) = case App (betaReduce l1) 
+betaReduce (App l1 l2) = case App (betaReduce l1)
                                   (betaReduce l2) of
   App (Lam v _ l1') l2' -> betaReduce $ (v `substFor` l2') l1'
   App (Pi v _ l1') l2' -> betaReduce $ (v `substFor` l2') l1'
@@ -95,12 +92,12 @@ alphaReduce t = go Map.empty (depth t) t
       Nothing -> Var x
       Just i -> Var i
     go m n (App t1 t2) = App (go m n t1) (go m n t2)
-    go m n (Lam x t1 t2) = 
+    go m n (Lam x t1 t2) =
       let x' = Text.pack $ 'i':show n
           m' = Map.insert x x' m
           n' = n - 1
       in Lam x' (go m' n' t1) (go m' n' t2)
-    go m n (Pi x t1 t2) = 
+    go m n (Pi x t1 t2) =
       let x' = Text.pack $ 'i':show n
           m' = Map.insert x x' m
           n' = n - 1
@@ -108,13 +105,13 @@ alphaReduce t = go Map.empty (depth t) t
     go _ _ x = x
 
 etaReduce :: LambdaCalculus -> LambdaCalculus
-etaReduce (Lam v a l) = case Lam v (etaReduce a) 
+etaReduce (Lam v a l) = case Lam v (etaReduce a)
                                    (etaReduce l) of
-  lam@(Lam _ _ (App f (Var w))) -> 
-    if v == w && Prelude.not (Set.member v (fv f)) 
+  lam@(Lam _ _ (App f (Var w))) ->
+    if v == w && Prelude.not (Set.member v (fv f))
       then etaReduce f else lam
-  lam@(Pi _ _ (App f (Var w))) -> 
-    if v == w && Prelude.not (Set.member v (fv f)) 
+  lam@(Pi _ _ (App f (Var w))) ->
+    if v == w && Prelude.not (Set.member v (fv f))
       then etaReduce f else lam
   lam -> lam
 etaReduce (App l1 l2) = App (etaReduce l1) (etaReduce l2)
@@ -125,7 +122,7 @@ reduce :: LambdaCalculus -> LambdaCalculus
 reduce = alphaReduce . betaReduce . etaReduce
 
 -- | A context maps variable names to their types.
-newtype Context = Context 
+newtype Context = Context
   { fromContext :: Map Text LambdaCalculus
   } deriving (Eq, Ord, Show)
 
@@ -161,7 +158,7 @@ stlc x y = Left (y `CantDependOn` x)
 
 typeCheck :: TypeTheory -> Context -> LambdaCalculus -> Either TypeError LambdaCalculus
 typeCheck rule = go
-  where 
+  where
     go ctx e = case e of
       Star -> pure Box
       Box  -> Left $ TypeError ctx Box BoxAtValueLevel

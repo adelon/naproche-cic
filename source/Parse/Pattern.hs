@@ -1,42 +1,23 @@
 module Parse.Pattern where
 
 import Base.Parser
-import Language.Pattern (Pattern, Shape(..))
-import Parse.Token (word, anyWord)
+import Language.Pattern (Pattern, Patterns, Shape(..))
+import Parse.Token (word)
 
-import Data.Foldable (asum)
-import Data.Set (Set)
-import Data.List.NonEmpty as NonEmpty
+import Data.Sequence1 as Seq1
 
 import qualified Data.Set as Set
 
 -- Also returns the pattern that succeeded.
-patterns :: Parser a -> Set Pattern -> Parser (Pattern, [a])
-patterns slot pats = asum $ try . patternMarked slot <$> Set.toDescList pats
+patterns :: Parser a -> Patterns -> Parser (Pattern, [a])
+patterns _slot [] = return (Seq1.singleton Slot, []) -- TODO: remove this and fix the recursion calls
+patterns slot (pat:[]) = pattern slot pat
+patterns slot (pat:pats) = pattern slot pat <|> patterns slot pats
 
-patternMarked :: Parser a -> Pattern -> Parser (Pattern, [a])
-patternMarked slot pat = (\x -> (pat, x)) <$> pattern slot pat
-
--- | Parses a pattern. Success is indicated by returning a list
--- of the results of the parser used for slots of the pattern.
-pattern :: Parser a -> Pattern -> Parser [a]
-pattern slot (s :| (s' : pat)) = do
-  case s of
-    Word w -> case s' of
-      -- This is intended to disambiguate things like
-      -- "x converges" and "x converges to y".
-      Slot -> do
-        try (asum (word <$> w) >> never anyWord)
-        pattern slot (s' :| pat)
-      Word _w -> do
-        asum (word <$> w)
-        pattern slot (s' :| pat)
-    Slot -> do
-      r <- slot
-      (r :) <$> pattern slot (s' :| pat)
-pattern slot (s :| []) = do
-  case s of
-    Word w -> asum (word <$> w) >> return []
-    Slot -> do
-      r <- slot
-      return (pure r)
+pattern :: Parser a -> Tree Shape -> Parser (Pattern, [a])
+pattern slot (Node Slot pats) = do
+  a <- try slot
+  (\(pat, as) -> (pat `Seq1.snoc` Slot, a : as)) <$> patterns slot pats
+pattern slot (Node (Word ws) pats) = do
+  asum (word <$> ws)
+  (\(pat, as) -> (pat `Seq1.snoc` (Word ws), as)) <$> patterns slot pats

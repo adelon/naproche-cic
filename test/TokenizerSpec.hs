@@ -7,8 +7,6 @@ import Test.Hspec
 import Test.Hspec.Megaparsec
 import Text.Megaparsec (parse)
 
-import Prelude hiding (Word)
-
 
 spec :: Spec
 spec = do

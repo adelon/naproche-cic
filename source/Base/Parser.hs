@@ -4,17 +4,12 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Language.Pattern (Pattern)
+import Language.Pattern (Patterns)
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
 import Control.Monad.State.Strict (State, get, put)
-import Data.List.NonEmpty (NonEmpty)
-import Data.Map (Map)
-import Data.Set (Set)
 import Data.Text as Export (Text, pack)
-import Data.Void (Void)
-import Numeric.Natural (Natural)
 import Text.Megaparsec as Export hiding (State, parse)
 
 import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
@@ -29,7 +24,7 @@ type Parser = ParsecT Void TokStream (State Registry)
 data Registry = Registry
   { collectiveAdjs :: Set Text
   , distributiveAdjs :: Set Text
-  , nominals :: Map Pattern ([Expr] -> Expr)
+  , nominals :: Patterns
   , operators :: [[Operator Parser Expr]]
   , relators :: Map Tok (Expr -> Expr -> Prop)
   , idCount :: Natural
@@ -67,11 +62,13 @@ initRegistry = Registry
     primCollectiveAdjs :: Set Text
     primCollectiveAdjs = Set.fromList ["even", "odd"]
 
-    primNominals :: Map Pattern ([Expr] -> Expr)
-    primNominals = Map.fromList 
+    primNominals :: Patterns
+    primNominals =
+      [ Node "natural" []
+      ] {- Map.fromList
       [(["successor","of"], const $ Const "succ")
       ,(["natural"], const $ Const "nat")
-      ]
+      ] -}
 
 makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = op >> return (\x y -> Const prim `App` x `App` y)
@@ -98,7 +95,7 @@ getAdjs = do
   return (collectiveAdjs st `Set.union` distributiveAdjs st)
 {-# INLINE getAdjs #-}
 
-getNominals :: Parser (Map Pattern ([Expr] -> Expr))
+getNominals :: Parser Patterns
 getNominals = nominals <$> get
 {-# INLINE getNominals #-}
 

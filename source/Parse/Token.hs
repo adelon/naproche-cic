@@ -12,12 +12,8 @@ module Parse.Token (module Parse.Token, module Export) where
 
 import Tokenize as Export (Tok(..), Delim(..), printTok, Located(..))
 
-import Control.Monad (void)
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Data.Proxy
-import Data.Text (Text)
-import Data.Set (Set)
-import Prelude hiding (Word)
 import Text.Megaparsec
 
 import qualified Data.List as List
