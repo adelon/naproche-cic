@@ -6,13 +6,21 @@ import Parse.Token (word)
 
 import Data.Sequence1 as Seq1
 
-import qualified Data.Set as Set
 
 -- Also returns the pattern that succeeded.
 patterns :: Parser a -> Patterns -> Parser (Pattern, [a])
-patterns _slot [] = return (Seq1.singleton Slot, []) -- TODO: remove this and fix the recursion calls
-patterns slot (pat:[]) = pattern slot pat
-patterns slot (pat:pats) = pattern slot pat <|> patterns slot pats
+patterns _slot [] = fail "no patterns start with this word"
+patterns slot (Node Slot [] : pats) = go <|> patterns slot pats
+  where
+    go = do
+      a <- try slot
+      return (Seq1.singleton Slot, [a])
+patterns slot (Node w@(Word ws) [] : pats) = go <|> patterns slot pats
+  where
+    go = do
+      asum (word <$> ws)
+      return (Seq1.singleton w, [])
+patterns slot (pat : pats) = pattern slot pat <|> patterns slot pats
 
 pattern :: Parser a -> Tree Shape -> Parser (Pattern, [a])
 pattern slot (Node Slot pats) = do
