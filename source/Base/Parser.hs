@@ -15,6 +15,7 @@ import Text.Megaparsec as Export hiding (State, parse)
 import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
+import qualified Data.Set1 as Set1
 
 
 -- TODO: Replace `Void` with proper error component.
@@ -63,9 +64,11 @@ initRegistry = Registry
     primCollectiveAdjs = Set.fromList ["even", "odd"]
 
     primNominals :: Patterns
-    primNominals = Set.fromList
-      [ PatternContinue "natural" $ Set.fromList [ PatternEnd "number"]
-      , PatternEnd "natural"
+    primNominals = Set1.fromNonEmpty
+      [ PatternContinue "natural" $ Set1.fromNonEmpty
+        [ PatternContinue "number" $ Set1.fromNonEmpty [PatternEnd]
+        , PatternEnd
+        ]
       ]
 
 makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)

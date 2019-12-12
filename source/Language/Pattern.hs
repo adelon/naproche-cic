@@ -14,12 +14,11 @@ data Shape
 instance IsString Shape where
   fromString w = Word [pack w]
 
-type Patterns = Set PatternTree
+type Patterns = Set1 PatternTree
 
--- TODO: replace `Set` with `Set1` so that the tree is well-formed by def.
 data PatternTree
-  = PatternEnd Shape
-  | PatternContinue Shape (Set PatternTree)
+  = PatternEnd
+  | PatternContinue Shape Patterns
   deriving (Eq, Ord, Show)
 
 type Pattern = Seq1 Shape
@@ -32,4 +31,4 @@ type Pattern = Seq1 Shape
 -- and be sure that we get the longest match possible.
 
 insertPattern :: Pattern -> Patterns -> Patterns
-insertPattern pat pats = error "Pattern.insert undefined"
+insertPattern pat pats = error "Pattern.insert incomplete"
