@@ -4,7 +4,7 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Language.Pattern (Patterns)
+import Language.Pattern (Patterns, PatternTree(..))
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
@@ -63,12 +63,10 @@ initRegistry = Registry
     primCollectiveAdjs = Set.fromList ["even", "odd"]
 
     primNominals :: Patterns
-    primNominals =
-      [ Node "natural" []
-      ] {- Map.fromList
-      [(["successor","of"], const $ Const "succ")
-      ,(["natural"], const $ Const "nat")
-      ] -}
+    primNominals = Set.fromList
+      [ PatternContinue "natural" $ Set.fromList [ PatternEnd "number"]
+      , PatternEnd "natural"
+      ]
 
 makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = op >> return (\x y -> Const prim `App` x `App` y)

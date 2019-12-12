@@ -1,31 +1,63 @@
 module Parse.Pattern where
 
 import Base.Parser
-import Language.Pattern (Pattern, Patterns, Shape(..))
+import Language.Pattern
 import Parse.Token (word)
 
-import Data.Sequence1 as Seq1
+import qualified Data.Sequence1 as Seq1
+import qualified Data.Set as Set
 
-
--- Also returns the pattern that succeeded.
 patterns :: Parser a -> Patterns -> Parser (Pattern, [a])
-patterns _slot [] = fail "no patterns start with this word"
-patterns slot (Node Slot [] : pats) = go <|> patterns slot pats
-  where
-    go = do
-      a <- try slot
-      return (Seq1.singleton Slot, [a])
-patterns slot (Node w@(Word ws) [] : pats) = go <|> patterns slot pats
-  where
-    go = do
-      asum (word <$> ws)
-      return (Seq1.singleton w, [])
-patterns slot (pat : pats) = pattern slot pat <|> patterns slot pats
+patterns slot pats = case Set.toDescList pats of
+  tree : otherPats -> case tree of
+    PatternContinue w@(Word ws) patContinues -> go <|> patterns slot (Set.fromDescList otherPats)
+      where
+        go = do
+          asum (word <$> ws)
+          (\(pat, as) -> (w `Seq1.cons` pat, as)) <$> patterns slot patContinues
+    PatternEnd w@(Word ws) -> go <|> patterns slot (Set.fromDescList otherPats)
+      where
+        go = do
+          asum (word <$> ws)
+          return (Seq1.singleton w, [])
+    PatternContinue Slot patContinues -> go <|> patterns slot (Set.fromDescList otherPats)
+      where
+        go = do
+          a <- try slot
+          (\(pat, as) -> (Slot `Seq1.cons` pat, a : as)) <$> patterns slot patContinues
+    PatternEnd Slot -> go <|> patterns slot (Set.fromDescList otherPats)
+      where
+        go = do
+          a <- try slot
+          return (Seq1.singleton Slot, [a])
+  [] -> fail "no patterns start with this word"
+{-
+    PatternContinue w@(Word ws) patContinues : otherPats ->
+      | patContinues /= Set.singleton PatternEnd
+        -> go <|> patterns slot (Set.fromDescList otherPats)
+          where
+            go = do
+              asum (word <$> ws)
+              (\(pat, as) -> (pat `Seq1.snoc` (Word ws), as)) <$> patterns slot patContinues
 
-pattern :: Parser a -> Tree Shape -> Parser (Pattern, [a])
-pattern slot (Node Slot pats) = do
-  a <- try slot
-  (\(pat, as) -> (pat `Seq1.snoc` Slot, a : as)) <$> patterns slot pats
-pattern slot (Node (Word ws) pats) = do
-  asum (word <$> ws)
-  (\(pat, as) -> (pat `Seq1.snoc` (Word ws), as)) <$> patterns slot pats
+    PatternContinue Slot patContinues : otherPats -> go <|> patterns slot (Set.fromDescList otherPats)
+      where
+        go = case patContinues == Set.singleton PatternEnd of
+          True -> do
+            a <- try slot
+            return (Seq1.singleton Slot, [a])
+          False -> do
+            a <- try slot
+            (\(pat, as) -> (pat `Seq1.snoc` Slot, a : as)) <$> patterns slot patContinues
+    [] -> fail "no patterns start with this word"
+-}
+{-
+  go = case patContinues == Set.singleton PatternEnd of
+              True -> do
+                asum (word <$> ws)
+                return (Seq1.singleton w, [])
+              False -> do
+                asum (word <$> ws)
+                (\(pat, as) -> (pat `Seq1.snoc` (Word ws), as)) <$> patterns slot patContinues
+
+          -}
