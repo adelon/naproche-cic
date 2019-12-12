@@ -6,7 +6,7 @@
 
 
 -- Intended for qualified import:
--- import Data.Sequence1 (Seq(..))
+-- import Data.Sequence1 (Seq1(..))
 -- import qualified Data.Sequence1 as Seq1
 
 

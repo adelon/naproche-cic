@@ -13,7 +13,6 @@ module Parse.Token (module Parse.Token, module Export) where
 import Tokenize as Export (Tok(..), Delim(..), printTok, Located(..))
 
 import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
-import Data.Proxy
 import Text.Megaparsec
 
 import qualified Data.List as List
