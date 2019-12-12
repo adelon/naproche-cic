@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
@@ -23,6 +22,8 @@ module Data.Sequence1
   , length
   , append
   , map
+  , pattern IsSeq1
+  , pattern IsEmpty
   , Seq1 ((:<||), (:||>))
   ) where
 
@@ -32,18 +33,19 @@ import Data.Coerce (coerce)
 import Data.Bool
 import Data.Eq (Eq(..))
 import Data.Foldable (Foldable)
+import Data.Function
 import Data.Functor (Functor(..))
 import Data.Int (Int)
 import Data.List.NonEmpty (NonEmpty(..))
+import Data.Maybe
 import Data.Monoid (Monoid(..))
 import Data.Ord (Ord(..), Ordering)
 import Data.Semigroup (Semigroup(..))
 import Data.Sequence (Seq(..))
 import Data.Traversable (Traversable(..))
-import Text.Show (Show(..))
-import GHC.Num (Num(..))
-import Data.Function
 import GHC.Err (error)
+import GHC.Num (Num(..))
+import Text.Show (Show(..))
 
 import qualified Data.Sequence as Seq
 import qualified Data.Foldable as Foldable
@@ -68,6 +70,24 @@ pattern xs :||> x <- (unsnoc->(!xs, x))
 
 infixr 5 :<||
 infixl 5 :||>
+
+pattern IsSeq1 :: Seq1 a -> Seq a
+pattern IsSeq1 n <- (fromSeq->Just n)
+  where
+    IsSeq1 n = toSeq n
+
+pattern IsEmpty :: Seq a
+pattern IsEmpty <- (Seq.null->True)
+  where
+    IsEmpty = Seq.empty
+
+{-# COMPLETE IsSeq1, IsEmpty #-}
+
+fromSeq :: Seq a -> Maybe (Seq1 a)
+fromSeq = \case
+  x :<| xs -> Just (x :<|| xs)
+  Empty -> Nothing
+{-# INLINE fromSeq #-}
 
 -- | O(1).
 cons :: a -> Seq1 a -> Seq1 a

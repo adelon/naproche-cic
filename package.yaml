@@ -32,6 +32,7 @@ default-extensions:
   - PartialTypeSignatures
   - ScopedTypeVariables
   - TypeFamilies
+  - PatternSynonyms
 
 ghc-options:
   - -Wall

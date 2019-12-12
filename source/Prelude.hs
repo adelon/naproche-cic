@@ -8,7 +8,7 @@ import BasePrelude as Export hiding (Word, TypeError, Const, try, some, many, pi
 
 import Data.Map.Strict as Export (Map)
 import Data.Sequence as Export (Seq(..), (<|), (|>))
-import Data.Sequence1 as Export (Seq1(..))
+import Data.Sequence1 as Export (Seq1(..), pattern IsSeq1, pattern IsEmpty)
 import Data.Set as Export (Set)
 import Data.Set1 as Export (Set1)
 import Data.Text as Export (Text)
