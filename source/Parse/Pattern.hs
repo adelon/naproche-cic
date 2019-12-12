@@ -31,33 +31,3 @@ patterns slot pats = case Set.toDescList pats of
           a <- try slot
           return (Seq1.singleton Slot, [a])
   [] -> fail "no patterns start with this word"
-{-
-    PatternContinue w@(Word ws) patContinues : otherPats ->
-      | patContinues /= Set.singleton PatternEnd
-        -> go <|> patterns slot (Set.fromDescList otherPats)
-          where
-            go = do
-              asum (word <$> ws)
-              (\(pat, as) -> (pat `Seq1.snoc` (Word ws), as)) <$> patterns slot patContinues
-
-    PatternContinue Slot patContinues : otherPats -> go <|> patterns slot (Set.fromDescList otherPats)
-      where
-        go = case patContinues == Set.singleton PatternEnd of
-          True -> do
-            a <- try slot
-            return (Seq1.singleton Slot, [a])
-          False -> do
-            a <- try slot
-            (\(pat, as) -> (pat `Seq1.snoc` Slot, a : as)) <$> patterns slot patContinues
-    [] -> fail "no patterns start with this word"
--}
-{-
-  go = case patContinues == Set.singleton PatternEnd of
-              True -> do
-                asum (word <$> ws)
-                return (Seq1.singleton w, [])
-              False -> do
-                asum (word <$> ws)
-                (\(pat, as) -> (pat `Seq1.snoc` (Word ws), as)) <$> patterns slot patContinues
-
-          -}

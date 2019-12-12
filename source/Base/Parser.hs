@@ -4,7 +4,7 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Language.Pattern (Patterns, PatternTree(..))
+import Language.Pattern (Patterns, PatternTree(..), Pattern, insertPattern)
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
@@ -79,14 +79,6 @@ getRelators :: Parser (Map Tok (Expr -> Expr -> Prop))
 getRelators = relators <$> get
 {-# INLINE getRelators #-}
 
--- TODO: Also handle priority and associativity.
-registerOperator :: Parser op -> Text -> Parser ()
-registerOperator op prim = do
-  st <- get
-  let ops = operators st
-  let ops' = ops <> [[InfixR (makePrimOp op prim)]]
-  put st{operators = ops'}
-
 getAdjs :: Parser (Set Text)
 getAdjs = do
   st <- get
@@ -96,6 +88,20 @@ getAdjs = do
 getNominals :: Parser Patterns
 getNominals = nominals <$> get
 {-# INLINE getNominals #-}
+
+-- TODO: Also handle priority and associativity.
+registerOperator :: Parser op -> Text -> Parser ()
+registerOperator op prim = do
+  st <- get
+  let ops = operators st
+  let ops' = ops <> [[InfixR (makePrimOp op prim)]]
+  put st{operators = ops'}
+
+registerNominal :: Pattern -> Parser ()
+registerNominal pat = do
+  st <- get
+  let pats = nominals st
+  put st{nominals = insertPattern pat pats}
 
 many1 :: Parser a -> Parser [a]
 many1 = some

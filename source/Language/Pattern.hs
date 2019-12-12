@@ -31,3 +31,5 @@ type Pattern = Seq1 Shape
 -- This means we can try parsers derived from patterns in decreasing order
 -- and be sure that we get the longest match possible.
 
+insertPattern :: Pattern -> Patterns -> Patterns
+insertPattern pat pats = error "Pattern.insert undefined"
