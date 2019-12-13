@@ -1,9 +1,9 @@
 module Language.Pattern where
 
 
-import Data.Sequence1 as Seq1
-import Data.String (IsString(..))
-import Data.Text (Text, pack)
+import qualified Data.Sequence1 as Seq1
+import qualified Data.Set1 as Set1
+import qualified Data.Text as Text
 
 
 data Shape
@@ -12,7 +12,7 @@ data Shape
   deriving (Show, Eq, Ord)
 
 instance IsString Shape where
-  fromString w = Word [pack w]
+  fromString w = Word [Text.pack w]
 
 type Patterns = Set1 PatternTree
 
@@ -29,6 +29,11 @@ type Pattern = Seq1 Shape
 --
 -- This means we can try parsers derived from patterns in decreasing order
 -- and be sure that we get the longest match possible.
+
+singleton :: Pattern -> Patterns
+singleton pat = Set1.singleton case pat of
+  shape :<|| IsEmpty -> PatternContinue shape $ Set1.singleton PatternEnd
+  shape :<|| (IsSeq1 pat') -> PatternContinue shape $ singleton pat'
 
 insertPattern :: Pattern -> Patterns -> Patterns
 insertPattern pat pats = error "Pattern.insert incomplete"
