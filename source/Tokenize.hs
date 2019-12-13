@@ -110,6 +110,7 @@ var = lexeme $ Variable <$> (letter <|> bb <|> greek)
     greek = try do
       Lex.char '\\'
       l <- asum (makeSymbolParser <$> greeks)
+      notFollowedBy Lex.letterChar
       return l
 
     greeks :: [(Text,Text)]
