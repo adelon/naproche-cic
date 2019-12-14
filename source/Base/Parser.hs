@@ -10,7 +10,7 @@ import Parse.Token (TokStream, Tok(..), symbol, command)
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
 import Control.Monad.State.Strict (State, get, put)
 import Data.Text as Export (Text, pack)
-import Text.Megaparsec as Export hiding (State, parse)
+import Text.Megaparsec as Export hiding (State, parse, sepBy1)
 
 import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
@@ -134,3 +134,5 @@ p `endedBy` end = do
 sepEndedBy1 :: Parser a -> Parser sep -> Parser (NonEmpty a)
 sepEndedBy1 = NonEmpty.endBy1
 {-# INLINE sepEndedBy1 #-}
+
+sepBy1 = NonEmpty.sepBy1

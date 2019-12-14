@@ -5,6 +5,7 @@ import Base.Parser
 import Parse.Assumption (Assumption, assumption)
 import Parse.Statement (Statement, statement)
 import Parse.Token (environment, period, word)
+import Parse.Definition (Definition, definition)
 
 
 data Declaration
@@ -30,13 +31,6 @@ axiom = environment "axiom" do
   word "then"
   stmt <- statement `endedBy` period
   return (Axiom asms stmt)
-
-
-data Definition = Definition deriving (Show, Eq)
-
-definition :: Parser Definition
-definition = environment "definition" do
-  error "Declaration.definition unfinished"
 
 
 data Theorem = Theorem Statement deriving (Show, Eq)

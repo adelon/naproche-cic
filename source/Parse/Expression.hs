@@ -3,7 +3,7 @@ module Parse.Expression where
 import Base.Parser
 import Language.Expression
 import Parse.Token
-import Language.Common (Var(..))
+import Parse.Var
 
 
 annotated :: Parser (Typing Expr Typ)
@@ -37,7 +37,3 @@ pi = do
   v `Inhabits` ty <- braced typing
   e <- expression
   return (Pi v ty e)
-
-var :: Parser Var
-var = Var <$> variable
-{-# INLINE var #-}

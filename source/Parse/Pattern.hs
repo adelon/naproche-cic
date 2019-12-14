@@ -1,4 +1,10 @@
-module Parse.Pattern where
+module Parse.Pattern
+  ( Pattern
+  , Patterns
+  , Shape(..)
+  , PatternTree(..)
+  , patterns
+  ) where
 
 
 import Base.Parser
@@ -25,6 +31,7 @@ consWord :: Shape -> (Maybe Pattern, [a]) -> (Maybe Pattern, [a])
 consWord w (mpat, as) = case mpat of
   Nothing -> (Just (Seq1.singleton w), as)
   Just pat -> (Just (w `Seq1.cons` pat), as)
+
 consSlot :: a -> (Maybe Pattern, [a]) -> (Maybe Pattern, [a])
 consSlot a (mpat, as) = case mpat of
   Nothing -> (Just (Seq1.singleton Slot), a : as)

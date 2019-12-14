@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Kernel.CoC where
 
+import Data.List (head)
+
 import qualified Data.Text as Text
 import qualified Data.Set as Set
 import qualified Data.Map as Map

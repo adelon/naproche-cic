@@ -241,3 +241,8 @@ comma = void (symbol ",")
 period :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 period = void (symbol ".")
 {-# INLINE period #-}
+
+iff :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
+iff = void do
+  word "iff" <|> try (word "if" >> word "and" >> word "only") >> word "if"
+{-# INLINE iff #-}
