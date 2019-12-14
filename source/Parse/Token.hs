@@ -12,7 +12,6 @@ module Parse.Token (module Parse.Token, module Export) where
 
 import Tokenize as Export (Tok(..), Delim(..), printTok, Located(..))
 
-import Data.List.NonEmpty (NonEmpty (..), nonEmpty)
 import Text.Megaparsec
 
 import qualified Data.List as List
@@ -61,14 +60,14 @@ instance Stream TokStream where
     TokStream _ [] -> Nothing
     TokStream raw ts ->
       let (consumed, ts') = splitAt n ts
-      in case nonEmpty consumed of
+      in case NonEmpty.nonEmpty consumed of
         Nothing -> Just (consumed, TokStream raw ts')
         Just consumed' -> Just (consumed, TokStream (Text.drop (tokensLength pxy consumed') raw) ts')
 
   takeWhile_ :: (Token TokStream -> Bool) -> TokStream -> (Tokens TokStream, TokStream)
   takeWhile_ f (TokStream raw s) =
     let (x, s') = List.span f s
-    in case nonEmpty x of
+    in case NonEmpty.nonEmpty x of
       Nothing -> (x, TokStream raw s')
       Just ts -> (x, TokStream (Text.drop (tokensLength pxy ts) raw) s')
 
@@ -102,7 +101,7 @@ instance Stream TokStream where
         (t:_) -> startPos t
       (pre, post) = splitAt (offset - pstateOffset) (unTokStream pstateInput)
       (preRaw, postRaw) = Text.splitAt tokensConsumed (rawInput pstateInput)
-      tokensConsumed = case nonEmpty pre of
+      tokensConsumed = case NonEmpty.nonEmpty pre of
         Nothing -> 0
         Just nePre -> tokensLength pxy nePre
       restOfLine = Text.takeWhile (/= '\n') postRaw

@@ -4,6 +4,7 @@ module Parse.Statement where
 import Base.Parser (Parser, label, try, (<|>), satisfy, optional, getNominals, getAdjs)
 import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
+import Language.Quantifier
 import Parse.Expression (expression)
 import Parse.Pattern (patterns)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
@@ -12,8 +13,8 @@ import Tokenize (Tok(..), Located(..))
 
 import qualified Data.Set as Set
 
-type Adj = Text
 
+type Adj = Text
 
 data Statement
   = StatementQuantified [(Quantifier, Typing Var Typ)] Statement
@@ -24,21 +25,13 @@ data Statement
   | AtomicStatement AtomicStatement
   deriving (Show, Eq)
 
-data Quantifier
-  = Universal
-  | Existential
-  | Nonexistential
-  deriving (Show, Eq, Ord)
-
 statement :: Parser Statement
 statement = AtomicStatement <$> atomicStatement
 
 
 headed :: Parser Statement
 headed = quantified <|> ifThen <|> negated
-
   where
-
     quantified :: Parser Statement
     quantified = do
       info <- quantifierChain
@@ -86,7 +79,6 @@ quantifiedNotion = label "quantified notion" (universal <|> existential <|> none
 chained :: Parser Statement
 chained = StatementChain <$> (andOrChain <|> neitherNorChain)
     where
-
       andOrChain :: Parser Chain
       andOrChain = error "Parse.Statement.andOrChain incomplete"
 
@@ -98,9 +90,6 @@ data Chain
   = Chain
   | End AtomicStatement
   deriving (Show, Eq, Ord)
-
-
-
 
 
 data AtomicStatement
