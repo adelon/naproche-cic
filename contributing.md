@@ -48,7 +48,7 @@ Another author on this topic: Brett A. Becker
 
 [Helium's Repo](https://github.com/Helium4Haskell/helium)
 
-[Contraint solver](https://github.com/Helium4Haskell/Top)
+[Constraint solver](https://github.com/Helium4Haskell/Top)
 
 Heeren |
 [Helium, for leaning Haskell](http://www.open.ou.nl/bhr/heeren-helium.pdf)
