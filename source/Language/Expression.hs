@@ -47,4 +47,3 @@ data Prop
   | Expr `Implies` Expr
   | Forall
   deriving (Show, Eq, Ord)
-

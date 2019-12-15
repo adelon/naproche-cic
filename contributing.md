@@ -17,7 +17,7 @@ Alexander Lyaletski + Andrei Paskevich + Konstantin Verchinine |
 Theorem proving and proof verification in the system SAD
 
 
-## Type thoery
+## Type theory
 
 Thorsten Altenkirch | [Naive Type Theory](http://www.cs.nott.ac.uk/~psztxa/publ/fomus19.pdf)
 
