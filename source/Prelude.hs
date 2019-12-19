@@ -4,7 +4,12 @@ module Prelude
   ( module Export
   ) where
 
-import BasePrelude as Export hiding (Word, TypeError, Const, head, try, some, many, pi, app)
+import BasePrelude as Export hiding 
+  ( Word, TypeError, Const
+  , head, tail
+  , try, some, many
+  , pi, app
+  )
 
 import Data.Map.Strict as Export (Map)
 import Data.Sequence as Export (Seq(..), (<|), (|>))
