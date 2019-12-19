@@ -11,7 +11,7 @@ import Parse.Token (TokStream(..))
 import Tokenize
 
 import Control.Monad.State.Strict
-import System.Directory (getDirectoryContents)
+import System.Directory (getDirectoryContents, createDirectoryIfMissing)
 import Text.Megaparsec.Error (errorBundlePretty)
 
 import qualified Data.Text as Text
@@ -19,6 +19,8 @@ import qualified Data.Text.IO as Text
 
 main :: IO ()
 main = do
+  let createParents = True
+  createDirectoryIfMissing createParents "work/out" 
   files <- getFiles "work/in"
   mapM_ work files
 
