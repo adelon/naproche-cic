@@ -3,7 +3,7 @@ module Parse.Pattern
   , Patterns
   , Shape(..)
   , PatternTree(..)
-  , patterns
+  , patternWith
   ) where
 
 
@@ -20,8 +20,8 @@ import qualified Data.Set as Set
 -- it should be refactored to remove the impossible branches while
 -- still keeping the data types Pattern and Patterns correct by definition.
 
-patterns :: Parser a -> Patterns -> Parser (Pattern, [a])
-patterns slot pats = makeProperPattern <$> patterns' slot pats
+patternWith :: Parser a -> Patterns -> Parser (Pattern, [a])
+patternWith slot pats = makeProperPattern <$> patterns' slot pats
   where
     makeProperPattern (mpat, as) = case mpat of
       Just pat -> (pat, as)

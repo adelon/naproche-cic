@@ -6,7 +6,7 @@ import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
 import Language.Quantifier
 import Parse.Expression (expression)
-import Parse.Pattern (patterns)
+import Parse.Pattern (patternWith)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
 import Parse.Token (math, word, comma)
 import Tokenize (Tok(..), Located(..))
@@ -149,7 +149,7 @@ type Notion = Expr
 notion :: Parser Expr
 notion = do
   nominals <- getNominals
-  (pat, es) <- patterns (math expression) nominals
+  (pat, es) <- patternWith (math expression) nominals
   return (foldl App (ConstPattern pat) es)
 
 adjective :: Parser Adj
