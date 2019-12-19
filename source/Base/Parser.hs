@@ -135,4 +135,5 @@ sepEndedBy1 :: Parser a -> Parser sep -> Parser (NonEmpty a)
 sepEndedBy1 = NonEmpty.endBy1
 {-# INLINE sepEndedBy1 #-}
 
+sepBy1 :: MonadPlus m => m a -> m sep -> m (NonEmpty a)
 sepBy1 = NonEmpty.sepBy1
