@@ -3,23 +3,49 @@ module Parse.Pattern
   , Patterns
   , Shape(..)
   , PatternTree(..)
+  , anyPatternTill
   , patternWith
   ) where
 
 
 import Base.Parser
 import Language.Pattern
-import Parse.Token (word)
+import Parse.Token (math, word, anyWord)
+import Parse.Var (Var, var)
 
 import qualified Data.Sequence1 as Seq1
 import qualified Data.Set1 as Set1
 import qualified Data.Set as Set
 
+-- Parses a generic pattern with variables in slots until
+-- the `stop` parser succeeds. Returns the shapes of the pattern
+-- and the list of variables filling the slots of the pattern.
+-- The results needs to validated to create a proper pattern.
+anyPatternTill :: Parser stop -> Parser ([Shape], [Var])
+-- TODO: This is a rather silly placeholder implementation.
+-- Should be fixed once the rest of the parsing setup works.
+anyPatternTill stop = concatUnzip <$> someTill (wordShape <|> slotShape) stop
+  where
+    wordShape :: Parser ([Shape], [Var])
+    wordShape = do
+      w <- anyWord
+      return ([Word [w]], [])
+    slotShape :: Parser ([Shape], [Var])
+    slotShape = do
+      v <- math var
+      return ([Slot], [v])
+    concatUnzip :: [([a],[b])] -> ([a], [b])
+    concatUnzip asbs = (concat *** concat) (unzip asbs)
 
--- TODO: The implementation of `patterns` is rather ugly. At some point
+
+-- TODO: The implementation of `patternWith` is rather ugly. At some point
 -- it should be refactored to remove the impossible branches while
 -- still keeping the data types Pattern and Patterns correct by definition.
 
+-- `patternWith slot pats` parses one of the patterns described in `pats`
+-- using the `slot` parser for the slots of patterns. This parser commits after
+-- successfully parsing a word that occurs in a pattern. The result is a tuple of
+-- the pattern that succeeded and the list of results of the slot parser.
 patternWith :: Parser a -> Patterns -> Parser (Pattern, [a])
 patternWith slot pats = makeProperPattern <$> patterns' slot pats
   where
