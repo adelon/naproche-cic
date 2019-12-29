@@ -3,10 +3,10 @@ module Parse.Definition where
 
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
-import Parse.Pattern (Pattern)
+import Parse.Pattern (Pattern, anyPatternTill)
 import Parse.Statement (Statement, statement)
-import Parse.Token (environment, word, iff)
-import Parse.Var (Var, varList)
+import Parse.Token (environment, math, word, iff)
+import Parse.Var (Var, var)
 
 data Definition
   = Definition [Assumption] DefinitionBody
@@ -15,11 +15,8 @@ data Definition
 definition :: Parser Definition
 definition = environment "definition" do
   asms <- many1 assumption
-  optional weSay
-  return (Definition asms undefined)
-    where
-      weSay :: Parser ()
-      weSay = void (try (word "we" >> word "say") >> optional (word "that"))
+  body <- definitionBody
+  return (Definition asms body)
 
 data DefinitionBody
   = DefinePredicate PredicateHead Statement
@@ -29,7 +26,6 @@ definitionBody :: Parser DefinitionBody
 definitionBody = do
   optional weSay
   head <- predicateHead
-  iff
   stmt <- statement
   return (DefinePredicate head stmt)
     where
@@ -42,7 +38,11 @@ data PredicateHead
   deriving (Show, Eq)
 
 predicateHead :: Parser PredicateHead
-predicateHead = do
-  vars <- varList
-  let pat = error "Parse.Definition.predicateHead incomplete"
-  return (PredicateAdjPattern vars pat)
+predicateHead = is
+  where
+    is = do
+      v <- math var
+      word "is"
+      (pat, vs) <- anyPatternTill iff
+      let vars = v :| vs
+      return (PredicateAdjPattern vars pat)

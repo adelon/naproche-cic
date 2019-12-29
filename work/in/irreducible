@@ -1,5 +1,5 @@
 \begin{definition}
-  We say that a natural number \( p \) is irreducible iff
+  We say that \( p \) is irreducible iff
   \( 0\neq p\neq 1 \) and for every \( k\in\mathbb{N} \)
   we have that \( k\mid p\) implies \( k = 1 \) or \( k = p \).
 \end{definition}

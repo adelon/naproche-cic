@@ -13,18 +13,24 @@ import Language.Pattern
 import Parse.Token (math, word, anyWord)
 import Parse.Var (Var, var)
 
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Sequence1 as Seq1
-import qualified Data.Set1 as Set1
 import qualified Data.Set as Set
+import qualified Data.Set1 as Set1
 
 -- Parses a generic pattern with variables in slots until
 -- the `stop` parser succeeds. Returns the shapes of the pattern
 -- and the list of variables filling the slots of the pattern.
 -- The results needs to validated to create a proper pattern.
-anyPatternTill :: Parser stop -> Parser ([Shape], [Var])
+anyPatternTill :: Parser stop -> Parser (Pattern, [Var])
 -- TODO: This is a rather silly placeholder implementation.
 -- Should be fixed once the rest of the parsing setup works.
-anyPatternTill stop = concatUnzip <$> someTill (wordShape <|> slotShape) stop
+-- Use many1Till instead, which is exported from the parser module and
+-- returns a nonempty list instead.
+anyPatternTill stop = do
+  (shapes, vars) <- concatUnzip <$> someTill (wordShape <|> slotShape) stop
+  let pat = makePattern (NonEmpty.fromList shapes)
+  return (pat, vars)
   where
     wordShape :: Parser ([Shape], [Var])
     wordShape = do
@@ -75,18 +81,18 @@ patterns' slot pats = case Set1.toDescNonEmpty pats of
             return (Just (Seq1.singleton w), [])
       _ -> go <|> patterns' slot (Set1.insertSmallest PatternEnd (Set.fromDescList otherPats))
         where
-          go = trace (show ws <> "at Continue Other patterns: " <> show otherPats) do
+          go = trace (show ws <> " at Continue. Other patterns: " <> show otherPats) do
             asum (word <$> ws)
             consWord w <$> patterns' slot patContinues
     PatternContinue Slot patContinues -> case otherPats of
       [PatternEnd] -> go <|> return (Nothing, [])
         where
-          go = trace ("Slot at End Other patterns: " <> show otherPats) do
+          go = trace ("Slot at End. Other patterns: " <> show otherPats) do
             a <- try slot
             return (Just (Seq1.singleton Slot), [a])
       _ -> go <|> patterns' slot (Set1.insertSmallest PatternEnd (Set.fromDescList otherPats))
         where
-          go = trace ("Slot at Continue Other patterns: " <> show otherPats) do
+          go = trace ("Slot at Continue. Other patterns: " <> show otherPats) do
             a <- try slot
             consSlot a <$> patterns' slot patContinues
     PatternEnd -> error "Parse.Pattern.patterns reached impossible branch for PatternEnd"

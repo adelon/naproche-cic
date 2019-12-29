@@ -110,8 +110,8 @@ many1 :: Parser a -> Parser [a]
 many1 = some
 {-# INLINE many1 #-}
 
-many1Till :: Parser a -> Parser end -> Parser [a]
-many1Till = someTill
+many1Till :: Parser a -> Parser end -> Parser (NonEmpty a)
+many1Till = NonEmpty.someTill
 {-# INLINE many1Till #-}
 
 -- | Parser negation. @never p@ succeeds iff when @p@ fails.

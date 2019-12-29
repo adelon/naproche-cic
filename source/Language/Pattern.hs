@@ -35,5 +35,8 @@ singleton pat = Set1.singleton case pat of
   shape :<|| IsEmpty -> PatternContinue shape $ Set1.singleton PatternEnd
   shape :<|| (IsSeq1 pat') -> PatternContinue shape $ singleton pat'
 
+makePattern :: NonEmpty Shape -> Pattern
+makePattern = Seq1.fromNonEmpty
+
 insertPattern :: Pattern -> Patterns -> Patterns
 insertPattern pat pats = error "Pattern.insert incomplete"
