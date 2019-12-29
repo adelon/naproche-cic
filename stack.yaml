@@ -1,5 +1,8 @@
-resolver: lts-14.16
+resolver: lts-14.19
 
+# Stackage currently only has the 7.x series of megaparsec.
+# We have a custom token stream, where the implementation would
+# differ between 7.x/8.x, so we chose the more recent version.
 extra-deps:
   - megaparsec-8.0.0
   - hspec-megaparsec-2.1.0
