@@ -20,7 +20,7 @@ import qualified Data.Text.IO as Text
 main :: IO ()
 main = do
   let createParents = True
-  createDirectoryIfMissing createParents "work/out" 
+  createDirectoryIfMissing createParents "work/out"
   files <- getFiles "work/in"
   mapM_ work files
 
@@ -37,6 +37,7 @@ work file = do
   let inPath = "./work/in/" <> file
   let outPath = "./work/out/" <> file
   let debugPath = "./work/out/" <> file <> ".tokens"
+  putStrLn inPath
   result <- tokenize inPath
   case result of
     Left err -> Text.writeFile debugPath (Text.pack (errorBundlePretty err))
