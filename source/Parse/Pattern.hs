@@ -4,13 +4,14 @@ module Parse.Pattern
   , Shape(..)
   , PatternTree(..)
   , anyPatternTill
+  , anyPatternBut
   , patternWith
   ) where
 
 
 import Base.Parser
 import Language.Pattern
-import Parse.Token (math, word, anyWord)
+import Parse.Token (math, word, anyWord, anyWordBut)
 import Parse.Var (Var, var)
 
 import qualified Data.List.NonEmpty as NonEmpty
@@ -27,7 +28,7 @@ anyPatternTill :: Parser stop -> Parser (Pattern, [Var])
 -- Should be fixed once the rest of the parsing setup works.
 -- Use many1Till instead, which is exported from the parser module and
 -- returns a nonempty list instead.
-anyPatternTill stop = do
+anyPatternTill stop = trace "parsing anyPatternTill" do
   (shapes, vars) <- concatUnzip <$> someTill (wordShape <|> slotShape) stop
   let pat = makePattern (NonEmpty.fromList shapes)
   return (pat, vars)
@@ -35,6 +36,23 @@ anyPatternTill stop = do
     wordShape :: Parser ([Shape], [Var])
     wordShape = do
       w <- anyWord
+      return ([Word [w]], [])
+    slotShape :: Parser ([Shape], [Var])
+    slotShape = do
+      v <- math var
+      return ([Slot], [v])
+    concatUnzip :: [([a],[b])] -> ([a], [b])
+    concatUnzip asbs = (concat *** concat) (unzip asbs)
+
+anyPatternBut :: Set Text -> Parser (Pattern, [Var])
+anyPatternBut buts = trace "parsing anyPatternBut" do
+  (shapes, vars) <- concatUnzip <$> some (wordShape <|> slotShape)
+  let pat = makePattern (NonEmpty.fromList shapes)
+  return (pat, vars)
+  where
+    wordShape :: Parser ([Shape], [Var])
+    wordShape = do
+      w <- anyWordBut buts
       return ([Word [w]], [])
     slotShape :: Parser ([Shape], [Var])
     slotShape = do

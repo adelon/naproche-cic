@@ -1,14 +1,16 @@
 module Parse.Statement where
 
 
-import Base.Parser (Parser, label, try, (<|>), satisfy, optional, getNominals, getAdjs)
+import Base.Parser (Parser, label, try, (<|>), satisfy, optional, trySepBy1, noop)
+import Base.Parser (getNominals, getAdjs)
 import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
 import Language.Quantifier
 import Parse.Expression (expression)
 import Parse.Pattern (patternWith)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
-import Parse.Token (math, word, comma)
+import Parse.Token (math, word, command, comma)
+import Parse.Var (var)
 import Tokenize (Tok(..), Located(..))
 
 import qualified Data.Set as Set
@@ -17,33 +19,39 @@ import qualified Data.Set as Set
 type Adj = Text
 
 data Statement
-  = StatementQuantified [(Quantifier, Typing Var Typ)] Statement
-  | StatementImplication Statement Statement
-  | StatementNegated Statement
+  = StatementHeaded HeadedStatement
   | StatementChain Chain
   -- v TODO: remove, this is just for prototyping.
   | AtomicStatement AtomicStatement
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 statement :: Parser Statement
-statement = AtomicStatement <$> atomicStatement
+statement = trace "parsing statement"
+  -- $ AtomicStatement <$> atomicStatement
+  -- headedStatement <|> chained
+ chained
 
+data HeadedStatement
+  = StatementQuantified (NonEmpty (Quantifier, Typing Var Typ)) Statement
+  | StatementImplication Statement Statement
+  | StatementNegated Statement
+  deriving (Show, Eq, Ord)
 
-headed :: Parser Statement
-headed = quantified <|> ifThen <|> negated
+headedStatement :: Parser HeadedStatement
+headedStatement = quantified <|> ifThen <|> negated
   where
-    quantified :: Parser Statement
+    quantified :: Parser HeadedStatement
     quantified = do
       info <- quantifierChain
       stmt <- statement
       return (StatementQuantified info stmt)
 
-    negated :: Parser Statement
+    negated :: Parser HeadedStatement
     negated = do
       word "it" *> word "is" *> word "not" *> word "the" *> word "case" *> word "that"
       StatementNegated <$> statement
 
-    ifThen :: Parser Statement
+    ifThen :: Parser HeadedStatement
     ifThen = do
       word "if"
       stmt1 <- statement
@@ -52,45 +60,69 @@ headed = quantified <|> ifThen <|> negated
       stmt2 <- statement
       return (StatementImplication stmt1 stmt2)
 
-quantifierChain :: Parser [(Quantifier, Typing Var Typ)]
-quantifierChain = error "Parse.Statement.quantifierChain incomplete"
+quantifierChain :: Parser (NonEmpty (Quantifier, Typing Var Typ))
+quantifierChain = do
+  info <- quantifiedNotion
+  return (pure info)
 
 quantifiedNotion :: Parser (Quantifier, Typing Var Typ)
 quantifiedNotion = label "quantified notion" (universal <|> existential <|> nonexistential)
   where
     universal, existential, nonexistential :: Parser (Quantifier, Typing Var Typ)
     universal = do
-      word "all"
-      varInfo <- undefined
+      word "all" <|> try (word "for" >> word "every")
+      varInfo <- typing
       -- TODO this needs to be registered as local variable information.
+      optional (word "we" >> word "have" >> word "that")
       return (Universal, varInfo)
     existential = do
       word "some"
-      varInfo <- undefined
+      varInfo <- typing
       -- TODO this needs to be registered as local variable information.
       return (Existential, varInfo)
     nonexistential = do
       word "no"
-      varInfo <- undefined
+      varInfo <- typing
       -- TODO this needs to be registered as local variable information.
       return (Nonexistential, varInfo)
-
-
-chained :: Parser Statement
-chained = StatementChain <$> (andOrChain <|> neitherNorChain)
-    where
-      andOrChain :: Parser Chain
-      andOrChain = error "Parse.Statement.andOrChain incomplete"
-
-      neitherNorChain :: Parser Chain
-      neitherNorChain = error "Parse.Statement.neitherNorChain incomplete"
-
+    typing :: Parser (Typing Var Typ)
+    typing = math do
+      v <- var
+      command "in"
+      ty <- expression
+      return (v `Inhabits` ty)
 
 data Chain
-  = Chain
-  | End AtomicStatement
+  -- The outer list represents the disjunctions, the inner list the conjunctions.
+  = ChainAnd (NonEmpty AtomicStatement) ChainEnd
+  | Unchain AtomicStatement
   deriving (Show, Eq, Ord)
 
+chained :: Parser Statement
+chained = StatementChain <$> (andChain <|> unchained)
+  where
+    andChain :: Parser Chain
+    andChain = trace "parsing and chain" do
+      stmts <- atomicStatement `trySepBy1` word "and"
+      endStmt <- endChain
+      return (ChainAnd stmts endStmt)
+
+    unchained :: Parser Chain
+    unchained = trace "parsing unchained" (Unchain <$> atomicStatement)
+
+data ChainEnd
+  = ChainEndAndAtomic AtomicStatement
+  | ChainEndAndHeaded HeadedStatement
+  | ChainEnd
+  deriving (Show, Eq, Ord)
+
+endChain :: Parser ChainEnd
+endChain = endChainAnd <|> end
+  where
+    endChainAnd = do
+      word "and"
+      (ChainEndAndHeaded <$> headedStatement) <|> (ChainEndAndAtomic <$> atomicStatement)
+    end = trace "trivial end of chain" (ChainEnd <$ noop)
 
 data AtomicStatement
   = Thesis   -- ^ The current goal.

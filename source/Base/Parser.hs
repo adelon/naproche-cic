@@ -12,6 +12,7 @@ import Control.Monad.State.Strict (State, get, put)
 import Text.Megaparsec as Export hiding (State, parse, sepBy1)
 
 import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 import qualified Data.Set1 as Set1
@@ -50,7 +51,8 @@ initRegistry = Registry
       ]
     primRelators :: Map Tok (Expr -> Expr -> Prop)
     primRelators = Map.fromList
-      [ (Symbol "=", \x y -> x `Equals` y)
+      [ (Symbol "=", \x y -> Predicate "prim_eq" `PredApp` x `PredApp` y)
+      , (Command "neq", \x y -> Predicate "prim_not_eq" `PredApp` x `PredApp` y)
       , (Symbol "<", \x y -> Predicate "prim_less" `PredApp` x `PredApp` y)
       , (Command "leq", \x y -> Predicate "prim_less_eq" `PredApp` x `PredApp` y)
       ]
@@ -105,6 +107,10 @@ registerNominal pat = do
   let pats = nominals st
   put st{nominals = insertPattern pat pats}
 
+
+noop :: Applicative f => f ()
+noop = pure ()
+
 many1 :: Parser a -> Parser [a]
 many1 = some
 {-# INLINE many1 #-}
@@ -136,3 +142,18 @@ sepEndedBy1 = NonEmpty.endBy1
 
 sepBy1 :: MonadPlus m => m a -> m sep -> m (NonEmpty a)
 sepBy1 = NonEmpty.sepBy1
+
+
+-- | Backtracking version of sepBy.
+trySepBy :: MonadParsec e s f => f a -> f sep -> f [a]
+trySepBy p sep = trySepBy1' p sep <|> pure []
+{-# INLINE trySepBy #-}
+
+-- | Backtracking version of sepBy1.
+trySepBy1 :: MonadParsec e s f => f a -> f sep -> f (NonEmpty a)
+trySepBy1 p sep = NonEmpty.fromList <$> trySepBy1' p sep
+{-# INLINE trySepBy1 #-}
+
+trySepBy1' :: MonadParsec e s f => f a -> f sep -> f [a]
+trySepBy1' p sep = liftA2 (:) p (many (try (sep *> p)))
+{-# INLINE trySepBy1' #-}

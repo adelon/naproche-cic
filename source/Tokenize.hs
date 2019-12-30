@@ -17,6 +17,7 @@ data Tok
   = Word Text
   | Variable Text
   | Symbol Text
+  | Number Text
   | Command Text
   | BeginEnv Text
   | EndEnv Text
@@ -32,6 +33,7 @@ printTok = \case
   Word w -> w
   Variable v -> v
   Symbol s -> s
+  Number n -> n
   Command cmd -> Text.cons '\\' cmd
   BeginEnv env -> "\\begin{" <> env <> "}"
   EndEnv env -> "\\end{" <> env <> "}"
@@ -79,7 +81,7 @@ tok = word <|> symbol <|> begin <|> end <|> open <|> close <|> command <|> mathB
 
 -- | Parses a single math mode token.
 mathTok :: Tokenizer (Located Tok)
-mathTok = var <|> symbol <|> begin <|> end <|> open <|> close <|> command <|> mathEnd
+mathTok = var <|> symbol <|> number <|> begin <|> end <|> open <|> close <|> command <|> mathEnd
 
 -- | Parses a single begin math token.
 mathBegin :: Tokenizer (Located Tok)
@@ -98,6 +100,12 @@ word :: Tokenizer (Located Tok)
 word = lexeme do
   w <- some Lex.letterChar
   let t = Word (Text.toCaseFold (Text.pack w))
+  return t
+
+number :: Tokenizer (Located Tok)
+number = lexeme do
+  n <- some Lex.digitChar
+  let t = Number (Text.pack n)
   return t
 
 var :: Tokenizer (Located Tok)
@@ -155,11 +163,11 @@ var = lexeme $ Variable <$> (letter <|> bb <|> greek)
 
 symbol :: Tokenizer (Located Tok)
 symbol = lexeme do
-  symb <- some (satisfy (\c -> isDigit c || c `elem` symbols))
+  symb <- some (satisfy (`elem` symbols))
   return (Symbol (Text.pack symb))
     where
       symbols :: [Char]
-      symbols = ".,:;!?@"
+      symbols = ".,:;!?@=-"
 
 -- | Parses a TEX-style command.
 command :: Tokenizer (Located Tok)

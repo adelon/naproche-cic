@@ -169,6 +169,15 @@ symbol :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 symbol s = exactly (Symbol s)
 {-# INLINE symbol #-}
 
+anyNumber :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
+anyNumber = label "any number" $ token matcher Set.empty
+  where
+    matcher :: Token TokStream -> Maybe Text
+    matcher (Located _start _end _length t) = case t of
+        Number n -> Just n
+        _ -> Nothing
+{-# INLINE anyNumber #-}
+
 -- | @command@ parses a single command token. Case-sensitive.
 command :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 command cmd = exactly (Command cmd)

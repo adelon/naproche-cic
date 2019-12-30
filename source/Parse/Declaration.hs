@@ -28,7 +28,7 @@ data Axiom = Axiom
 axiom :: Parser Axiom
 axiom = environment "axiom" do
   asms <- many assumption
-  word "then"
+  optional (word "then")
   stmt <- statement `endedBy` period
   return (Axiom asms stmt)
 

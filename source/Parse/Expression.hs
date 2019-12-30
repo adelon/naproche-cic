@@ -1,5 +1,6 @@
 module Parse.Expression where
 
+
 import Base.Parser
 import Language.Expression
 import Parse.Token
@@ -29,6 +30,7 @@ expression' :: Parser Expr
 expression' = parenthesized expression
   <|> (Free <$> var)
   <|> pi
+  <|> number
 
 pi :: Parser Expr
 pi = do
@@ -37,3 +39,8 @@ pi = do
   v `Inhabits` ty <- braced typing
   e <- expression
   return (Pi v ty e)
+
+number :: Parser Expr
+number = label "number" do
+  n <- anyNumber
+  return (Const n)

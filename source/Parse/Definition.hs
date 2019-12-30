@@ -3,10 +3,13 @@ module Parse.Definition where
 
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
-import Parse.Pattern (Pattern, anyPatternTill)
+import Parse.Pattern (Pattern, anyPatternBut)
 import Parse.Statement (Statement, statement)
-import Parse.Token (environment, math, word, iff)
+import Parse.Token (environment, math, word, iff, period)
 import Parse.Var (Var, var)
+
+import qualified Data.Set as Set
+
 
 data Definition
   = Definition [Assumption] DefinitionBody
@@ -14,7 +17,7 @@ data Definition
 
 definition :: Parser Definition
 definition = environment "definition" do
-  asms <- many1 assumption
+  asms <- many assumption
   body <- definitionBody
   return (Definition asms body)
 
@@ -26,7 +29,8 @@ definitionBody :: Parser DefinitionBody
 definitionBody = do
   optional weSay
   head <- predicateHead
-  stmt <- statement
+  iff
+  stmt <- statement `endedBy` period
   return (DefinePredicate head stmt)
     where
       weSay :: Parser ()
@@ -43,6 +47,6 @@ predicateHead = is
     is = do
       v <- math var
       word "is"
-      (pat, vs) <- anyPatternTill iff
+      (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
       let vars = v :| vs
       return (PredicateAdjPattern vars pat)
