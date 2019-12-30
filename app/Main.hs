@@ -46,11 +46,11 @@ work file = do
       result' <- parse document inPath stream
       case result' of
         Left err -> Text.writeFile outPath (Text.pack (errorBundlePretty err))
-        Right doc -> Text.writeFile outPath ((pack . show) doc)
+        Right doc -> Text.writeFile outPath ((Text.pack . show) doc)
 
 
 dumpTokens :: TokStream -> Text
-dumpTokens = pack . show . fmap unLocated . unTokStream
+dumpTokens = Text.pack . show . fmap unLocated . unTokStream
 
 tokenize :: FilePath -> IO (Either (ParseErrorBundle Text Void) TokStream)
 tokenize path = do
