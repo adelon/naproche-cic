@@ -45,6 +45,8 @@ initRegistry = Registry
     primOperators =
       [ [ InfixR (makePrimOp (symbol "+") "prim_plus")
         ]
+      , [ InfixR (makePrimOp (command "mid") "prim_divides")
+        ]
       , [ InfixR (makeOp (command "times") (Times))
         , InfixR (makeOp (command "sqcup") (Plus))
         ]

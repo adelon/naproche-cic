@@ -1,7 +1,7 @@
 module Parse.Statement where
 
 
-import Base.Parser (Parser, label, try, (<|>), satisfy, optional, trySepBy1, noop)
+import Base.Parser (Parser, label, try, (<|>), satisfy, optional)
 import Base.Parser (getNominals, getAdjs)
 import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
@@ -9,7 +9,7 @@ import Language.Quantifier
 import Parse.Expression (expression)
 import Parse.Pattern (patternWith)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
-import Parse.Token (math, word, command, comma)
+import Parse.Token (math, word, command, comma, iff)
 import Parse.Var (var)
 import Tokenize (Tok(..), Located(..))
 
@@ -20,16 +20,14 @@ type Adj = Text
 
 data Statement
   = StatementHeaded HeadedStatement
-  | StatementChain Chain
-  -- v TODO: remove, this is just for prototyping.
-  | AtomicStatement AtomicStatement
+  | StatementUnheaded UnheadedStatement
+  -- | StatementChain Chain
   deriving (Show, Eq, Ord)
 
 statement :: Parser Statement
 statement = trace "parsing statement"
-  -- $ AtomicStatement <$> atomicStatement
-  -- headedStatement <|> chained
- chained
+  (StatementHeaded <$> headedStatement)
+  <|> (StatementUnheaded <$> unheadedStatement)
 
 data HeadedStatement
   = StatementQuantified (NonEmpty (Quantifier, Typing Var Typ)) Statement
@@ -48,7 +46,7 @@ headedStatement = quantified <|> ifThen <|> negated
 
     negated :: Parser HeadedStatement
     negated = do
-      word "it" *> word "is" *> word "not" *> word "the" *> word "case" *> word "that"
+      try (word "it" *> word "is" *> word "not" *> word "the" *> word "case" *> word "that")
       StatementNegated <$> statement
 
     ifThen :: Parser HeadedStatement
@@ -92,37 +90,35 @@ quantifiedNotion = label "quantified notion" (universal <|> existential <|> none
       ty <- expression
       return (v `Inhabits` ty)
 
-data Chain
-  -- The outer list represents the disjunctions, the inner list the conjunctions.
-  = ChainAnd (NonEmpty AtomicStatement) ChainEnd
-  | Unchain AtomicStatement
+data UnheadedStatement
+  = StatementConjunction AtomicStatement Statement
+  | StatementIff AtomicStatement Statement
+  | StatementAtomic AtomicStatement
   deriving (Show, Eq, Ord)
 
-chained :: Parser Statement
-chained = StatementChain <$> (andChain <|> unchained)
+unheadedStatement :: Parser UnheadedStatement
+unheadedStatement = do
+  stmt1 <- atomicStatement
+  c <- optional continue
+  case c of
+    Just (Word "and") -> do
+      stmt2 <- statement
+      return (StatementConjunction stmt1 stmt2)
+    Just (Word "iff") -> do
+      stmt2 <- statement
+      return (StatementIff stmt1 stmt2)
+    -- TODO:
+    -- * Add 'where' clauses.
+    -- * Add disjunctions. This has a slightly more complicated interaction
+    --  with conjunctions. Worst case: parse naively, fix in processing.
+    Just (Word "where") -> do
+      fail "Parse.Statement.unheadedStatement: where clauses are not implemented yet"
+    -- The above options exhaust all cases where a token was consumed.
+    -- This is how we proceed when we cannot consume a continuation token.
+    _noContinue -> do
+      return (StatementAtomic stmt1)
   where
-    andChain :: Parser Chain
-    andChain = trace "parsing and chain" do
-      stmts <- atomicStatement `trySepBy1` word "and"
-      endStmt <- endChain
-      return (ChainAnd stmts endStmt)
-
-    unchained :: Parser Chain
-    unchained = trace "parsing unchained" (Unchain <$> atomicStatement)
-
-data ChainEnd
-  = ChainEndAndAtomic AtomicStatement
-  | ChainEndAndHeaded HeadedStatement
-  | ChainEnd
-  deriving (Show, Eq, Ord)
-
-endChain :: Parser ChainEnd
-endChain = endChainAnd <|> end
-  where
-    endChainAnd = do
-      word "and"
-      (ChainEndAndHeaded <$> headedStatement) <|> (ChainEndAndAtomic <$> atomicStatement)
-    end = trace "trivial end of chain" (ChainEnd <$ noop)
+    continue = word "and" <|> iff <|> word "where"
 
 data AtomicStatement
   = Thesis   -- ^ The current goal.
