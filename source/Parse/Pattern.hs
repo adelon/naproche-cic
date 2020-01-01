@@ -13,6 +13,7 @@ import Base.Parser
 import Language.Pattern
 import Parse.Token (math, word, anyWord, anyWordBut)
 import Parse.Var (Var, var)
+import Parse.Expression (Typ, varInfo)
 
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Sequence1 as Seq1
@@ -44,19 +45,19 @@ anyPatternTill stop = trace "parsing anyPatternTill" do
     concatUnzip :: [([a],[b])] -> ([a], [b])
     concatUnzip asbs = (concat *** concat) (unzip asbs)
 
-anyPatternBut :: Set Text -> Parser (Pattern, [Var])
+anyPatternBut :: Set Text -> Parser (Pattern, [(Var, Maybe Typ)])
 anyPatternBut buts = trace "parsing anyPatternBut" do
   (shapes, vars) <- concatUnzip <$> some (wordShape <|> slotShape)
   let pat = makePattern (NonEmpty.fromList shapes)
   return (pat, vars)
   where
-    wordShape :: Parser ([Shape], [Var])
+    wordShape :: Parser ([Shape], [(Var, Maybe Typ)])
     wordShape = do
       w <- anyWordBut buts
       return ([Word [w]], [])
-    slotShape :: Parser ([Shape], [Var])
+    slotShape :: Parser ([Shape], [(Var, Maybe Typ)])
     slotShape = do
-      v <- math var
+      v <- math varInfo
       return ([Slot], [v])
     concatUnzip :: [([a],[b])] -> ([a], [b])
     concatUnzip asbs = (concat *** concat) (unzip asbs)

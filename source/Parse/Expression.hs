@@ -1,4 +1,7 @@
-module Parse.Expression where
+module Parse.Expression
+  ( module Parse.Expression
+  , module Language.Expression
+  ) where
 
 
 import Base.Parser
@@ -13,6 +16,11 @@ annotated = do
   symbol ":" <|> command "in"
   ty <- expression
   return (e `Inhabits` ty)
+
+varInfo = do
+  v <- var
+  ty <- optional $ (command "in" <|> symbol ":") *> expression
+  return (v, ty)
 
 typing :: Parser (Typing Var Typ)
 typing = do

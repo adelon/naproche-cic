@@ -3,10 +3,11 @@ module Parse.Definition where
 
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
+import Parse.Expression (Typ, varInfo)
 import Parse.Pattern (Pattern, anyPatternBut)
 import Parse.Statement (Statement, statement)
 import Parse.Token (environment, math, word, iff, period)
-import Parse.Var (Var, var)
+import Parse.Var (Var)
 
 import qualified Data.Set as Set
 
@@ -37,7 +38,7 @@ definitionBody = do
       weSay = void (try (word "we" >> word "say") >> optional (word "that"))
 
 data PredicateHead
-  = PredicateAdjPattern (NonEmpty Var) Pattern
+  = PredicateAdjPattern (NonEmpty (Var, Maybe Typ)) Pattern
   | PredicateVerbPattern
   deriving (Show, Eq)
 
@@ -45,7 +46,7 @@ predicateHead :: Parser PredicateHead
 predicateHead = is
   where
     is = do
-      v <- math var
+      v <- math varInfo
       word "is"
       (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
       let vars = v :| vs

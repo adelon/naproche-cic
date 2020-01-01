@@ -2,7 +2,7 @@ module Parse.Var (module Parse.Var, module Export) where
 
 import Base.Parser
 import Language.Common as Export (Var(..))
-import Parse.Token (variable, comma)
+import Parse.Token (variable, command, comma)
 
 
 var :: Parser Var
