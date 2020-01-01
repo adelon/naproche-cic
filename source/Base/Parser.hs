@@ -104,7 +104,7 @@ registerAdj adj = do
   st <- get
   let adjs = collectiveAdjs st
   let adjs' = insertPattern adj adjs
-  put st{ collectiveAdjs = adjs'}
+  put st{collectiveAdjs = adjs'}
 
 getNominals :: Parser Patterns
 getNominals = nominals <$> get
@@ -119,8 +119,8 @@ registerNominal pat = do
 noop :: Applicative f => f ()
 noop = pure ()
 
-many1 :: Parser a -> Parser [a]
-many1 = some
+many1 :: Parser a -> Parser (NonEmpty a)
+many1 = NonEmpty.some
 {-# INLINE many1 #-}
 
 many1Till :: Parser a -> Parser end -> Parser (NonEmpty a)

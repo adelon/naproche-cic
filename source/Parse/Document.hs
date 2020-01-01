@@ -6,7 +6,7 @@ import Base.Parser (Parser, many1)
 import Parse.Declaration
 
 
-newtype Document = Document [Declaration] deriving (Show)
+newtype Document = Document (NonEmpty Declaration) deriving (Show)
 
 
 document :: Parser Document
