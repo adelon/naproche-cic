@@ -43,7 +43,9 @@ initRegistry = Registry
   where
     primOperators :: [[Operator Parser Expr]]
     primOperators =
-      [ [ InfixR (makePrimOp (symbol "+") "prim_plus")
+      [ [ InfixR (makePrimOp (command "cdot") "prim_mul")
+        ]
+      , [ InfixR (makePrimOp (symbol "+") "prim_plus")
         ]
       , [ InfixR (makePrimOp (command "mid") "prim_divides")
         ]
