@@ -4,7 +4,7 @@ module Prelude
   ( module Export
   ) where
 
-import BasePrelude as Export hiding 
+import BasePrelude as Export hiding
   ( Word, TypeError, Const
   , head, tail
   , try, some, many

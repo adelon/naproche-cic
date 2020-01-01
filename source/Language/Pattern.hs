@@ -1,9 +1,15 @@
-module Language.Pattern where
+module Language.Pattern
+  ( Patterns
+  , Pattern
+  , Shape(..)
+  , insertPattern
+  ) where
 
 
-import qualified Data.Sequence1 as Seq1
-import qualified Data.Set1 as Set1
-import qualified Data.Text as Text
+import Data.String (IsString(..))
+import Data.Text (Text, pack)
+
+import qualified Data.Set as Set
 
 
 data Shape
@@ -12,31 +18,20 @@ data Shape
   deriving (Show, Eq, Ord)
 
 instance IsString Shape where
-  fromString w = Word [Text.pack w]
+  fromString w = Word [pack w]
 
-type Patterns = Set1 PatternTree
-
-data PatternTree
-  = PatternEnd
-  | PatternContinue Shape Patterns
-  deriving (Eq, Ord, Show)
-
-type Pattern = Seq1 Shape
+type Patterns = Set Pattern
+type Pattern = NonEmpty Shape
 
 -- Note that the Ord instance is defined so that for overlapping
 -- patterns, the one with more words is greater than the one with
--- an earlier variable slot.
+-- an earlier variable slot. For example:
+--
+-- Pattern [Slot, "converges"] `compare` Pattern [Slot, "converges", "to", Slot]
+-- --> LT
 --
 -- This means we can try parsers derived from patterns in decreasing order
 -- and be sure that we get the longest match possible.
 
-singleton :: Pattern -> Patterns
-singleton pat = Set1.singleton case pat of
-  shape :<|| IsEmpty -> PatternContinue shape $ Set1.singleton PatternEnd
-  shape :<|| (IsSeq1 pat') -> PatternContinue shape $ singleton pat'
-
-makePattern :: NonEmpty Shape -> Pattern
-makePattern = Seq1.fromNonEmpty
-
-insertPattern :: Pattern -> Patterns -> Patterns
-insertPattern pat pats = error "Pattern.insert incomplete"
+insertPattern :: Ord a => a -> Set a -> Set a
+insertPattern pat pats = Set.insert pat pats

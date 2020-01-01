@@ -14,14 +14,18 @@ module Data.Set1
   , fromAscNonEmpty
   , toDescNonEmpty
   , elim
+  , member
+  , union
+  , insert
   ) where
 
 
-import BasePrelude hiding (union)
+import BasePrelude hiding (union, insert)
 import Data.Set (Set)
 
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Set as Set
+import qualified Data.Foldable as Foldable
 
 
 data Set1 a = Set1
@@ -44,6 +48,21 @@ instance Ord a => Ord (Set1 a) where
 instance Ord a => Semigroup (Set1 a) where
   (<>) = union
   {-# INLINE (<>) #-}
+
+instance Foldable Set1 where
+  fold :: Monoid m => Set1 m -> m
+  fold (Set1 x s) = x <> Foldable.fold s
+  {-# INLINE fold #-}
+  foldMap :: Monoid m => (a -> m) -> Set1 a -> m
+  foldMap f (Set1 x s) = f x <> foldMap f s
+  {-# INLINE foldMap #-}
+  foldr :: (a -> b -> b) -> b -> Set1 a -> b
+  foldr f z (Set1 x xs) = x `f` Set.foldr f z xs
+  {-# INLINE foldr #-}
+  null :: Set1 a -> Bool
+  null _  = False
+  {-# INLINE null #-}
+  -- TODO add efficient-ish implementation for the rest.
 
 singleton :: Ord a => a -> Set1 a
 singleton x = Set1 x mempty
@@ -87,3 +106,13 @@ union n1@(Set1 x1 s1) n2@(Set1 x2 s2) = case compare x1 x2 of
     EQ -> Set1 x1 . Set.union s1         $ s2
     GT -> Set1 x2 . Set.union (toSet n1) $ s2
 {-# INLINE union #-}
+
+member :: Ord a => a -> Set1 a -> Bool
+member x (Set1 x' xs) = Set.member x xs || x == x'
+
+insert :: Ord a => a -> Set1 a -> Set1 a
+insert x xs@(Set1 x' xs') = case compare x x' of
+  LT -> Set1 x (toSet xs)
+  EQ -> xs
+  GT -> Set1 x' (Set.insert x xs')
+{-# INLINE insert #-}

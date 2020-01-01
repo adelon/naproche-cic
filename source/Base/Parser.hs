@@ -4,7 +4,7 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Language.Pattern (Patterns, PatternTree(..), Pattern, insertPattern)
+import Language.Pattern (Patterns, Pattern, insertPattern)
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
@@ -15,7 +15,6 @@ import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
-import qualified Data.Set1 as Set1
 
 
 -- TODO: Replace `Void` with proper error component.
@@ -69,11 +68,8 @@ initRegistry = Registry
     primCollectiveAdjs = Set.fromList ["even", "odd"]
 
     primNominals :: Patterns
-    primNominals = Set1.fromNonEmpty
-      [ PatternContinue "natural" $ Set1.fromNonEmpty
-        [ PatternContinue "number" $ Set1.fromNonEmpty [PatternEnd]
-        , PatternEnd
-        ]
+    primNominals =
+      [ ["natural", "number"]
       ]
 
 makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)
