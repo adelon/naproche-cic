@@ -46,8 +46,6 @@ initRegistry = Registry
         ]
       , [ InfixR (makePrimOp (symbol "+") "prim_plus")
         ]
-      , [ InfixR (makePrimOp (command "mid") "prim_divides")
-        ]
       , [ InfixR (makeOp (command "times") (Times))
         , InfixR (makeOp (command "sqcup") (Plus))
         ]
@@ -58,6 +56,7 @@ initRegistry = Registry
       , (Command "neq", \x y -> Predicate "prim_not_eq" `PredApp` x `PredApp` y)
       , (Symbol "<", \x y -> Predicate "prim_less" `PredApp` x `PredApp` y)
       , (Command "leq", \x y -> Predicate "prim_less_eq" `PredApp` x `PredApp` y)
+      , (Command "mid", \x y -> Predicate "prim_divides" `PredApp` x `PredApp` y)
       ]
 
     makeOp :: Parser op -> a -> Parser a
