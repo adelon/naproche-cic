@@ -1,7 +1,7 @@
 module Parse.Statement where
 
 
-import Base.Parser (Parser, label, try, (<|>), satisfy, optional)
+import Base.Parser (Parser, label, try, (<|>), satisfy, optional, sepBy1)
 import Base.Parser (getNominals, getAdjs)
 import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
@@ -9,7 +9,8 @@ import Language.Quantifier
 import Parse.Expression (expression)
 import Parse.Pattern (patternWith)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
-import Parse.Token (word, symbol, command, begin, end, math, comma, iff, sepByComma1)
+import Parse.Token (word, symbol, command, begin, end, math, comma, sepByComma1)
+import Parse.Token (iff, thereExists, suchThat)
 import Parse.Var (var)
 import Tokenize (Tok(..), Located(..))
 
@@ -60,13 +61,14 @@ headedStatement = quantified <|> ifThen <|> negated
 
 quantifierChain :: Parser (NonEmpty (Quantifier, Typing Var Typ))
 quantifierChain = do
-  info <- quantifiedNotion
-  return (pure info)
+  (quant, vs) <- quantifiedNotion
+  let chain = (\v -> (quant, v)) <$> vs
+  return chain
 
-quantifiedNotion :: Parser (Quantifier, Typing Var Typ)
+quantifiedNotion :: Parser (Quantifier, NonEmpty (Typing Var Typ))
 quantifiedNotion = label "quantified notion" (universal <|> existential <|> nonexistential)
   where
-    universal, existential, nonexistential :: Parser (Quantifier, Typing Var Typ)
+    universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
     universal = do
       word "all" <|> try (word "for" >> word "every")
       varInfo <- typing
@@ -74,8 +76,9 @@ quantifiedNotion = label "quantified notion" (universal <|> existential <|> none
       optional (word "we" >> word "have" >> word "that")
       return (Universal, varInfo)
     existential = do
-      word "some"
+      void (word "some") <|> thereExists
       varInfo <- typing
+      optional suchThat
       -- TODO this needs to be registered as local variable information.
       return (Existential, varInfo)
     nonexistential = do
@@ -83,12 +86,13 @@ quantifiedNotion = label "quantified notion" (universal <|> existential <|> none
       varInfo <- typing
       -- TODO this needs to be registered as local variable information.
       return (Nonexistential, varInfo)
-    typing :: Parser (Typing Var Typ)
+    typing :: Parser (NonEmpty (Typing Var Typ))
     typing = math do
-      v <- var
+      vs <- var `sepBy1` comma
       command "in"
       ty <- expression
-      return (v `Inhabits` ty)
+      return ((`Inhabits` ty) <$> vs)
+
 
 data UnheadedStatement
   = StatementConjunction AtomicStatement Statement
