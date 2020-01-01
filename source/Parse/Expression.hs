@@ -17,6 +17,7 @@ annotated = do
   ty <- expression
   return (e `Inhabits` ty)
 
+varInfo :: Parser (Var, Maybe Expr)
 varInfo = do
   v <- var
   ty <- optional $ (command "in" <|> symbol ":") *> expression
