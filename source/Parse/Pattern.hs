@@ -29,7 +29,7 @@ anyPatternTill :: Parser stop -> Parser (Pattern, [Var])
 -- Should be fixed once the rest of the parsing setup works.
 -- Use many1Till instead, which is exported from the parser module and
 -- returns a nonempty list instead.
-anyPatternTill stop = trace "parsing anyPatternTill" do
+anyPatternTill stop = do
   (shapes, vars) <- concatUnzip <$> someTill (wordShape <|> slotShape) stop
   let pat = makePattern (NonEmpty.fromList shapes)
   return (pat, vars)
@@ -46,7 +46,7 @@ anyPatternTill stop = trace "parsing anyPatternTill" do
     concatUnzip asbs = (concat *** concat) (unzip asbs)
 
 anyPatternBut :: Set Text -> Parser (Pattern, [(Var, Maybe Typ)])
-anyPatternBut buts = trace "parsing anyPatternBut" do
+anyPatternBut buts = do
   (shapes, vars) <- concatUnzip <$> some (wordShape <|> slotShape)
   let pat = makePattern (NonEmpty.fromList shapes)
   return (pat, vars)
@@ -95,23 +95,23 @@ patterns' slot pats = case Set1.toDescNonEmpty pats of
     PatternContinue w@(Word ws) patContinues -> case otherPats of
       [PatternEnd] -> go <|> return (Nothing, [])
         where
-          go = trace (show ws <> " at End. Other patterns: " <> show otherPats) do
+          go = do
             asum (word <$> ws)
             return (Just (Seq1.singleton w), [])
       _ -> go <|> patterns' slot (Set1.insertSmallest PatternEnd (Set.fromDescList otherPats))
         where
-          go = trace (show ws <> " at Continue. Other patterns: " <> show otherPats) do
+          go = do
             asum (word <$> ws)
             consWord w <$> patterns' slot patContinues
     PatternContinue Slot patContinues -> case otherPats of
       [PatternEnd] -> go <|> return (Nothing, [])
         where
-          go = trace ("Slot at End. Other patterns: " <> show otherPats) do
+          go = do
             a <- try slot
             return (Just (Seq1.singleton Slot), [a])
       _ -> go <|> patterns' slot (Set1.insertSmallest PatternEnd (Set.fromDescList otherPats))
         where
-          go = trace ("Slot at Continue. Other patterns: " <> show otherPats) do
+          go = do
             a <- try slot
             consSlot a <$> patterns' slot patContinues
     PatternEnd -> error "Parse.Pattern.patterns reached impossible branch for PatternEnd"

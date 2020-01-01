@@ -26,8 +26,7 @@ data Statement
   deriving (Show, Eq, Ord)
 
 statement :: Parser Statement
-statement = trace "parsing statement"
-  (StatementHeaded <$> headedStatement)
+statement = (StatementHeaded <$> headedStatement)
   <|> (StatementUnheaded <$> unheadedStatement)
 
 data HeadedStatement

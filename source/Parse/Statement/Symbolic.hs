@@ -24,7 +24,7 @@ data RelatorChain
   deriving (Show, Eq, Ord)
 
 relatorChain :: Parser RelatorChain
-relatorChain = trace "relator chain" do
+relatorChain = do
   expr <- expression
   ch <- many1 chain
   return (makeChain expr ch)

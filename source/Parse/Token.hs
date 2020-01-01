@@ -161,7 +161,7 @@ anyWordBut ws = token matcher Set.empty
         Word w ->
           if w `Set.member` ws
             then Nothing
-            else trace ("parsed word: \'" <> Text.unpack w <> "\'") $ Just w
+            else Just w
         _ -> Nothing
 {-# INLINE anyWordBut #-}
 
