@@ -49,5 +49,6 @@ predicateHead = is
       v <- math varInfo
       word "is"
       (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
+      registerAdj pat
       let vars = v :| vs
       return (PredicateAdjPattern vars pat)

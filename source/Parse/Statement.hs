@@ -71,7 +71,7 @@ quantifiedNotion = label "quantified notion" (universal <|> existential <|> none
       optional (word "we" >> word "have" >> word "that")
       return (Universal, varInfo)
     existential = do
-      void (word "some") <|> thereExists
+      thereExists
       varInfo <- typing
       optional suchThat
       -- TODO this needs to be registered as local variable information.

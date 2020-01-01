@@ -81,6 +81,14 @@ getOperators :: Parser [[Operator Parser Expr]]
 getOperators = operators <$> get
 {-# INLINE getOperators #-}
 
+-- TODO: Also handle priority and associativity.
+registerOperator :: Parser op -> Text -> Parser ()
+registerOperator op prim = do
+  st <- get
+  let ops = operators st
+  let ops' = ops <> [[InfixR (makePrimOp op prim)]]
+  put st{operators = ops'}
+
 getRelators :: Parser (Map Tok (Expr -> Expr -> Prop))
 getRelators = relators <$> get
 {-# INLINE getRelators #-}
@@ -91,24 +99,22 @@ getAdjs = do
   return (collectiveAdjs st `Set.union` distributiveAdjs st)
 {-# INLINE getAdjs #-}
 
+registerAdj :: Pattern -> Parser ()
+registerAdj adj = do
+  st <- get
+  let adjs = collectiveAdjs st
+  let adjs' = insertPattern adj adjs
+  put st{ collectiveAdjs = adjs'}
+
 getNominals :: Parser Patterns
 getNominals = nominals <$> get
 {-# INLINE getNominals #-}
-
--- TODO: Also handle priority and associativity.
-registerOperator :: Parser op -> Text -> Parser ()
-registerOperator op prim = do
-  st <- get
-  let ops = operators st
-  let ops' = ops <> [[InfixR (makePrimOp op prim)]]
-  put st{operators = ops'}
 
 registerNominal :: Pattern -> Parser ()
 registerNominal pat = do
   st <- get
   let pats = nominals st
   put st{nominals = insertPattern pat pats}
-
 
 noop :: Applicative f => f ()
 noop = pure ()
