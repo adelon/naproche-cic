@@ -1,5 +1,5 @@
 \begin{definition}
-  We say that \( n\in\mathbb{N} \) is composite iff
+  We say that \( n\in\mathbb{N} \) is composite if and only if
   \( n\neq 0 \) and there exist \( a,b\in\mathbb{N} \) such that
   \( a\neq 1\neq b \) and \( a\cdot b = n \).
 \end{definition}
