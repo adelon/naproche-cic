@@ -276,6 +276,7 @@ iff = Word "iff" <$ do
   word "iff" <|> (try (word "if" *> word "and" *> word "only") *> word "if")
 {-# INLINE iff #-}
 
+thereExists :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 thereExists = void $ try $ word "there" *> (word "exist" <|> word "exists")
 
 -- Parses the phrase 'such that'. Backtracks.

@@ -49,7 +49,6 @@ import Text.Show (Show(..))
 
 import qualified Data.Sequence as Seq
 import qualified Data.Foldable as Foldable
-import qualified Data.List.NonEmpty as NonEmpty
 
 
 data Seq1 a = Seq1
