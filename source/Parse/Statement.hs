@@ -1,8 +1,7 @@
 module Parse.Statement where
 
 
-import Base.Parser (Parser, label, try, (<|>), optional, sepBy1)
-import Base.Parser (getNominals, getAdjs)
+import Base.Parser
 import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
 import Language.Quantifier
@@ -56,12 +55,12 @@ headedStatement = quantified <|> ifThen <|> negated
 
 quantifierChain :: Parser (NonEmpty (Quantifier, Typing Var Typ))
 quantifierChain = do
-  (quant, vs) <- quantifiedNotion
+  (quant, vs) <- quantifiedNominal
   let chain = (\v -> (quant, v)) <$> vs
   return chain
 
-quantifiedNotion :: Parser (Quantifier, NonEmpty (Typing Var Typ))
-quantifiedNotion = label "quantified notion" (universal <|> existential <|> nonexistential)
+quantifiedNominal :: Parser (Quantifier, NonEmpty (Typing Var Typ))
+quantifiedNominal = label "quantified nominal" (universal <|> existential <|> nonexistential)
   where
     universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
     universal = do
@@ -103,8 +102,8 @@ data UnheadedStatement
 unheadedStatement :: Parser UnheadedStatement
 unheadedStatement = do
   stmt1 <- atomicStatement
-  c <- optional continue
-  case c of
+  peeking <- optional continue
+  case peeking of
     Just (Word "and") -> do
       stmt2 <- statement
       return (StatementConjunction stmt1 stmt2)
@@ -122,7 +121,7 @@ unheadedStatement = do
       return (StatementWhere stmt1 info)
     -- The above exhausts all cases where a token was consumed.
     -- Below is how we proceed when we cannot consume a continuation token.
-    _noContinue -> do
+    _otherwise -> do
       return (StatementAtomic stmt1)
   where
     continue :: Parser Tok
@@ -149,10 +148,12 @@ data AtomicStatement
   | Contradiction -- ^ Bottom.
   | SymbolicStatement SymbolicStatement
   | PredicativeAdj Term Adj
+  | PredicativeVerb Term Verb
   deriving (Show, Eq, Ord)
 
 atomicStatement :: Parser AtomicStatement
-atomicStatement = predicativeAdj <|> constStatement <|> (SymbolicStatement <$> symbolicStatement)
+atomicStatement = predication <|> constStatement
+  <|> (SymbolicStatement <$> symbolicStatement)
   where
     constStatement, thesis, contrary, contradiction :: Parser AtomicStatement
     constStatement = thesis <|> contrary <|> contradiction
@@ -160,12 +161,22 @@ atomicStatement = predicativeAdj <|> constStatement <|> (SymbolicStatement <$> s
     contrary = Contrary <$ try (optional (word "the") *> word "contrary")
     contradiction = Contradiction <$ try (optional (word "a") *> word "contradiction")
 
-    predicativeAdj :: Parser AtomicStatement
-    predicativeAdj = do
-      n <- term
-      word "is"
-      adj <- adjective
-      return (PredicativeAdj n adj)
+    -- TODO rewrite in 'peek-continue-style'
+    predication :: Parser AtomicStatement
+    predication = do
+      n <- try term
+      peeking <- optional continue
+      case peeking of
+        Just (Word "is") -> do
+          adj <- adjective
+          return (PredicativeAdj n adj)
+        -- The above exhausts all cases where a token was consumed.
+        -- Below is how we proceed when we cannot consume a continuation token.
+        _otherwise ->
+          PredicativeVerb n <$> verb
+      where
+        continue :: Parser Tok
+        continue = word "is"
 
 data Term
   = TermDefiniteSymbolic Expr
@@ -174,39 +185,45 @@ data Term
   deriving (Show, Eq, Ord)
 
 term :: Parser Term
-term = do
-  (quant, noun) <- quantifiedTerm
-  return (TermQuantified quant noun)
+term = quantifiedTerm <|> (TermDefiniteSymbolic <$> expression)
 
-quantifiedTerm :: Parser (Quantifier, Notion)
+quantifiedTerm :: Parser Term
 quantifiedTerm = label "quantified term" (universal <|> existential <|> nonexistential)
   where
-    universal, existential, nonexistential :: Parser (Quantifier, Notion)
+    universal, existential, nonexistential :: Parser Term
     universal = do
       try (word "every")
-      noun <- notion
-      return (Universal, noun)
+      noun <- nominal
+      return (TermQuantified Universal noun)
     existential = do
       try (word "some")
-      noun <- notion
-      return (Existential, noun)
+      noun <- nominal
+      return (TermQuantified Existential noun)
     nonexistential = do
       try (word "no")
-      noun <- notion
-      return (Nonexistential, noun)
+      noun <- nominal
+      return (TermQuantified Nonexistential noun)
 
-type Notion = Expr
+type Nominal = Expr
 
-notion :: Parser Expr
-notion = do
-  nominals <- getNominals
-  (pat, es) <- patternWith (math expression) nominals
+nominal :: Parser Expr
+nominal = do
+  pats <- getNominals
+  (pat, es) <- patternWith (math expression) pats
   return (foldl App (ConstPattern pat) es)
 
 type Adj = (Pattern, [Term])
 
 adjective :: Parser Adj
 adjective = label "adjective" do
-  adjs <- getAdjs
-  adj <- patternWith term adjs
+  pats <- getAdjs
+  adj <- patternWith term pats
   return adj
+
+type Verb = (Pattern, [Term])
+
+verb :: Parser Verb
+verb = label "verb" do
+  pats <- getVerbs
+  vrb <- patternWith term pats
+  return vrb

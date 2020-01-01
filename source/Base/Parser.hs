@@ -4,7 +4,7 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Language.Pattern (Patterns, Pattern, insertPattern)
+import Language.Pattern (Patterns, Pattern, Shape(..), insertPattern)
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
@@ -25,6 +25,7 @@ data Registry = Registry
   { collectiveAdjs :: Patterns
   , distributiveAdjs :: Patterns
   , nominals :: Patterns
+  , verbs :: Patterns
   , operators :: [[Operator Parser Expr]]
   , relators :: Map Tok (Expr -> Expr -> Prop)
   , idCount :: Natural
@@ -35,6 +36,7 @@ initRegistry = Registry
   { collectiveAdjs = primCollectiveAdjs
   , distributiveAdjs = mempty
   , nominals = primNominals
+  , verbs = primVerbs
   , operators = primOperators
   , relators = primRelators
   , idCount = 0
@@ -72,6 +74,11 @@ initRegistry = Registry
     primNominals :: Patterns
     primNominals =
       [ ["natural", "number"]
+      ]
+
+    primVerbs :: Patterns
+    primVerbs =
+      [ ["divides", Slot]
       ]
 
 makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)
@@ -115,6 +122,16 @@ registerNominal pat = do
   st <- get
   let pats = nominals st
   put st{nominals = insertPattern pat pats}
+
+getVerbs :: Parser Patterns
+getVerbs = verbs <$> get
+{-# INLINE getVerbs #-}
+
+registerVerb :: Pattern -> Parser ()
+registerVerb pat = do
+  st <- get
+  let pats = verbs st
+  put st{verbs = insertPattern pat pats}
 
 noop :: Applicative f => f ()
 noop = pure ()
