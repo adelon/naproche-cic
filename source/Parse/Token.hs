@@ -14,6 +14,7 @@ import Tokenize as Export (Tok(..), Delim(..), printTok, Located(..))
 
 import Text.Megaparsec
 
+import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
 import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Set as Set
@@ -255,8 +256,8 @@ sepByComma p = p `sepBy` (comma *> optional (word "and"))
 {-# INLINE sepByComma #-}
 
 -- | Parses a list of at least one item separated by "," or ", and".
-sepByComma1 :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p [a]
-sepByComma1 p = p `sepBy1` (comma *> optional (word "and"))
+sepByComma1 :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p (NonEmpty a)
+sepByComma1 p = p `NonEmpty.sepBy1` (comma *> optional (word "and"))
 {-# INLINE sepByComma1 #-}
 
 comma :: (MonadParsec e s p, Token s ~ Located Tok) => p ()

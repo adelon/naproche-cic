@@ -9,7 +9,7 @@ import Language.Quantifier
 import Parse.Expression (expression)
 import Parse.Pattern (patternWith)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
-import Parse.Token (math, word, command, comma, iff)
+import Parse.Token (word, symbol, command, begin, end, math, comma, iff, sepByComma1)
 import Parse.Var (var)
 import Tokenize (Tok(..), Located(..))
 
@@ -93,6 +93,7 @@ quantifiedNotion = label "quantified notion" (universal <|> existential <|> none
 data UnheadedStatement
   = StatementConjunction AtomicStatement Statement
   | StatementIff AtomicStatement Statement
+  | StatementWhere AtomicStatement WhereStatement
   | StatementAtomic AtomicStatement
   deriving (Show, Eq, Ord)
 
@@ -108,17 +109,33 @@ unheadedStatement = do
       stmt2 <- statement
       return (StatementIff stmt1 stmt2)
     -- TODO:
-    -- * Add 'where' clauses.
     -- * Add disjunctions. This has a slightly more complicated interaction
     --  with conjunctions. Worst case: parse naively, fix in processing.
     Just (Word "where") -> do
-      fail "Parse.Statement.unheadedStatement: where clauses are not implemented yet"
-    -- The above options exhaust all cases where a token was consumed.
-    -- This is how we proceed when we cannot consume a continuation token.
+      info <- whereStatement
+      return (StatementWhere stmt1 info)
+    -- The above exhausts all cases where a token was consumed.
+    -- Below is how we proceed when we cannot consume a continuation token.
     _noContinue -> do
       return (StatementAtomic stmt1)
   where
+    continue :: Parser Tok
     continue = word "and" <|> iff <|> word "where"
+
+    whereStatement :: Parser WhereStatement
+    whereStatement = sepByComma1 do
+      begin "math"
+      v <- var
+      symbol "=" <|> (end "math" *> word "is" *> begin "math")
+      expr <- expression
+      end "math"
+      return (v, expr)
+
+
+
+-- Each entry of the nonempty list represents the assertion that
+-- the variable is equal to the expression.
+type WhereStatement = NonEmpty (Var, Expr)
 
 data AtomicStatement
   = Thesis   -- ^ The current goal.
