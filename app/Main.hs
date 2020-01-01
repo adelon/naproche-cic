@@ -34,10 +34,10 @@ getFiles dir = do
 
 work :: FilePath -> IO ()
 work file = do
-  let inPath = "./work/in/" <> file
-  let outPath = "./work/out/" <> file
-  let debugPath = "./work/out/" <> file <> ".tokens"
-  putStrLn inPath
+  let inPath = "work/in/" <> file
+  let outPath = "work/out/" <> file
+  let debugPath = "work/out/" <> file <> ".tokens"
+  putStrLn ("Parsing '" <> inPath <> "'.")
   result <- tokenize inPath
   case result of
     Left err -> Text.writeFile debugPath (Text.pack (errorBundlePretty err))
