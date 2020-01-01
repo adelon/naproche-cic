@@ -1,7 +1,7 @@
 module Parse.Statement where
 
 
-import Base.Parser (Parser, label, try, (<|>), satisfy, optional, sepBy1)
+import Base.Parser (Parser, label, try, (<|>), optional, sepBy1)
 import Base.Parser (getNominals, getAdjs)
 import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
@@ -12,9 +12,7 @@ import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
 import Parse.Token (word, symbol, command, begin, end, math, comma, sepByComma1)
 import Parse.Token (iff, thereExists, suchThat)
 import Parse.Var (var)
-import Tokenize (Tok(..), Located(..))
-
-import qualified Data.Set as Set
+import Tokenize (Tok(..))
 
 
 data Statement
@@ -90,10 +88,14 @@ quantifiedNotion = label "quantified notion" (universal <|> existential <|> none
       ty <- expression
       return ((`Inhabits` ty) <$> vs)
 
+-- WARN/FIXME: the following results in no precedence between
+-- 'and'/'or'. This may require fixing in processing.
 
 data UnheadedStatement
   = StatementConjunction AtomicStatement Statement
+  | StatementDisjunction AtomicStatement Statement
   | StatementIff AtomicStatement Statement
+  | StatementImplies AtomicStatement Statement
   | StatementWhere AtomicStatement WhereStatement
   | StatementAtomic AtomicStatement
   deriving (Show, Eq, Ord)
@@ -106,12 +108,15 @@ unheadedStatement = do
     Just (Word "and") -> do
       stmt2 <- statement
       return (StatementConjunction stmt1 stmt2)
+    Just (Word "or") -> do
+      stmt2 <- statement
+      return (StatementDisjunction stmt1 stmt2)
     Just (Word "iff") -> do
       stmt2 <- statement
       return (StatementIff stmt1 stmt2)
-    -- TODO:
-    -- * Add disjunctions. This has a slightly more complicated interaction
-    --  with conjunctions. Worst case: parse naively, fix in processing.
+    Just (Word "implies") -> do
+      stmt2 <- statement
+      return (StatementImplies stmt1 stmt2)
     Just (Word "where") -> do
       info <- whereStatement
       return (StatementWhere stmt1 info)
@@ -121,7 +126,7 @@ unheadedStatement = do
       return (StatementAtomic stmt1)
   where
     continue :: Parser Tok
-    continue = word "and" <|> iff <|> word "where"
+    continue = word "and" <|> word "or" <|> iff <|> word "where" <|> word "implies"
 
     whereStatement :: Parser WhereStatement
     whereStatement = sepByComma1 do
