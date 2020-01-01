@@ -26,7 +26,7 @@ data RelatorChain
 relatorChain :: Parser RelatorChain
 relatorChain = do
   expr <- expression
-  ch <- many1 chain
+  ch <- many chain
   return (makeChain expr ch)
   where
     chain :: Parser (Relator, Expr)
