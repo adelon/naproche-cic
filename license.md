@@ -1,7 +1,7 @@
 The MIT License (MIT)
 =====================
 
-Copyright © 2019 Adrian De Lon and Anton Felix Lorenzen
+Copyright © 2019–2020 Adrian De Lon and Anton Felix Lorenzen
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
