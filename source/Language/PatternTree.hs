@@ -5,8 +5,6 @@ import qualified Data.Sequence1 as Seq1
 import qualified Data.Set1 as Set1
 import qualified Data.Text as Text
 
-import qualified Data.Map.NonEmpty as NEMap
-
 data Shape
   = Slot
   | Word [Text]

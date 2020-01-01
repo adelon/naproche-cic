@@ -1,4 +1,4 @@
-module Parse.Pattern
+module Parse.PatternTree
   ( Pattern
   , Patterns
   , Shape(..)
