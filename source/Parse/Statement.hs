@@ -7,7 +7,7 @@ import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
 import Language.Quantifier
 import Parse.Expression (expression)
-import Parse.Pattern (patternWith)
+import Parse.Pattern (Pattern, patternWith)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
 import Parse.Token (word, symbol, command, begin, end, math, comma, sepByComma1)
 import Parse.Token (iff, thereExists, suchThat)
@@ -16,8 +16,6 @@ import Tokenize (Tok(..), Located(..))
 
 import qualified Data.Set as Set
 
-
-type Adj = Text
 
 data Statement
   = StatementHeaded HeadedStatement
@@ -200,10 +198,10 @@ notion = do
   (pat, es) <- patternWith (math expression) nominals
   return (foldl App (ConstPattern pat) es)
 
+type Adj = (Pattern, [Term])
+
 adjective :: Parser Adj
 adjective = label "adjective" do
   adjs <- getAdjs
-  let isAdj t = unLocated t `elem` (Set.map Word adjs)
-  result <- satisfy isAdj
-  let Word adj = unLocated result
+  adj <- patternWith term adjs
   return adj

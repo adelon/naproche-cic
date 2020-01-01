@@ -22,8 +22,8 @@ type Parser = ParsecT Void TokStream (State Registry)
 
 -- Windows 3.1 sends kind regards!
 data Registry = Registry
-  { collectiveAdjs :: Set Text
-  , distributiveAdjs :: Set Text
+  { collectiveAdjs :: Patterns
+  , distributiveAdjs :: Patterns
   , nominals :: Patterns
   , operators :: [[Operator Parser Expr]]
   , relators :: Map Tok (Expr -> Expr -> Prop)
@@ -64,8 +64,11 @@ initRegistry = Registry
     makeOp op constr = op >> return constr
     {-# INLINE makeOp #-}
 
-    primCollectiveAdjs :: Set Text
-    primCollectiveAdjs = Set.fromList ["even", "odd"]
+    primCollectiveAdjs :: Patterns
+    primCollectiveAdjs =
+      [ ["even"]
+      , ["odd"]
+      ]
 
     primNominals :: Patterns
     primNominals =
@@ -83,7 +86,7 @@ getRelators :: Parser (Map Tok (Expr -> Expr -> Prop))
 getRelators = relators <$> get
 {-# INLINE getRelators #-}
 
-getAdjs :: Parser (Set Text)
+getAdjs :: Parser Patterns
 getAdjs = do
   st <- get
   return (collectiveAdjs st `Set.union` distributiveAdjs st)
