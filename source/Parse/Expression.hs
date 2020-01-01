@@ -53,3 +53,4 @@ number :: Parser Expr
 number = label "number" do
   n <- anyNumber
   return (Const n)
+{-# INLINE number #-}

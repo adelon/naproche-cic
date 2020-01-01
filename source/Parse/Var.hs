@@ -11,3 +11,4 @@ var = Var <$> variable
 
 varList :: Parser (NonEmpty Var)
 varList = var `sepBy1` comma
+{-# INLINE varList #-}
