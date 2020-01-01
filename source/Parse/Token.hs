@@ -273,5 +273,10 @@ period = void (symbol ".")
 -- success, so that we can easily pattern match on the result.
 iff :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
 iff = Word "iff" <$ do
-  word "iff" <|> (try (word "if" >> word "and" >> word "only") >> word "if")
+  word "iff" <|> (try (word "if" *> word "and" *> word "only") *> word "if")
 {-# INLINE iff #-}
+
+-- Parses the phrase 'such that'. Backtracks.
+suchThat :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
+suchThat = void $ try $ word "such" *> word "that"
+{-# INLINE suchThat #-}
