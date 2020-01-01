@@ -33,9 +33,14 @@ axiom = environment "axiom" do
   return (Axiom asms stmt)
 
 
-data Theorem = Theorem Statement deriving (Show, Eq)
+data Theorem = Theorem
+  { theoremAssumptions :: ![Assumption]
+  , theoremStatement :: !Statement
+  } deriving (Show, Eq)
 
 theorem :: Parser Theorem
 theorem = environment "theorem" do
+  asms <- many assumption
+  optional (word "then")
   thm <- statement `endedBy` period
-  return (Theorem thm)
+  return (Theorem asms thm)
