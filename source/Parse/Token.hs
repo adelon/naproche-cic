@@ -80,7 +80,7 @@ instance Stream TokStream where
 
   reachOffset :: Int -> PosState TokStream -> (String, PosState TokStream)
   reachOffset offset PosState {..} =
-    ( Text.unpack prefix <> Text.unpack restOfLine
+    ( Text.unpack (lastLine prefix) <> Text.unpack restOfLine
     , PosState
       { pstateInput = TokStream
         { rawInput = postRaw
@@ -93,6 +93,14 @@ instance Stream TokStream where
       }
     )
     where
+      -- We need to strip everything but the last line of the prefix
+      -- so that the error renders correctly and concisely. The naive
+      -- implementation here should suffice, since this will only be
+      -- called at most once (when reporting a parse error).
+      lastLine :: Text -> Text
+      lastLine cs = case Text.lines cs of
+        [] -> ""
+        lines -> List.last lines
       prefix :: Text
       prefix = case sourceLine newSourcePos == sourceLine pstateSourcePos of
         True -> Text.pack pstateLinePrefix <> preRaw
