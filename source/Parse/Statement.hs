@@ -161,7 +161,6 @@ atomicStatement = predication <|> constStatement
     contrary = Contrary <$ try (optional (word "the") *> word "contrary")
     contradiction = Contradiction <$ try (optional (word "a") *> word "contradiction")
 
-    -- TODO rewrite in 'peek-continue-style'
     predication :: Parser AtomicStatement
     predication = do
       n <- try term
@@ -185,7 +184,7 @@ data Term
   deriving (Show, Eq, Ord)
 
 term :: Parser Term
-term = quantifiedTerm <|> (TermDefiniteSymbolic <$> expression)
+term = quantifiedTerm <|> (TermDefiniteSymbolic <$> math expression)
 
 quantifiedTerm :: Parser Term
 quantifiedTerm = label "quantified term" (universal <|> existential <|> nonexistential)
