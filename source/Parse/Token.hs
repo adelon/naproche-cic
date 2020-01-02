@@ -80,7 +80,7 @@ instance Stream TokStream where
 
   reachOffset :: Int -> PosState TokStream -> (String, PosState TokStream)
   reachOffset offset PosState {..} =
-    ( Text.unpack (lastLine prefix) <> Text.unpack restOfLine
+    ( Text.unpack (lastLine prefix <> restOfLine)
     , PosState
       { pstateInput = TokStream
         { rawInput = postRaw
