@@ -6,7 +6,8 @@ module Prelude
 
 import BasePrelude as Export hiding
   ( Word, TypeError, Const
-  , head, tail
+  , (<+>)
+  , head, last, init, tail, lines
   , try, some, many
   , pi, app
   )
