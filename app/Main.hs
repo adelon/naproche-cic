@@ -28,8 +28,13 @@ main = do
 getFiles :: FilePath -> IO [FilePath]
 getFiles dir = do
   contents <- getDirectoryContents dir
-  let contents' = contents \\ [".",".."]
+  let contents' = filter nontrivial contents
   return contents'
+  where
+    nontrivial :: String -> Bool
+    nontrivial = \case
+      [] -> False
+      c:_ -> c /= '.'
 
 
 work :: FilePath -> IO ()
