@@ -73,7 +73,11 @@ instance Stream TokStream where
       Just ts -> (x, TokStream (Text.drop (tokensLength pxy ts) raw) s')
 
   showTokens :: Proxy TokStream -> NonEmpty (Token TokStream) -> String
-  showTokens Proxy ts = Text.unpack $ Text.intercalate " " $ NonEmpty.toList $ printTok <$> unLocated <$> ts
+  showTokens Proxy ts =
+    Text.unpack $ quote $ Text.intercalate " " $ ts'
+      where
+        ts' = NonEmpty.toList $ printTok <$> unLocated <$> ts
+        quote t = "'" <> t <> "'"
 
   tokensLength :: Proxy TokStream -> NonEmpty (Token TokStream) -> Int
   tokensLength Proxy xs = sum (tokenLength <$> xs)
