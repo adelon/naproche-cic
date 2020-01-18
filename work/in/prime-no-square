@@ -1,0 +1,4 @@
+\begin{definition}
+  \( d\mid n \) iff
+  there exists \( k \) such that \( k\cdot d = n \).
+\end{definition}

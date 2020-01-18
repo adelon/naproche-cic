@@ -7,3 +7,7 @@
 \begin{theorem}
   Some natural number is irreducible.
 \end{theorem}
+
+\begin{theorem}
+  \( n \) divides \( n \).
+\end{theorem}
