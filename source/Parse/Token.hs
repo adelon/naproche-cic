@@ -151,10 +151,6 @@ word w = exactly (Word (Text.toCaseFold w))
 anyWord :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 anyWord = label "any word" $ token matcher Set.empty
   where
-    -- We do not use @satisfy isWord@ for the implementation, since this
-    -- yields an unnecessary @MonadFail@ constraint. This way we know enough
-    -- to have a simpler type signature and we also have fine control over
-    -- the error behavior.
     matcher :: Token TokStream -> Maybe Text
     matcher (Located _start _end _length t) = case t of
         Word w -> Just w
@@ -164,10 +160,6 @@ anyWord = label "any word" $ token matcher Set.empty
 anyWordBut :: (MonadParsec e s m, Token s ~ Located Tok) => Set Text -> m Text
 anyWordBut ws = token matcher Set.empty
   where
-    -- We do not use @satisfy isWord@ for the implementation, since this
-    -- yields an unnecessary @MonadFail@ constraint. This way we know enough
-    -- to have a simpler type signature and we also have fine control over
-    -- the error behavior.
     matcher :: Token TokStream -> Maybe Text
     matcher (Located _start _end _length t) = case t of
         Word w ->
@@ -181,6 +173,15 @@ anyWordBut ws = token matcher Set.empty
 symbol :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 symbol s = exactly (Symbol s)
 {-# INLINE symbol #-}
+
+anySymbol :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
+anySymbol = label "any word" $ token matcher Set.empty
+  where
+    matcher :: Token TokStream -> Maybe Text
+    matcher (Located _start _end _length t) = case t of
+        Symbol symb -> Just symb
+        _ -> Nothing
+{-# INLINE anySymbol #-}
 
 anyNumber :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 anyNumber = label "any number" $ token matcher Set.empty
@@ -196,14 +197,19 @@ command :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 command cmd = exactly (Command cmd)
 {-# INLINE command #-}
 
+anyCommand :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
+anyCommand = label "any word" $ token matcher Set.empty
+  where
+    matcher :: Token TokStream -> Maybe Text
+    matcher (Located _start _end _length t) = case t of
+        Command cmd -> Just cmd
+        _ -> Nothing
+{-# INLINE anyCommand #-}
+
 -- | @variable@ parses any variable token. Case-sensitive.
 variable :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 variable = label "variable" $ token matcher Set.empty
   where
-    -- We do not use @satisfy isVariable@ for the implementation, since this
-    -- yields an unnecessary @MonadFail@ constraint. This way we know enough
-    -- to have a simpler type signature and we also have fine control over
-    -- the error behavior.
     matcher :: Token TokStream -> Maybe Text
     matcher (Located _start _end _length t) = case t of
         Variable v -> Just v
