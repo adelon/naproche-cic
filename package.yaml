@@ -15,6 +15,7 @@ dependencies:
   - megaparsec
   - mtl
   - parser-combinators
+  - prettyprinter
   - text
   - transformers
   - unordered-containers
@@ -30,9 +31,10 @@ default-extensions:
   - LambdaCase
   - OverloadedStrings
   - PartialTypeSignatures
+  - PatternSynonyms
   - ScopedTypeVariables
   - TypeFamilies
-  - PatternSynonyms
+  - TypeOperators
 
 ghc-options:
   - -Wall
