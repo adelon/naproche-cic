@@ -9,7 +9,7 @@ import Parse.Token
 
 
 data Assumption
-  = AssumptionPretyping (Typing Var Typ)
+  = AssumptionPretyping (NonEmpty (Typing Var Typ))
   | Assumption Statement
   deriving (Show, Eq)
 

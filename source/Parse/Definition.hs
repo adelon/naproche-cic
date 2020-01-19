@@ -6,8 +6,8 @@ import Parse.Assumption (Assumption, assumption)
 import Parse.Expression (Typ, varInfo)
 import Parse.Pattern (Pattern, anyPatternBut)
 import Parse.Statement (Statement, statement)
-import Parse.Token (Tok(..), environment, math, word, iff, period)
-import Parse.Var (Var)
+import Parse.Token
+import Parse.Var (Var, var)
 
 import qualified Data.Set as Set
 
@@ -40,24 +40,33 @@ definitionBody = do
 data PredicateHead
   = PredicateAdjPattern (NonEmpty (Var, Maybe Typ)) Pattern
   | PredicateVerbPattern (NonEmpty (Var, Maybe Typ)) Pattern
+  | PredicateRelator (Var, Text, Var)
   deriving (Show, Eq)
 
 predicateHead :: Parser PredicateHead
-predicateHead = do
-  -- TODO: nominals, x-of-y
-  v <- math varInfo
-  peeking <- optional continue
-  case peeking of
-    Just (Word "is") -> do
-      (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
-      registerAdj pat
-      let vars = v :| vs
-      return (PredicateAdjPattern vars pat)
-    _otherwise -> do
-      (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
-      registerVerb pat
-      let vars = v :| vs
-      return (PredicateVerbPattern vars pat)
+predicateHead = patterned <|> relator
   where
-    continue :: Parser Tok
-    continue = word "is"
+    patterned, relator :: Parser PredicateHead
+    patterned = do
+      -- TODO: nominals, x-of-y
+      v <- try (math varInfo)
+      peeking <- optional continue
+      case peeking of
+        Just (Word "is") -> do
+          (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
+          registerAdj pat
+          let vars = v :| vs
+          return (PredicateAdjPattern vars pat)
+        _otherwise -> do
+          (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
+          registerVerb pat
+          let vars = v :| vs
+          return (PredicateVerbPattern vars pat)
+      where
+        continue :: Parser Tok
+        continue = word "is"
+    relator = PredicateRelator <$> math do
+      x1 <- var
+      rel <- anyCommand
+      x2 <- var
+      return (x1, rel, x2)

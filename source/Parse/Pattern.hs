@@ -18,7 +18,7 @@ import qualified Data.Set as Set
 -- the `stop` parser succeeds. Returns the shapes of the pattern
 -- and the list of variables filling the slots of the pattern.
 -- The results needs to validated to create a proper pattern.
-anyPatternTill :: Parser stop -> Parser (Pattern, [Var])
+anyPatternTill :: forall stop. Parser stop -> Parser (Pattern, [Var])
 -- TODO: This is a rather silly placeholder implementation.
 -- Should be fixed once the rest of the parsing setup works.
 -- Use many1Till instead, which is exported from the parser module and
@@ -64,7 +64,7 @@ patternMarked slot pat = (\x -> (pat, x)) <$> go slot pat
 
 -- Parses a pattern. Success is indicated by returning a list
 -- of the results of the parser used for slots of the pattern.
-go :: Parser a -> Pattern -> Parser [a]
+go :: forall a. Parser a -> Pattern -> Parser [a]
 go slot (s :| (s' : pat)) = do
   case s of
     Word w -> case s' of

@@ -61,7 +61,7 @@ initRegistry = Registry
       , (Command "mid", \x y -> Predicate "prim_divides" `PredApp` x `PredApp` y)
       ]
 
-    makeOp :: Parser op -> a -> Parser a
+    makeOp :: forall op a. Parser op -> a -> Parser a
     makeOp op constr = op >> return constr
     {-# INLINE makeOp #-}
 
@@ -81,7 +81,7 @@ initRegistry = Registry
       [ ["divides", Slot]
       ]
 
-makePrimOp :: Parser op -> Text -> Parser (Expr -> Expr -> Expr)
+makePrimOp :: forall op. Parser op -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = op >> return (\x y -> Const prim `App` x `App` y)
 
 getOperators :: Parser [[Operator Parser Expr]]
@@ -89,7 +89,7 @@ getOperators = operators <$> get
 {-# INLINE getOperators #-}
 
 -- TODO: Also handle priority and associativity.
-registerOperator :: Parser op -> Text -> Parser ()
+registerOperator :: forall op. Parser op -> Text -> Parser ()
 registerOperator op prim = do
   st <- get
   let ops = operators st
@@ -99,6 +99,15 @@ registerOperator op prim = do
 getRelators :: Parser (Map Tok (Expr -> Expr -> Prop))
 getRelators = relators <$> get
 {-# INLINE getRelators #-}
+
+-- FIXME
+-- Takes the name of the command and adds it to the relators.
+registerRelator :: Text -> Parser ()
+registerRelator rel = do
+  st <- get
+  let rels = relators st
+  let rels' = rels -- <>
+  put st{relators = rels'}
 
 getAdjs :: Parser Patterns
 getAdjs = do
@@ -133,25 +142,25 @@ registerVerb pat = do
   let pats = verbs st
   put st{verbs = insertPattern pat pats}
 
-noop :: Applicative f => f ()
+noop :: (Applicative f) => f ()
 noop = pure ()
 
-many1 :: Parser a -> Parser (NonEmpty a)
+many1 :: forall a. Parser a -> Parser (NonEmpty a)
 many1 = NonEmpty.some
 {-# INLINE many1 #-}
 
-many1Till :: Parser a -> Parser end -> Parser (NonEmpty a)
+many1Till :: forall a end. Parser a -> Parser end -> Parser (NonEmpty a)
 many1Till = NonEmpty.someTill
 {-# INLINE many1Till #-}
 
 -- | Parser negation. @never p@ succeeds iff when @p@ fails.
 -- Consumes nothing and does not change any parser state.
-never :: Parser a -> Parser ()
+never :: forall a. Parser a -> Parser ()
 -- The name @notFollowedBy@ is a bit unintuitive (seems like a binary combinator).
 never = notFollowedBy
 {-# INLINE never #-}
 
-endedBy :: Parser a -> Parser end -> Parser a
+endedBy :: forall a end. Parser a -> Parser end -> Parser a
 p `endedBy` end = do
   result <- p
   end
@@ -161,24 +170,24 @@ p `endedBy` end = do
 -- | @sepEndedBy1 p sep@ parses one or more occurrences
 -- of @p@, separated by @sep@ and mandatorily ended by @sep@.
 -- Returns a nonempty list of the results of @p@.
-sepEndedBy1 :: Parser a -> Parser sep -> Parser (NonEmpty a)
+sepEndedBy1 :: forall a sep. Parser a -> Parser sep -> Parser (NonEmpty a)
 sepEndedBy1 = NonEmpty.endBy1
 {-# INLINE sepEndedBy1 #-}
 
-sepBy1 :: MonadPlus m => m a -> m sep -> m (NonEmpty a)
+sepBy1 :: (MonadPlus m) => m a -> m sep -> m (NonEmpty a)
 sepBy1 = NonEmpty.sepBy1
 
 
 -- | Backtracking version of sepBy.
-trySepBy :: MonadParsec e s f => f a -> f sep -> f [a]
+trySepBy :: (MonadParsec e s f) => f a -> f sep -> f [a]
 trySepBy p sep = trySepBy1' p sep <|> pure []
 {-# INLINE trySepBy #-}
 
 -- | Backtracking version of sepBy1.
-trySepBy1 :: MonadParsec e s f => f a -> f sep -> f (NonEmpty a)
+trySepBy1 :: (MonadParsec e s f) => f a -> f sep -> f (NonEmpty a)
 trySepBy1 p sep = NonEmpty.fromList <$> trySepBy1' p sep
 {-# INLINE trySepBy1 #-}
 
-trySepBy1' :: MonadParsec e s f => f a -> f sep -> f [a]
+trySepBy1' :: (MonadParsec e s f) => f a -> f sep -> f [a]
 trySepBy1' p sep = liftA2 (:) p (many (try (sep *> p)))
 {-# INLINE trySepBy1' #-}

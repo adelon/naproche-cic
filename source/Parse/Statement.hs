@@ -5,7 +5,7 @@ import Base.Parser
 import Language.Common (Var)
 import Language.Expression (Expr(..), Typ, Typing(..))
 import Language.Quantifier
-import Parse.Expression (expression)
+import Parse.Expression (expression, typing)
 import Parse.Pattern (Pattern, patternWith)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
 import Parse.Token (word, symbol, command, begin, end, math, comma, sepByComma1)
@@ -65,27 +65,27 @@ quantifiedNominal = label "quantified nominal" (universal <|> existential <|> no
     universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
     universal = do
       word "all" <|> try (word "for" >> word "every")
-      varInfo <- typing
+      varInfo <- math typing
       -- TODO this needs to be registered as local variable information.
       optional (word "we" >> word "have" >> word "that")
       return (Universal, varInfo)
     existential = do
       thereExists
-      varInfo <- typing
+      varInfo <- math typing
       optional suchThat
       -- TODO this needs to be registered as local variable information.
       return (Existential, varInfo)
     nonexistential = do
       word "no"
-      varInfo <- typing
+      varInfo <- math typing
       -- TODO this needs to be registered as local variable information.
       return (Nonexistential, varInfo)
-    typing :: Parser (NonEmpty (Typing Var Typ))
-    typing = math do
-      vs <- var `sepBy1` comma
-      command "in"
-      ty <- expression
-      return ((`Inhabits` ty) <$> vs)
+
+-- typing :: Parser (NonEmpty (Typing Var Typ))
+-- typing = do
+--   vs <- var `sepBy1` comma
+--   ty <- (command "in" >> expression) <|> return Hole
+--   return ((`Inhabits` ty) <$> vs)
 
 -- WARN/FIXME: the following results in no precedence between
 -- 'and'/'or'. This may require fixing in processing.
@@ -114,6 +114,7 @@ unheadedStatement = do
       stmt2 <- statement
       return (StatementIff stmt1 stmt2)
     Just (Word "implies") -> do
+      optional (word "that")
       stmt2 <- statement
       return (StatementImplies stmt1 stmt2)
     Just (Word "where") -> do

@@ -2,3 +2,8 @@
   \( d\mid n \) iff
   there exists \( k \) such that \( k\cdot d = n \).
 \end{definition}
+
+\begin{definition}
+  \( m \) is coprime to \( n \) iff
+  \( d\mid m, n \) implies that \( d = 1 \).
+\end{definition}

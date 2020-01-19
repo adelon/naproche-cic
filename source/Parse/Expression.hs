@@ -23,12 +23,11 @@ varInfo = do
   ty <- optional $ (command "in" <|> symbol ":") *> expression
   return (v, ty)
 
-typing :: Parser (Typing Var Typ)
+typing :: Parser (NonEmpty (Typing Var Typ))
 typing = do
-  v <- var
-  symbol ":" <|> command "in"
-  ty <- expression
-  return (v `Inhabits` ty)
+  vs <- var `sepBy1` comma
+  ty <- (symbol ":" <|> command "in" >> expression) <|> return Hole
+  return ((`Inhabits` ty) <$> vs)
 
 expression :: Parser Expr
 expression = label "expression" do
@@ -45,9 +44,13 @@ pi :: Parser Expr
 pi = do
   try (command "Pi")
   symbol "_"
-  v `Inhabits` ty <- braced typing
+  vs <- braced typing
   e <- expression
-  return (Pi v ty e)
+  return (foldr (\(v `Inhabits` ty) ex -> Pi v ty ex) e vs)
+  -- return (Pi v ty e)
+  -- return (foldr1 (\vs (v `Inhabits` ty) ->) )
+  --foldPi :: Expr -> (NonEmpty (Typing Var Typ)) -> Expr
+  --foldPi e vs = foldr (\(v `Inhabits` ty) ex -> Pi v ty ex) e vs
 
 number :: Parser Expr
 number = label "number" do

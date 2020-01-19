@@ -24,7 +24,7 @@ import qualified Data.Set1 as Set1
 -- the `stop` parser succeeds. Returns the shapes of the pattern
 -- and the list of variables filling the slots of the pattern.
 -- The results needs to validated to create a proper pattern.
-anyPatternTill :: Parser stop -> Parser (Pattern, [Var])
+anyPatternTill :: forall stop. Parser stop -> Parser (Pattern, [Var])
 -- TODO: This is a rather silly placeholder implementation.
 -- Should be fixed once the rest of the parsing setup works.
 -- Use many1Till instead, which is exported from the parser module and
@@ -71,24 +71,24 @@ anyPatternBut buts = do
 -- using the `slot` parser for the slots of patterns. This parser commits after
 -- successfully parsing a word that occurs in a pattern. The result is a tuple of
 -- the pattern that succeeded and the list of results of the slot parser.
-patternWith :: Parser a -> Patterns -> Parser (Pattern, [a])
+patternWith :: forall a. Parser a -> Patterns -> Parser (Pattern, [a])
 patternWith slot pats = makeProperPattern <$> patterns' slot pats
   where
     makeProperPattern (mpat, as) = case mpat of
       Just pat -> (pat, as)
       Nothing -> error "Parse.Pattern.patterns has parsed a pattern incorrectly, resulting in an empty pattern"
 
-consWord :: Shape -> (Maybe Pattern, [a]) -> (Maybe Pattern, [a])
+consWord :: forall a. Shape -> (Maybe Pattern, [a]) -> (Maybe Pattern, [a])
 consWord w (mpat, as) = case mpat of
   Nothing -> (Just (Seq1.singleton w), as)
   Just pat -> (Just (w `Seq1.cons` pat), as)
 
-consSlot :: a -> (Maybe Pattern, [a]) -> (Maybe Pattern, [a])
+consSlot :: forall a. a -> (Maybe Pattern, [a]) -> (Maybe Pattern, [a])
 consSlot a (mpat, as) = case mpat of
   Nothing -> (Just (Seq1.singleton Slot), a : as)
   Just pat -> (Just (Slot `Seq1.cons` pat), a : as)
 
-patterns' :: Parser a -> Patterns -> Parser (Maybe Pattern, [a])
+patterns' :: forall a. Parser a -> Patterns -> Parser (Maybe Pattern, [a])
 patterns' slot pats = case Set1.toDescNonEmpty pats of
   PatternEnd :|[] -> fail "no such pattern"
   tree :| otherPats -> case tree of

@@ -208,7 +208,7 @@ close = lexeme (paren <|> brace)
 
 -- | Turns a tokenizer into one that tracks the source position of the token
 -- and consumes trailing whitespace.
-lexeme :: Tokenizer a -> Tokenizer (Located a)
+lexeme :: forall a. Tokenizer a -> Tokenizer (Located a)
 lexeme p = do
   start <- getSourcePos
   startOffset <- getOffset
