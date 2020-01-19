@@ -7,6 +7,8 @@ module Language.Expression
 import Language.Common (Var)
 import Language.Pattern (Pattern)
 
+import Data.Text.Prettyprint.Doc
+
 
 type Typ = Expr
 
@@ -47,3 +49,6 @@ data Prop
   | Expr `Implies` Expr
   | Forall
   deriving (Show, Eq, Ord)
+
+instance Pretty Expr where
+  pretty = viaShow
