@@ -15,3 +15,9 @@
     if \( k \mid p \)
     then \( k = 0 \) or \( k = 1 \).
 \end{definition}
+
+\begin{theorem}
+  if \( p \) is even then
+  \( p \mid m\cdot n \) implies
+  \( p \mid m \) or \( p \mid n \).
+\end{theorem}
