@@ -1,31 +1,34 @@
 \begin{definition}
   \( d\mid n \) iff
-  there exists \( k \) such that \( k\cdot d = n \).
+    there exists \( k \) such that \( k\cdot d = n \).
 \end{definition}
 
 \begin{definition}
   \( m \) is coprime to \( n \) iff
-  \( d\mid m, n \) implies that \( d = 1 \).
+    \( d\mid m, n \) implies that \( d = 1 \).
 \end{definition}
 
 \begin{definition}
   \( p\in\mathbb{N} \) is prime iff
-  \( p\neq 0,1 \) and
-  for every \( k \)
-    if \( k \mid p \)
-    then \( k = 0 \) or \( k = 1 \).
+    \( p\neq 0,1 \) and for every \( k \)
+      if \( k \mid p \)
+        then \( k = 0 \) or \( k = 1 \).
 \end{definition}
 
 \begin{theorem}
-  If \( p \) is even then
-  \( p \mid m\cdot n \) implies
-  \( p \mid m \) or \( p \mid n \).
+  If \( p \) is even and \( p \mid m\cdot n \)
+    then \( p \mid m \) or \( p \mid n \).
 \end{theorem}
 
 
 \begin{theorem}
   For every rational number \( q \)
-  there exists \( m, n\) such that
-  \( m \) is coprime to \( n \) and
-  \( m\cdot n = p \).
+    there exists \( m, n \) such that
+      \( m \) is coprime to \( n \) and \( m\cdot n = p \).
+\end{theorem}
+
+\begin{theorem}
+  Suppose \( p \) is prime.
+  There exists no rational number \( q \) such that
+    \( p = q\cdot q \).
 \end{theorem}

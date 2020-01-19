@@ -62,7 +62,7 @@ quantifierChain = do
   return chain
 
 quantifiedNominal :: Parser (Quantifier, NonEmpty (Typing Var Typ))
-quantifiedNominal = label "quantified nominal" (universal <|> existential <|> nonexistential)
+quantifiedNominal = label "quantified nominal" (universal <|> nonexistential <|> existential)
   where
     universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
     universal = do
@@ -71,17 +71,18 @@ quantifiedNominal = label "quantified nominal" (universal <|> existential <|> no
       -- TODO this needs to be registered as local variable information.
       optional (word "we" >> word "have" >> word "that")
       return (Universal, vs)
+    nonexistential = do
+      try (thereExists >> word "no")
+      vs <- varInfo
+      optional suchThat
+      -- TODO this needs to be registered as local variable information.
+      return (Nonexistential, vs)
     existential = do
       thereExists
       vs <- varInfo
       optional suchThat
       -- TODO this needs to be registered as local variable information.
       return (Existential, vs)
-    nonexistential = do
-      word "no"
-      vs <- varInfo
-      -- TODO this needs to be registered as local variable information.
-      return (Nonexistential, vs)
     varInfo :: Parser (NonEmpty (Typing Var Typ))
     varInfo = nominalInfo <|> symbolicInfo
       where
