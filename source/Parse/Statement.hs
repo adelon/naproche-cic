@@ -8,9 +8,9 @@ import Language.Quantifier
 import Parse.Expression (expression, typing)
 import Parse.Pattern (Pattern, patternWith)
 import Parse.Statement.Symbolic (SymbolicStatement, symbolicStatement)
-import Parse.Token (word, symbol, command, begin, end, math, comma, sepByComma1)
+import Parse.Token (word, symbol, begin, end, math, comma, sepByComma1)
 import Parse.Token (iff, thereExists, suchThat)
-import Parse.Var (var)
+import Parse.Var (var, varList)
 import Tokenize (Tok(..))
 
 
@@ -67,27 +67,29 @@ quantifiedNominal = label "quantified nominal" (universal <|> existential <|> no
     universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
     universal = do
       word "all" <|> try (word "for" >> (word "every" <|> word "all"))
-      varInfo <- math typing
+      vs <- varInfo
       -- TODO this needs to be registered as local variable information.
       optional (word "we" >> word "have" >> word "that")
-      return (Universal, varInfo)
+      return (Universal, vs)
     existential = do
       thereExists
-      varInfo <- math typing
+      vs <- varInfo
       optional suchThat
       -- TODO this needs to be registered as local variable information.
-      return (Existential, varInfo)
+      return (Existential, vs)
     nonexistential = do
       word "no"
-      varInfo <- math typing
+      vs <- varInfo
       -- TODO this needs to be registered as local variable information.
-      return (Nonexistential, varInfo)
-
--- typing :: Parser (NonEmpty (Typing Var Typ))
--- typing = do
---   vs <- var `sepBy1` comma
---   ty <- (command "in" >> expression) <|> return Hole
---   return ((`Inhabits` ty) <$> vs)
+      return (Nonexistential, vs)
+    varInfo :: Parser (NonEmpty (Typing Var Typ))
+    varInfo = nominalInfo <|> symbolicInfo
+      where
+        nominalInfo = do
+          ty <- nominal
+          vs <- math varList
+          return ((`Inhabits` ty) <$> vs)
+        symbolicInfo = math typing
 
 -- WARN/FIXME: the following results in no precedence between
 -- 'and'/'or'. This may require fixing in processing.
@@ -123,7 +125,7 @@ unheadedStatement = do
       info <- whereStatement
       return (StatementWhere stmt1 info)
     -- The above exhausts all cases where a token was consumed.
-    -- Below is how we proceed when we cannot consume a continuation token.
+    -- Below is how we proceed when we cannot consume a continue-token.
     _otherwise -> do
       return (StatementAtomic stmt1)
   where
@@ -183,7 +185,7 @@ atomicStatement = predication <|> constStatement
 data Term
   = TermDefiniteSymbolic Expr
   | TermDefiniteNoun
-  | TermQuantified Quantifier Expr
+  | TermQuantified Quantifier (Maybe (NonEmpty (Typing Var Typ))) Expr
   deriving (Show, Eq, Ord)
 
 term :: Parser Term
@@ -196,15 +198,18 @@ quantifiedTerm = label "quantified term" (universal <|> existential <|> nonexist
     universal = do
       try (word "every")
       noun <- nominal
-      return (TermQuantified Universal noun)
+      vs <- optional typing
+      return (TermQuantified Universal vs noun)
     existential = do
       try (word "some")
       noun <- nominal
-      return (TermQuantified Existential noun)
+      vs <- optional typing
+      return (TermQuantified Existential vs noun)
     nonexistential = do
       try (word "no")
       noun <- nominal
-      return (TermQuantified Nonexistential noun)
+      vs <- optional typing
+      return (TermQuantified Nonexistential vs noun)
 
 type Nominal = Expr
 

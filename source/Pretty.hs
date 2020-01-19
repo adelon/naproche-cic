@@ -124,7 +124,9 @@ prettyTerm :: forall ann. Term -> Doc ann
 prettyTerm = \case
   TermDefiniteSymbolic expr -> pretty expr
   TermDefiniteNoun -> "DEFINITE NOUN"
-  TermQuantified quant expr -> "QUANTIFIED TERM"
+  TermQuantified quant vs expr -> case vs of
+    Nothing -> "QUANTIFIED TERM"
+    Just vs -> "QUANTIFIED TERM"
 
 prettyWhereStatement :: forall ann. WhereStatement -> Doc ann
 prettyWhereStatement whereStmt = undefined

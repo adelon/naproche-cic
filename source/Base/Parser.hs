@@ -74,6 +74,7 @@ initRegistry = Registry
     primNominals :: Patterns
     primNominals =
       [ ["natural", "number"]
+      , ["rational", "number"]
       ]
 
     primVerbs :: Patterns
