@@ -7,3 +7,11 @@
   \( m \) is coprime to \( n \) iff
   \( d\mid m, n \) implies that \( d = 1 \).
 \end{definition}
+
+\begin{definition}
+  \( p\in\mathbb{N} \) is prime iff
+  \( p\neq 0,1 \) and
+  for every \( k \)
+    if \( k \mid p \)
+    then \( k = 0 \) or \( k = 1 \).
+\end{definition}

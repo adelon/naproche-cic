@@ -36,6 +36,8 @@ headedStatement = quantified <|> ifThen <|> negated
     quantified :: Parser HeadedStatement
     quantified = do
       info <- quantifierChain
+      optional comma
+      optional (word "we" >> word "have" >> optional (word "that"))
       stmt <- statement
       return (StatementQuantified info stmt)
 
@@ -64,7 +66,7 @@ quantifiedNominal = label "quantified nominal" (universal <|> existential <|> no
   where
     universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
     universal = do
-      word "all" <|> try (word "for" >> word "every")
+      word "all" <|> try (word "for" >> (word "every" <|> word "all"))
       varInfo <- math typing
       -- TODO this needs to be registered as local variable information.
       optional (word "we" >> word "have" >> word "that")
