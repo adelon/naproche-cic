@@ -31,11 +31,14 @@ prettyAxiom (Axiom asms stmt) = vsep
   ]
 
 prettyDefinition :: forall ann. Definition -> Doc ann
-prettyDefinition (Definition asms body) = vsep
+prettyDefinition (Definition asms bodies) = vsep
   [ "Definition:"
   , indent 2 $ prettyAssumptions asms
-  , indent 2 $ prettyDefinitionBody body
+  , indent 2 $ prettyDefinitionBodies bodies
   ]
+
+prettyDefinitionBodies :: forall ann. (NonEmpty DefinitionBody) -> Doc ann
+prettyDefinitionBodies bodies = vsep (toList (prettyDefinitionBody <$> bodies))
 
 prettyDefinitionBody :: forall ann. DefinitionBody -> Doc ann
 prettyDefinitionBody (DefinePredicate head stmt) = vsep

@@ -13,13 +13,13 @@ import qualified Data.Set as Set
 
 
 data Definition
-  = Definition [Assumption] DefinitionBody
+  = Definition [Assumption] (NonEmpty DefinitionBody)
   deriving (Show, Eq)
 
 definition :: Parser Definition
 definition = environment "definition" do
   asms <- many assumption
-  body <- definitionBody
+  body <- many1 definitionBody
   return (Definition asms body)
 
 data DefinitionBody
