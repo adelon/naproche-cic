@@ -20,7 +20,6 @@ import qualified Data.Set as Set
 -- TODO: Replace `Void` with proper error component.
 type Parser = ParsecT Void TokStream (State Registry)
 
--- Windows 3.1 sends kind regards!
 data Registry = Registry
   { collectiveAdjs :: Patterns
   , distributiveAdjs :: Patterns

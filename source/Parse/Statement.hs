@@ -17,7 +17,6 @@ import Tokenize (Tok(..))
 data Statement
   = StatementHeaded HeadedStatement
   | StatementUnheaded UnheadedStatement
-  -- | StatementChain Chain
   deriving (Show, Eq, Ord)
 
 statement :: Parser Statement
