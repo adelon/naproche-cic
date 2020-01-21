@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -w #-}
+
 module Pretty where
 
 

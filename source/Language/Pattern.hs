@@ -63,13 +63,18 @@ fromPatterns [] = mempty
 fromPatterns [pat] = fromPattern pat
 fromPatterns (pat:pats) = insertPattern pat (fromPatterns pats)
 
-pat1, pat2 :: Pattern
+
+
+-- Testing
+-- TODO: Implement the correponding tests elsewhere.
+
+pat1, pat2, pat3, pat4 :: Pattern
 pat1 = Seq1.fromNonEmpty ["natural", "number"]
 pat2 = Seq1.fromNonEmpty ["natural"]
 pat3 = Seq1.fromNonEmpty ["natural", "isomorphism"]
 pat4 = Seq1.fromNonEmpty ["integer"]
 
-pats1, pats2 :: Patterns
+pats1, pats2, pats3, pats4 :: Patterns
 pats1 = fromPattern pat1
 pats2 = insertPattern pat2 pats1
 pats3 = insertPattern pat3 pats1

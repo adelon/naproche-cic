@@ -14,7 +14,6 @@ import Text.Megaparsec as Export hiding (State, parse, sepBy1)
 import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
-import qualified Data.Set as Set
 
 
 -- TODO: Replace `Void` with proper error component.
@@ -100,13 +99,11 @@ getRelators :: Parser (Map Tok (Expr -> Expr -> Prop))
 getRelators = relators <$> get
 {-# INLINE getRelators #-}
 
--- FIXME
--- Takes the name of the command and adds it to the relators.
 registerRelator :: Text -> Parser ()
 registerRelator rel = do
   st <- get
   let rels = relators st
-  let rels' = rels -- <>
+  let rels' = Map.insert (Command rel) (\x y -> Predicate rel `PredApp` x `PredApp` y) rels
   put st{relators = rels'}
 
 getAdjs :: Parser Patterns
