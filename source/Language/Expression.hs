@@ -23,7 +23,6 @@ data Expr
   | Free Var
   | Bottom
   | Top
-  | Prop Prop
   | Expr `Times` Expr -- Product
   | Expr `Plus` Expr -- Coproduct
   | Expr `To` Expr -- Exponential
@@ -44,10 +43,11 @@ data Prop
   | Predicate Text
   | Prop `PredApp` Expr
   | Expr `Equals` Expr
-  | Expr `And` Expr
-  | Expr `Or` Expr
-  | Expr `Implies` Expr
-  | Forall
+  | Prop `And` Prop
+  | Prop `Or` Prop
+  | Prop `Implies` Prop
+  | Forall Var Typ Prop
+  | Exists Var Typ Prop
   deriving (Show, Eq, Ord)
 
 instance Pretty Expr where
