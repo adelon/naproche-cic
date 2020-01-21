@@ -4,7 +4,7 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Expression (Expr(..), Prop(..))
-import Language.Pattern (Patterns, Pattern, Shape(..), insertPattern)
+import Language.Pattern (Patterns, Pattern, Shape(..), insertPattern, fromPatterns, makePattern)
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
@@ -66,20 +66,20 @@ initRegistry = Registry
     {-# INLINE makeOp #-}
 
     primCollectiveAdjs :: Patterns
-    primCollectiveAdjs =
-      [ ["even"]
-      , ["odd"]
+    primCollectiveAdjs = fromPatterns
+      [ makePattern ["even"]
+      , makePattern ["odd"]
       ]
 
     primNominals :: Patterns
-    primNominals =
-      [ ["natural", "number"]
-      , ["rational", "number"]
+    primNominals = fromPatterns
+      [ makePattern ["natural", "number"]
+      , makePattern ["rational", "number"]
       ]
 
     primVerbs :: Patterns
-    primVerbs =
-      [ ["divides", Slot]
+    primVerbs = fromPatterns
+      [ makePattern ["divides", Slot]
       ]
 
 makePrimOp :: forall op. Parser op -> Text -> Parser (Expr -> Expr -> Expr)
@@ -113,7 +113,8 @@ registerRelator rel = do
 getAdjs :: Parser Patterns
 getAdjs = do
   st <- get
-  return (collectiveAdjs st `Set.union` distributiveAdjs st)
+  -- TODO: biased merge potentially incorrect.
+  return (collectiveAdjs st <> distributiveAdjs st)
 {-# INLINE getAdjs #-}
 
 registerAdj :: Pattern -> Parser ()

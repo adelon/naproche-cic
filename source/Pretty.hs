@@ -66,7 +66,7 @@ prettyPattern :: forall ann. Pattern -> Doc ann
 prettyPattern shapes = foldr1 (<+>) (prettyShape <$> shapes)
   where
     prettyShape Slot = "_"
-    prettyShape (Word ws) = viaShow (ws !! 0)
+    prettyShape (Word ws) = viaShow ws
 
 prettyTheorem :: forall ann. Theorem -> Doc ann
 prettyTheorem (Theorem asms stmt) = vsep

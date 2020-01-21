@@ -10,7 +10,9 @@
 
 
 module Data.Sequence1
-  ( cons
+  ( head
+  , tail
+  , cons
   , snoc
   , uncons
   , unsnoc
@@ -87,6 +89,12 @@ fromSeq = \case
   x :<| xs -> Just (x :<|| xs)
   Empty -> Nothing
 {-# INLINE fromSeq #-}
+
+head :: Seq1 a -> a
+head = seqHead
+
+tail :: Seq1 a -> Seq a
+tail = seqTail
 
 -- | O(1).
 cons :: a -> Seq1 a -> Seq1 a
