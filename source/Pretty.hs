@@ -115,8 +115,7 @@ prettyStatement = \case
 
 prettyAtomicStatement :: forall ann. AtomicStatement -> Doc ann
 prettyAtomicStatement = \case
-  Thesis -> "The thesis."
-  Contrary -> "The contrary."
+
   Contradiction -> "A contradiction."
   SymbolicStatement stmt -> prettySymbolicStatement stmt
   PredicativeAdj t (pat, args) -> prettyPredicate pat (t:args)

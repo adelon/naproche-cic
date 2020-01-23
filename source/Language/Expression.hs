@@ -6,6 +6,7 @@ module Language.Expression
 
 import Language.Common (Var)
 import Language.Pattern (Pattern)
+import Language.Quantifier (Quantifier(..))
 
 import Data.Text.Prettyprint.Doc
 
@@ -41,13 +42,14 @@ data Prop
   | Verum
   | Squashed Expr
   | Predicate Text
+  | PredicatePattern Pattern
+  | Not Prop
   | Prop `PredApp` Expr
   | Expr `Equals` Expr
   | Prop `And` Prop
   | Prop `Or` Prop
   | Prop `Implies` Prop
-  | Forall Var Typ Prop
-  | Exists Var Typ Prop
+  | Quantify Quantifier Var Typ Prop
   deriving (Show, Eq, Ord)
 
 instance Pretty Expr where

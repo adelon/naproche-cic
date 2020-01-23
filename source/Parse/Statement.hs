@@ -86,9 +86,14 @@ quantifiedNominal = label "quantified nominal" (universal <|> nonexistential <|>
     varInfo = nominalInfo <|> symbolicInfo
       where
         nominalInfo = do
-          ty <- nominal
+          (pat, ts) <- nominal
+--        let ty = (foldl App (ConstPattern pat) ts)
           vs <- math varList
-          return ((`Inhabits` ty) <$> vs)
+--
+--        TODO: build the correct type.
+--        vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+--        return ((`Inhabits` ty) <$> vs)
+          return ((`Inhabits` Bottom) <$> vs)
         symbolicInfo = math typing
 
 -- WARN/FIXME: the following results in no precedence between
@@ -148,22 +153,16 @@ unheadedStatement = do
 type WhereStatement = NonEmpty (Var, Expr)
 
 data AtomicStatement
-  = Thesis   -- ^ The current goal.
-  | Contrary -- ^ Negation of the current goal.
-  | Contradiction -- ^ Bottom.
+  = Contradiction
   | SymbolicStatement SymbolicStatement
   | PredicativeAdj Term Adj
   | PredicativeVerb Term Verb
   deriving (Show, Eq, Ord)
 
 atomicStatement :: Parser AtomicStatement
-atomicStatement = predication <|> constStatement
+atomicStatement = predication <|> contradiction
   <|> (SymbolicStatement <$> symbolicStatement)
   where
-    constStatement, thesis, contrary, contradiction :: Parser AtomicStatement
-    constStatement = thesis <|> contrary <|> contradiction
-    thesis = Thesis <$ try (optional (word "the") *> word "thesis")
-    contrary = Contrary <$ try (optional (word "the") *> word "contrary")
     contradiction = Contradiction <$ try (optional (word "a") *> word "contradiction")
 
     predication :: Parser AtomicStatement
@@ -185,7 +184,7 @@ atomicStatement = predication <|> constStatement
 data Term
   = TermDefiniteSymbolic Expr
   | TermDefiniteNoun
-  | TermQuantified Quantifier (Maybe (NonEmpty (Typing Var Typ))) Expr
+  | TermQuantified Quantifier (Maybe (NonEmpty (Typing Var Typ))) Nominal
   deriving (Show, Eq, Ord)
 
 term :: Parser Term
@@ -211,26 +210,24 @@ quantifiedTerm = label "quantified term" (universal <|> existential <|> nonexist
       vs <- optional typing
       return (TermQuantified Nonexistential vs noun)
 
-type Nominal = Expr
+type Nominal = (Pattern, [Term])
 
-nominal :: Parser Expr
+nominal :: Parser Nominal
 nominal = do
   pats <- getNominals
-  (pat, es) <- patternWith (math expression) pats
-  return (foldl App (ConstPattern pat) es)
+  patternWith term pats
 
 type Adj = (Pattern, [Term])
 
 adjective :: Parser Adj
 adjective = label "adjective" do
   pats <- getAdjs
-  adj <- patternWith term pats
-  return adj
+  patternWith term pats
+
 
 type Verb = (Pattern, [Term])
 
 verb :: Parser Verb
 verb = label "verb" do
   pats <- getVerbs
-  vrb <- patternWith term pats
-  return vrb
+  patternWith term pats
