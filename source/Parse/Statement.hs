@@ -82,10 +82,13 @@ quantifiedNominal = label "quantified nominal" (universal <|> nonexistential <|>
    existential = do
       thereExists
       optional (word "a")
+      unique <- optional (word "unique")
       vs <- varInfo
       optional suchThat
       -- TODO this needs to be registered as local variable information.
-      return (Existential, vs)
+      return case unique of
+         Nothing -> (Existential, vs)
+         Just _  -> (UniqueExistential, vs)
    varInfo :: Parser (NonEmpty (Typing Var Typ))
    varInfo = nominalInfo <|> symbolicInfo
       where

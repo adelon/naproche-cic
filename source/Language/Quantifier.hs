@@ -8,7 +8,6 @@ data Quantifier
    | AlmostUniversal
    | Existential
    | UniqueExistential
-   | InfiniteExistential
    | Nonexistential
    deriving (Show, Eq, Ord)
 
@@ -19,5 +18,4 @@ instance Pretty Quantifier where
       AlmostUniversal     -> "∀∞"
       Existential         -> "∃"
       UniqueExistential   -> "∃!"
-      InfiniteExistential -> "∃∞"
       Nonexistential      -> "∄"
