@@ -1,8 +1,8 @@
 module Parse.Pattern
-  ( module Parse.Pattern
-  , module Language.Pattern
-  )
-  where
+   ( module Parse.Pattern
+   , module Language.Pattern
+   )
+   where
 
 
 import Base.Parser
@@ -26,72 +26,68 @@ anyPatternTill :: forall stop. Parser stop -> Parser (Pattern, [Var])
 -- Use many1Till instead, which is exported from the parser module and
 -- returns a nonempty list instead.
 anyPatternTill stop = do
-  (shapes, vars) <- concatUnzip <$> someTill (wordShape <|> slotShape) stop
-  let pat = makePattern (NonEmpty.fromList shapes)
-  return (pat, vars)
-  where
-    wordShape :: Parser ([Shape], [Var])
-    wordShape = do
-      w <- anyWord
-      return ([Word w], [])
-    slotShape :: Parser ([Shape], [Var])
-    slotShape = do
-      v <- math var
-      return ([Slot], [v])
-    concatUnzip :: [([a],[b])] -> ([a], [b])
-    concatUnzip asbs = (concat *** concat) (unzip asbs)
+   (shapes, vars) <- concatUnzip <$> someTill (wordShape <|> slotShape) stop
+   let pat = makePattern (NonEmpty.fromList shapes)
+   return (pat, vars)
+   where
+      wordShape :: Parser ([Shape], [Var])
+      wordShape = do
+         w <- anyWord
+         return ([Word w], [])
+      slotShape :: Parser ([Shape], [Var])
+      slotShape = do
+         v <- math var
+         return ([Slot], [v])
+      concatUnzip :: [([a],[b])] -> ([a], [b])
+      concatUnzip asbs = (concat *** concat) (unzip asbs)
 
 anyPatternBut :: Set Text -> Parser (Pattern, [(Var, Maybe Typ)])
 anyPatternBut buts = do
-  (shapes, vars) <- concatUnzip <$> some (wordShape <|> slotShape)
-  let pat = makePattern (NonEmpty.fromList shapes)
-  return (pat, vars)
-  where
-    wordShape :: Parser ([Shape], [(Var, Maybe Typ)])
-    wordShape = do
-      w <- anyWordBut buts
-      return ([Word w], [])
-    slotShape :: Parser ([Shape], [(Var, Maybe Typ)])
-    slotShape = do
-      v <- math varInfo
-      return ([Slot], [v])
-    concatUnzip :: [([a],[b])] -> ([a], [b])
-    concatUnzip asbs = (concat *** concat) (unzip asbs)
+   (shapes, vars) <- concatUnzip <$> some (wordShape <|> slotShape)
+   let pat = makePattern (NonEmpty.fromList shapes)
+   return (pat, vars)
+   where
+      wordShape :: Parser ([Shape], [(Var, Maybe Typ)])
+      wordShape = do
+         w <- anyWordBut buts
+         return ([Word w], [])
+      slotShape :: Parser ([Shape], [(Var, Maybe Typ)])
+      slotShape = do
+         v <- math varInfo
+         return ([Slot], [v])
+      concatUnzip :: [([a],[b])] -> ([a], [b])
+      concatUnzip asbs = (concat *** concat) (unzip asbs)
 
 patternWith :: forall a. Parser a -> Patterns -> Parser (Pattern, [a])
 patternWith slot pats = makeProperPattern <$> patterns_ slot pats
-  where
-    makeProperPattern (mpat, as) = case mpat of
-      Just pat -> (pat, as)
-      Nothing -> error "Parse.Pattern.patterns has parsed a pattern incorrectly, resulting in an empty pattern"
+   where
+      makeProperPattern (mpat, as) = case mpat of
+         Just pat -> (pat, as)
+         Nothing -> error "Parse.Pattern.patterns has parsed a pattern incorrectly, resulting in an empty pattern"
 
 consWord :: forall a. Text -> (Maybe Pattern, [a]) -> (Maybe Pattern, [a])
 consWord w (mpat, as) = case mpat of
-  Nothing -> (Just (Seq1.singleton (Word w)), as)
-  Just pat -> (Just ((Word w) `Seq1.cons` pat), as)
+   Nothing -> (Just (Seq1.singleton (Word w)), as)
+   Just pat -> (Just ((Word w) `Seq1.cons` pat), as)
 
 consSlot :: forall a. a -> (Maybe Pattern, [a]) -> (Maybe Pattern, [a])
 consSlot a (mpat, as) = case mpat of
-  Nothing -> (Just (Seq1.singleton Slot), a : as)
-  Just pat -> (Just (Slot `Seq1.cons` pat), a : as)
+   Nothing -> (Just (Seq1.singleton Slot), a : as)
+   Just pat -> (Just (Slot `Seq1.cons` pat), a : as)
 
 patterns_ :: forall a. Parser a -> Patterns -> Parser (Maybe Pattern, [a])
 patterns_ slot pats = case Map.keys pats of
-
-  [] -> fail "no such pattern"
-
-  shapes -> do
-    wordOrSlot <- asum (shape_ slot <$> shapes)
-    case wordOrSlot of
-      Left w -> consWord w <$> patterns__ slot ((Map.!) pats (Word w))
-      Right a -> consSlot a <$> patterns__ slot ((Map.!) pats Slot)
+   []     -> fail "no such pattern"
+   shapes -> do
+      wordOrSlot <- asum (shape_ slot <$> shapes)
+      case wordOrSlot of
+         Left w -> consWord w <$> patterns__ slot ((Map.!) pats (Word w))
+         Right a -> consSlot a <$> patterns__ slot ((Map.!) pats Slot)
 
 patterns__ :: Parser a -> PatternDecision -> Parser (Maybe Pattern, [a])
 patterns__ slot = \case
-
-  MustGo pats -> patterns_ slot pats
-
-  MayStop pats -> patterns_ slot pats <|> pure (Nothing, [])
+   MustGo  pats -> patterns_ slot pats
+   MayStop pats -> patterns_ slot pats <|> pure (Nothing, [])
 
 
 shape_ :: forall a. Parser a -> Shape -> Parser (Either Text a)

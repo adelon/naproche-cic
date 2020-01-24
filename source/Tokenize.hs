@@ -1,8 +1,8 @@
 module Tokenize where
 
 {-
-  This module defines the tokenizer, which takes TEX input in the form of Text
-  and turn is into a list of tokens for further parsing.
+   This module defines the tokenizer, which takes TEX input in the form of Text
+   and turn is into a list of tokens for further parsing.
 -}
 
 import Text.Megaparsec
@@ -14,65 +14,65 @@ import qualified Text.Megaparsec.Char as Lex
 type Tokenizer = Parsec Void Text
 
 data Tok
-  = Word Text
-  | Variable Text
-  | Symbol Text
-  | Number Text
-  | Command Text
-  | BeginEnv Text
-  | EndEnv Text
-  | Open Delim
-  | Close Delim
-  deriving (Show, Eq, Ord)
+   = Word Text
+   | Variable Text
+   | Symbol Text
+   | Number Text
+   | Command Text
+   | BeginEnv Text
+   | EndEnv Text
+   | Open Delim
+   | Close Delim
+   deriving (Show, Eq, Ord)
 
 -- | Invisible delimiters are plain braces in TEX, braces are escaped braces.
 data Delim = Invis | Paren | Brace | Bracket deriving (Show, Eq, Ord)
 
 printTok :: Tok -> Text
 printTok = \case
-  Word w -> w
-  Variable v -> v
-  Symbol s -> s
-  Number n -> n
-  Command cmd -> Text.cons '\\' cmd
-  BeginEnv env -> "\\begin{" <> env <> "}"
-  EndEnv env -> "\\end{" <> env <> "}"
-  Open delim -> case delim of
-    Invis -> "{"
-    Paren -> "("
-    Brace -> "\\{"
-    Bracket -> "["
-  Close delim -> case delim of
-    Invis -> "}"
-    Paren -> ")"
-    Brace -> "\\}"
-    Bracket -> "]"
+   Word w -> w
+   Variable v -> v
+   Symbol s -> s
+   Number n -> n
+   Command cmd -> Text.cons '\\' cmd
+   BeginEnv env -> "\\begin{" <> env <> "}"
+   EndEnv env -> "\\end{" <> env <> "}"
+   Open delim -> case delim of
+      Invis -> "{"
+      Paren -> "("
+      Brace -> "\\{"
+      Bracket -> "["
+   Close delim -> case delim of
+      Invis -> "}"
+      Paren -> ")"
+      Brace -> "\\}"
+      Bracket -> "]"
 
 data Located a = Located
-  { startPos :: SourcePos
-  , endPos :: SourcePos
-  , tokenLength :: Int
-  , unLocated :: a
-  } deriving (Show, Eq, Ord)
+   { startPos :: SourcePos
+   , endPos :: SourcePos
+   , tokenLength :: Int
+   , unLocated :: a
+   } deriving (Show, Eq, Ord)
 
 -- | Parses tokens, switching tokenizing mode when encountering math environments.
 toks :: Tokenizer [Located Tok]
 toks = go id
-  where
-    -- Instead of adding explicit state to our tokenizer we implement a token parser using two
-    -- mutually recursive helper functions.
-    go f = do
+   where
+   -- Instead of adding explicit state to our tokenizer we implement a token parser using two
+   -- mutually recursive helper functions.
+   go f = do
       r <- optional tok
       case r of
-        Nothing -> return (f [])
-        Just t@(Located _ _ _ (BeginEnv "math")) -> go' (f . (t:))
-        Just t -> go (f . (t:))
-    go' f = do
+         Nothing -> return (f [])
+         Just t@(Located _ _ _ (BeginEnv "math")) -> go' (f . (t:))
+         Just t -> go (f . (t:))
+   go' f = do
       r <- optional mathTok
       case r of
-        Nothing -> return (f [])
-        Just t@(Located _ _ _ (EndEnv "math")) -> go (f . (t:))
-        Just t -> go' (f . (t:))
+         Nothing -> return (f [])
+         Just t@(Located _ _ _ (EndEnv "math")) -> go (f . (t:))
+         Just t -> go' (f . (t:))
 {-# INLINE toks #-}
 
 -- | Parses a single normal mode token.
@@ -86,43 +86,43 @@ mathTok = var <|> symbol <|> number <|> begin <|> end <|> open <|> close <|> com
 -- | Parses a single begin math token.
 mathBegin :: Tokenizer (Located Tok)
 mathBegin = lexeme do
-  try (Lex.string "\\(" <|> Lex.string "\\[" <|> Lex.string "$")
-  return (BeginEnv "math")
+   try (Lex.string "\\(" <|> Lex.string "\\[" <|> Lex.string "$")
+   return (BeginEnv "math")
 
 -- | Parses a single end math token.
 mathEnd :: Tokenizer (Located Tok)
 mathEnd = lexeme do
-  try (Lex.string "\\)" <|> Lex.string "\\]" <|> Lex.string "$")
-  return (EndEnv "math")
+   try (Lex.string "\\)" <|> Lex.string "\\]" <|> Lex.string "$")
+   return (EndEnv "math")
 
 -- | Parses a word. Words are returned casefolded, since we want to ignore their case later on.
 word :: Tokenizer (Located Tok)
 word = lexeme do
-  w <- some Lex.letterChar
-  let t = Word (Text.toCaseFold (Text.pack w))
-  return t
+   w <- some Lex.letterChar
+   let t = Word (Text.toCaseFold (Text.pack w))
+   return t
 
 number :: Tokenizer (Located Tok)
 number = lexeme do
-  n <- some Lex.digitChar
-  let t = Number (Text.pack n)
-  return t
+   n <- some Lex.digitChar
+   let t = Number (Text.pack n)
+   return t
 
 var :: Tokenizer (Located Tok)
 var = lexeme $ Variable <$> (letter <|> bb <|> greek)
-  where
-    letter :: Tokenizer Text
-    letter = Text.singleton <$> Lex.letterChar
+   where
+   letter :: Tokenizer Text
+   letter = Text.singleton <$> Lex.letterChar
 
-    greek :: Tokenizer Text
-    greek = try do
+   greek :: Tokenizer Text
+   greek = try do
       Lex.char '\\'
       l <- asum (makeSymbolParser <$> greeks)
       notFollowedBy Lex.letterChar
       return l
 
-    greeks :: [(Text,Text)]
-    greeks =
+   greeks :: [(Text,Text)]
+   greeks =
       [ ("alpha", "α"), ("beta", "β"), ("gamma", "γ")
       , ("delta", "δ"), ("epsilon", "ε"), ("zeta", "ζ")
       , ("eta", "η"), ("theta", "θ"), ("iota", "ι")
@@ -137,15 +137,15 @@ var = lexeme $ Variable <$> (letter <|> bb <|> greek)
       , ("Psi", "Ψ"), ("Omega", "Ω")
       ]
 
-    bb :: Tokenizer Text
-    bb = do
+   bb :: Tokenizer Text
+   bb = do
       try (Lex.string "\\mathbb{")
       l <- asum (makeSymbolParser <$> bbs)
       Lex.char '}'
       return l
 
-    bbs :: [(Text,Text)]
-    bbs =
+   bbs :: [(Text,Text)]
+   bbs =
       [ ("A", "𝔸")
       , ("B", "𝔹")
       , ("C", "ℂ")
@@ -156,16 +156,16 @@ var = lexeme $ Variable <$> (letter <|> bb <|> greek)
       , ("Z", "ℤ")
       ]
 
-    makeSymbolParser :: (Text, b) -> Tokenizer b
-    makeSymbolParser (cmd, symb) = do
+   makeSymbolParser :: (Text, b) -> Tokenizer b
+   makeSymbolParser (cmd, symb) = do
       Lex.string cmd
       return symb
 
 symbol :: Tokenizer (Located Tok)
 symbol = lexeme do
-  symb <- some (satisfy (`elem` symbols))
-  return (Symbol (Text.pack symb))
-    where
+   symb <- some (satisfy (`elem` symbols))
+   return (Symbol (Text.pack symb))
+      where
       symbols :: [Char]
       symbols = ".,:;!?@=+-/^><*"
 
@@ -195,26 +195,26 @@ end = lexeme do
 -- | Parses an opening delimiter.
 open :: Tokenizer (Located Tok)
 open = lexeme (paren <|> brace)
-  where
-    brace = Open Brace <$ lexeme (try (Lex.string "\\{"))
-    paren = Open Paren <$ lexeme (Lex.char '(')
+   where
+   brace = Open Brace <$ lexeme (try (Lex.string "\\{"))
+   paren = Open Paren <$ lexeme (Lex.char '(')
 
 -- | Parses a closing delimiter.
 close :: Tokenizer (Located Tok)
 close = lexeme (paren <|> brace)
-  where
-    brace = Open Brace <$ lexeme (try (Lex.string "\\}"))
-    paren = Open Paren <$ lexeme (Lex.char ')')
+   where
+   brace = Open Brace <$ lexeme (try (Lex.string "\\}"))
+   paren = Open Paren <$ lexeme (Lex.char ')')
 
 -- | Turns a tokenizer into one that tracks the source position of the token
 -- and consumes trailing whitespace.
 lexeme :: forall a. Tokenizer a -> Tokenizer (Located a)
 lexeme p = do
-  start <- getSourcePos
-  startOffset <- getOffset
-  t <- p
-  Lex.space
-  stop <- getSourcePos
-  stopOffset <- getOffset
-  let l = stopOffset - startOffset
-  return (Located start stop l t)
+   start <- getSourcePos
+   startOffset <- getOffset
+   t <- p
+   Lex.space
+   stop <- getSourcePos
+   stopOffset <- getOffset
+   let l = stopOffset - startOffset
+   return (Located start stop l t)

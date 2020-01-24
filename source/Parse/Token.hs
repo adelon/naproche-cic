@@ -23,100 +23,100 @@ import qualified Data.Text as Text
 -- | A token stream for as input stream for a parser. Contains the raw input
 -- before tokenization as @Text@ for showing error messages.
 data TokStream = TokStream
-  { rawInput :: Text
-  , unTokStream :: [Located Tok]
-  } deriving (Show, Eq)
+   { rawInput :: Text
+   , unTokStream :: [Located Tok]
+   } deriving (Show, Eq)
 
 
 instance Stream TokStream where
 
-  type Token TokStream = Located Tok
-  type Tokens TokStream = [Located Tok]
+   type Token TokStream = Located Tok
+   type Tokens TokStream = [Located Tok]
 
-  tokenToChunk :: Proxy TokStream -> Token TokStream -> Tokens TokStream
-  tokenToChunk Proxy x = [x]
+   tokenToChunk :: Proxy TokStream -> Token TokStream -> Tokens TokStream
+   tokenToChunk Proxy x = [x]
 
-  tokensToChunk :: Proxy TokStream -> [Token TokStream] -> Tokens TokStream
-  tokensToChunk Proxy = id
+   tokensToChunk :: Proxy TokStream -> [Token TokStream] -> Tokens TokStream
+   tokensToChunk Proxy = id
 
-  chunkToTokens :: Proxy TokStream -> Tokens TokStream -> [Token TokStream]
-  chunkToTokens Proxy = id
+   chunkToTokens :: Proxy TokStream -> Tokens TokStream -> [Token TokStream]
+   chunkToTokens Proxy = id
 
-  chunkLength :: Proxy TokStream -> Tokens TokStream -> Int
-  chunkLength Proxy = length
+   chunkLength :: Proxy TokStream -> Tokens TokStream -> Int
+   chunkLength Proxy = length
 
-  chunkEmpty :: Proxy TokStream -> Tokens TokStream -> Bool
-  chunkEmpty Proxy = null
+   chunkEmpty :: Proxy TokStream -> Tokens TokStream -> Bool
+   chunkEmpty Proxy = null
 
-  take1_ :: TokStream -> Maybe (Token TokStream, TokStream)
-  take1_ = \case
-    TokStream _ [] -> Nothing
-    TokStream raw (t:ts) ->
-      let ts' = TokStream (Text.drop (tokenLength t) raw) ts
-      in  Just (t,ts')
+   take1_ :: TokStream -> Maybe (Token TokStream, TokStream)
+   take1_ = \case
+      TokStream _ [] -> Nothing
+      TokStream raw (t:ts) ->
+         let ts' = TokStream (Text.drop (tokenLength t) raw) ts
+         in  Just (t,ts')
 
-  takeN_ :: Int -> TokStream -> Maybe (Tokens TokStream, TokStream)
-  takeN_ n | n <= 0 = \stream -> Just ([], stream)
-  takeN_ n = \case
-    TokStream _ [] -> Nothing
-    TokStream raw ts ->
-      let (consumed, ts') = splitAt n ts
-      in case NonEmpty.nonEmpty consumed of
-        Nothing -> Just (consumed, TokStream raw ts')
-        Just consumed' -> Just (consumed, TokStream (Text.drop (tokensLength pxy consumed') raw) ts')
+   takeN_ :: Int -> TokStream -> Maybe (Tokens TokStream, TokStream)
+   takeN_ n | n <= 0 = \stream -> Just ([], stream)
+   takeN_ n = \case
+      TokStream _ [] -> Nothing
+      TokStream raw ts ->
+         let (consumed, ts') = splitAt n ts
+         in case NonEmpty.nonEmpty consumed of
+         Nothing -> Just (consumed, TokStream raw ts')
+         Just consumed' -> Just (consumed, TokStream (Text.drop (tokensLength pxy consumed') raw) ts')
 
-  takeWhile_ :: (Token TokStream -> Bool) -> TokStream -> (Tokens TokStream, TokStream)
-  takeWhile_ f (TokStream raw s) =
-    let (x, s') = List.span f s
-    in case NonEmpty.nonEmpty x of
-      Nothing -> (x, TokStream raw s')
-      Just ts -> (x, TokStream (Text.drop (tokensLength pxy ts) raw) s')
+   takeWhile_ :: (Token TokStream -> Bool) -> TokStream -> (Tokens TokStream, TokStream)
+   takeWhile_ f (TokStream raw s) =
+      let (x, s') = List.span f s
+      in case NonEmpty.nonEmpty x of
+         Nothing -> (x, TokStream raw s')
+         Just ts -> (x, TokStream (Text.drop (tokensLength pxy ts) raw) s')
 
-  showTokens :: Proxy TokStream -> NonEmpty (Token TokStream) -> String
-  showTokens Proxy ts =
-    Text.unpack $ quote $ Text.intercalate " " $ ts'
+   showTokens :: Proxy TokStream -> NonEmpty (Token TokStream) -> String
+   showTokens Proxy ts =
+      Text.unpack $ quote $ Text.intercalate " " $ ts'
+         where
+         ts' = NonEmpty.toList $ printTok <$> unLocated <$> ts
+         quote t = "'" <> t <> "'"
+
+   tokensLength :: Proxy TokStream -> NonEmpty (Token TokStream) -> Int
+   tokensLength Proxy xs = sum (tokenLength <$> xs)
+
+   reachOffset :: Int -> PosState TokStream -> (String, PosState TokStream)
+   reachOffset offset PosState {..} =
+      ( Text.unpack (lastLine prefix <> restOfLine)
+      , PosState
+         { pstateInput = TokStream
+         { rawInput = postRaw
+         , unTokStream = post
+         }
+         , pstateOffset = max pstateOffset offset
+         , pstateSourcePos = newSourcePos
+         , pstateTabWidth = pstateTabWidth
+         , pstateLinePrefix = Text.unpack prefix
+         }
+      )
       where
-        ts' = NonEmpty.toList $ printTok <$> unLocated <$> ts
-        quote t = "'" <> t <> "'"
-
-  tokensLength :: Proxy TokStream -> NonEmpty (Token TokStream) -> Int
-  tokensLength Proxy xs = sum (tokenLength <$> xs)
-
-  reachOffset :: Int -> PosState TokStream -> (String, PosState TokStream)
-  reachOffset offset PosState {..} =
-    ( Text.unpack (lastLine prefix <> restOfLine)
-    , PosState
-      { pstateInput = TokStream
-        { rawInput = postRaw
-        , unTokStream = post
-        }
-      , pstateOffset = max pstateOffset offset
-      , pstateSourcePos = newSourcePos
-      , pstateTabWidth = pstateTabWidth
-      , pstateLinePrefix = Text.unpack prefix
-      }
-    )
-    where
       -- We need to strip everything but the last line of the prefix
       -- so that the error renders correctly and concisely. The naive
       -- implementation here should suffice, since this will only be
       -- called at most once (when reporting a parse error).
       lastLine :: Text -> Text
       lastLine cs = case Text.lines cs of
-        [] -> ""
-        lines -> List.last lines
+         [] -> ""
+         lines -> List.last lines
       prefix :: Text
       prefix = case sourceLine newSourcePos == sourceLine pstateSourcePos of
-        True -> Text.pack pstateLinePrefix <> preRaw
-        False -> preRaw
+         True -> Text.pack pstateLinePrefix <> preRaw
+         False -> preRaw
       newSourcePos = case post of
-        [] -> pstateSourcePos -- Leave the source position untouched.
-        (t:_) -> startPos t
+         [] -> pstateSourcePos -- Leave the source position untouched.
+         (t:_) -> startPos t
       (pre, post) = splitAt (offset - pstateOffset) (unTokStream pstateInput)
       (preRaw, postRaw) = Text.splitAt tokensConsumed (rawInput pstateInput)
       tokensConsumed = case NonEmpty.nonEmpty pre of
-        Nothing -> 0
-        Just nePre -> tokensLength pxy nePre
+         Nothing -> 0
+         Just nePre -> tokensLength pxy nePre
       restOfLine = Text.takeWhile (/= '\n') postRaw
 
 pxy :: Proxy TokStream
@@ -127,21 +127,21 @@ pxy = Proxy
 -- of the main parser (such as state) at the moment.
 exactly :: (MonadParsec e s p, Token s ~ Located Tok) => Tok -> p Tok
 exactly c = token matcher expectation
-  where
-    expectation :: Set (ErrorItem (Located Tok))
-    expectation = Set.singleton (Tokens (liftTok c :| []))
+   where
+   expectation :: Set (ErrorItem (Located Tok))
+   expectation = Set.singleton (Tokens (liftTok c :| []))
 
-    matcher :: Token TokStream -> Maybe Tok
-    matcher (Located _start _end _length t) =
+   matcher :: Token TokStream -> Maybe Tok
+   matcher (Located _start _end _length t) =
       if t == c
-        then Just t
-        else Nothing
+      then Just t
+      else Nothing
 
-    liftTok :: Tok -> Located Tok
-    liftTok t = Located pos pos 0 t
+   liftTok :: Tok -> Located Tok
+   liftTok t = Located pos pos 0 t
       where
-        pos :: SourcePos
-        pos = initialPos ""
+      pos :: SourcePos
+      pos = initialPos ""
 
 -- | @word@ parses a single word token. Case-insensitive.
 word :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
@@ -150,23 +150,23 @@ word w = exactly (Word (Text.toCaseFold w))
 
 anyWord :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 anyWord = label "any word" $ token matcher Set.empty
-  where
-    matcher :: Token TokStream -> Maybe Text
-    matcher (Located _start _end _length t) = case t of
-        Word w -> Just w
-        _ -> Nothing
+   where
+   matcher :: Token TokStream -> Maybe Text
+   matcher (Located _start _end _length t) = case t of
+      Word w -> Just w
+      _ -> Nothing
 {-# INLINE anyWord #-}
 
 anyWordBut :: (MonadParsec e s m, Token s ~ Located Tok) => Set Text -> m Text
 anyWordBut ws = token matcher Set.empty
-  where
-    matcher :: Token TokStream -> Maybe Text
-    matcher (Located _start _end _length t) = case t of
-        Word w ->
-          if w `Set.member` ws
+   where
+   matcher :: Token TokStream -> Maybe Text
+   matcher (Located _start _end _length t) = case t of
+      Word w ->
+         if w `Set.member` ws
             then Nothing
             else Just w
-        _ -> Nothing
+      _ -> Nothing
 {-# INLINE anyWordBut #-}
 
 -- | @word@ parses a single symbol token. Case-sensitive.
@@ -176,20 +176,20 @@ symbol s = exactly (Symbol s)
 
 anySymbol :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 anySymbol = label "any word" $ token matcher Set.empty
-  where
-    matcher :: Token TokStream -> Maybe Text
-    matcher (Located _start _end _length t) = case t of
-        Symbol symb -> Just symb
-        _ -> Nothing
+   where
+   matcher :: Token TokStream -> Maybe Text
+   matcher (Located _start _end _length t) = case t of
+      Symbol symb -> Just symb
+      _ -> Nothing
 {-# INLINE anySymbol #-}
 
 anyNumber :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 anyNumber = label "any number" $ token matcher Set.empty
-  where
-    matcher :: Token TokStream -> Maybe Text
-    matcher (Located _start _end _length t) = case t of
-        Number n -> Just n
-        _ -> Nothing
+   where
+   matcher :: Token TokStream -> Maybe Text
+   matcher (Located _start _end _length t) = case t of
+      Number n -> Just n
+      _ -> Nothing
 {-# INLINE anyNumber #-}
 
 -- | @command@ parses a single command token. Case-sensitive.
@@ -199,21 +199,21 @@ command cmd = exactly (Command cmd)
 
 anyCommand :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 anyCommand = label "any word" $ token matcher Set.empty
-  where
-    matcher :: Token TokStream -> Maybe Text
-    matcher (Located _start _end _length t) = case t of
-        Command cmd -> Just cmd
-        _ -> Nothing
+   where
+   matcher :: Token TokStream -> Maybe Text
+   matcher (Located _start _end _length t) = case t of
+      Command cmd -> Just cmd
+      _ -> Nothing
 {-# INLINE anyCommand #-}
 
 -- | @variable@ parses any variable token. Case-sensitive.
 variable :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 variable = label "variable" $ token matcher Set.empty
-  where
-    matcher :: Token TokStream -> Maybe Text
-    matcher (Located _start _end _length t) = case t of
-        Variable v -> Just v
-        _ -> Nothing
+   where
+   matcher :: Token TokStream -> Maybe Text
+   matcher (Located _start _end _length t) = case t of
+      Variable v -> Just v
+      _ -> Nothing
 {-# INLINE variable #-}
 
 begin :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
@@ -226,10 +226,10 @@ end env = exactly (EndEnv env)
 
 surroundedBy :: Applicative p => p t -> p a -> p b -> p b
 surroundedBy start stop p = do
-  start
-  content <- p
-  stop
-  return content
+   start
+   content <- p
+   stop
+   return content
 {-# INLINE surroundedBy #-}
 
 environment :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p a -> p a
@@ -291,7 +291,7 @@ period = void (symbol ".")
 -- success, so that we can easily pattern match on the result.
 iff :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
 iff = Word "iff" <$ do
-  word "iff" <|> (try (word "if" *> word "and" *> word "only") *> word "if")
+   word "iff" <|> (try (word "if" *> word "and" *> word "only") *> word "if")
 {-# INLINE iff #-}
 
 thereExists :: (MonadParsec e s p, Token s ~ Located Tok) => p ()

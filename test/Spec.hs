@@ -14,4 +14,4 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "Tokenizer" TokenizerSpec.spec
+   describe "Tokenizer" TokenizerSpec.spec

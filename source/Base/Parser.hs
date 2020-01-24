@@ -20,38 +20,38 @@ import qualified Data.Map.Strict as Map
 type Parser = ParsecT Void TokStream (State Registry)
 
 data Registry = Registry
-  { collectiveAdjs :: Patterns
-  , distributiveAdjs :: Patterns
-  , nominals :: Patterns
-  , verbs :: Patterns
-  , operators :: [[Operator Parser Expr]]
-  , relators :: Map Tok (Expr -> Expr -> Prop)
-  , idCount :: Natural
-  }
+   { collectiveAdjs :: Patterns
+   , distributiveAdjs :: Patterns
+   , nominals :: Patterns
+   , verbs :: Patterns
+   , operators :: [[Operator Parser Expr]]
+   , relators :: Map Tok (Expr -> Expr -> Prop)
+   , idCount :: Natural
+   }
 
 initRegistry :: Registry
 initRegistry = Registry
-  { collectiveAdjs = primCollectiveAdjs
-  , distributiveAdjs = mempty
-  , nominals = primNominals
-  , verbs = primVerbs
-  , operators = primOperators
-  , relators = primRelators
-  , idCount = 0
-  }
-  where
-    primOperators :: [[Operator Parser Expr]]
-    primOperators =
+   { collectiveAdjs = primCollectiveAdjs
+   , distributiveAdjs = mempty
+   , nominals = primNominals
+   , verbs = primVerbs
+   , operators = primOperators
+   , relators = primRelators
+   , idCount = 0
+   }
+   where
+   primOperators :: [[Operator Parser Expr]]
+   primOperators =
       [ [ InfixR (makePrimOp (command "cdot") "prim_mul")
-        ]
-      , [ InfixR (makePrimOp (symbol "+") "prim_plus")
-        ]
-      , [ InfixR (makeOp (command "times") (Times))
-        , InfixR (makeOp (command "sqcup") (Plus))
-        ]
       ]
-    primRelators :: Map Tok (Expr -> Expr -> Prop)
-    primRelators = Map.fromList
+      , [ InfixR (makePrimOp (symbol "+") "prim_plus")
+      ]
+      , [ InfixR (makeOp (command "times") (Times))
+      , InfixR (makeOp (command "sqcup") (Plus))
+      ]
+      ]
+   primRelators :: Map Tok (Expr -> Expr -> Prop)
+   primRelators = Map.fromList
       [ (Symbol "=", \x y -> Predicate "prim_eq" `PredApp` x `PredApp` y)
       , (Command "neq", \x y -> Predicate "prim_not_eq" `PredApp` x `PredApp` y)
       , (Symbol "<", \x y -> Predicate "prim_less" `PredApp` x `PredApp` y)
@@ -59,24 +59,24 @@ initRegistry = Registry
       , (Command "mid", \x y -> Predicate "prim_divides" `PredApp` x `PredApp` y)
       ]
 
-    makeOp :: forall op a. Parser op -> a -> Parser a
-    makeOp op constr = op >> return constr
-    {-# INLINE makeOp #-}
+   makeOp :: forall op a. Parser op -> a -> Parser a
+   makeOp op constr = op >> return constr
+   {-# INLINE makeOp #-}
 
-    primCollectiveAdjs :: Patterns
-    primCollectiveAdjs = fromPatterns
+   primCollectiveAdjs :: Patterns
+   primCollectiveAdjs = fromPatterns
       [ makePattern ["even"]
       , makePattern ["odd"]
       ]
 
-    primNominals :: Patterns
-    primNominals = fromPatterns
+   primNominals :: Patterns
+   primNominals = fromPatterns
       [ makePattern ["natural", "number"]
       , makePattern ["rational", "number"]
       ]
 
-    primVerbs :: Patterns
-    primVerbs = fromPatterns
+   primVerbs :: Patterns
+   primVerbs = fromPatterns
       [ makePattern ["divides", Slot]
       ]
 
@@ -90,10 +90,10 @@ getOperators = operators <$> get
 -- TODO: Also handle priority and associativity.
 registerOperator :: forall op. Parser op -> Text -> Parser ()
 registerOperator op prim = do
-  st <- get
-  let ops = operators st
-  let ops' = ops <> [[InfixR (makePrimOp op prim)]]
-  put st{operators = ops'}
+   st <- get
+   let ops = operators st
+   let ops' = ops <> [[InfixR (makePrimOp op prim)]]
+   put st{operators = ops'}
 
 getRelators :: Parser (Map Tok (Expr -> Expr -> Prop))
 getRelators = relators <$> get
@@ -101,24 +101,24 @@ getRelators = relators <$> get
 
 registerRelator :: Text -> Parser ()
 registerRelator rel = do
-  st <- get
-  let rels = relators st
-  let rels' = Map.insert (Command rel) (\x y -> Predicate rel `PredApp` x `PredApp` y) rels
-  put st{relators = rels'}
+   st <- get
+   let rels = relators st
+   let rels' = Map.insert (Command rel) (\x y -> Predicate rel `PredApp` x `PredApp` y) rels
+   put st{relators = rels'}
 
 getAdjs :: Parser Patterns
 getAdjs = do
-  st <- get
-  -- TODO: biased merge potentially incorrect.
-  return (collectiveAdjs st <> distributiveAdjs st)
+   st <- get
+   -- TODO: biased merge potentially incorrect.
+   return (collectiveAdjs st <> distributiveAdjs st)
 {-# INLINE getAdjs #-}
 
 registerAdj :: Pattern -> Parser ()
 registerAdj adj = do
-  st <- get
-  let adjs = collectiveAdjs st
-  let adjs' = insertPattern adj adjs
-  put st{collectiveAdjs = adjs'}
+   st <- get
+   let adjs = collectiveAdjs st
+   let adjs' = insertPattern adj adjs
+   put st{collectiveAdjs = adjs'}
 
 getNominals :: Parser Patterns
 getNominals = nominals <$> get
@@ -126,9 +126,9 @@ getNominals = nominals <$> get
 
 registerNominal :: Pattern -> Parser ()
 registerNominal pat = do
-  st <- get
-  let pats = nominals st
-  put st{nominals = insertPattern pat pats}
+   st <- get
+   let pats = nominals st
+   put st{nominals = insertPattern pat pats}
 
 getVerbs :: Parser Patterns
 getVerbs = verbs <$> get
@@ -136,9 +136,9 @@ getVerbs = verbs <$> get
 
 registerVerb :: Pattern -> Parser ()
 registerVerb pat = do
-  st <- get
-  let pats = verbs st
-  put st{verbs = insertPattern pat pats}
+   st <- get
+   let pats = verbs st
+   put st{verbs = insertPattern pat pats}
 
 noop :: (Applicative f) => f ()
 noop = pure ()
@@ -160,9 +160,9 @@ never = notFollowedBy
 
 endedBy :: forall a end. Parser a -> Parser end -> Parser a
 p `endedBy` end = do
-  result <- p
-  end
-  return result
+   result <- p
+   end
+   return result
 {-# INLINE endedBy #-}
 
 -- | @sepEndedBy1 p sep@ parses one or more occurrences

@@ -1,17 +1,17 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 module Prelude
-  ( module Export
-  , compose
-  ) where
+   ( module Export
+   , compose
+   ) where
 
 import BasePrelude as Export hiding
-  ( Word, TypeError, Const
-  , (<+>)
-  , head, last, init, tail, lines
-  , try, some, many
-  , pi, app
-  )
+   ( Word, TypeError, Const
+   , (<+>)
+   , head, last, init, tail, lines
+   , try, some, many
+   , pi, app
+   )
 
 import Data.Map.Strict as Export (Map)
 import Data.Sequence as Export (Seq(..), (<|), (|>))
