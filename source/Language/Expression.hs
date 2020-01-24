@@ -7,6 +7,7 @@ module Language.Expression
 import Language.Common (Var)
 import Language.Pattern (Pattern)
 import Language.Quantifier (Quantifier(..))
+import Tokenize (Tok)
 
 import Data.Text.Prettyprint.Doc
 
@@ -42,6 +43,7 @@ data Prop
   | Verum
   | Squashed Expr
   | Predicate Text
+  | Rel Tok
   | PredicatePattern Pattern
   | Not Prop
   | Prop `PredApp` Expr
@@ -51,6 +53,13 @@ data Prop
   | Prop `Implies` Prop
   | Quantify Quantifier Var Typ Prop
   deriving (Show, Eq, Ord)
+
+
+-- quantify = undefined
+
+patternPredication :: Pattern -> [Expr] -> Prop
+patternPredication pat args = foldl PredApp (PredicatePattern pat) args
+
 
 instance Pretty Expr where
   pretty = viaShow

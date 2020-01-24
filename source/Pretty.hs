@@ -1,139 +1,135 @@
-{-# OPTIONS_GHC -w #-}
-
 module Pretty where
 
-
 import Language.Expression
+import Language.Common (Var(..))
+import Language.Quantifier (Quantifier(..))
 import Language.Pattern
-import Parse.Assumption
-import Parse.Declaration
-import Parse.Definition
-import Parse.Document
-import Parse.Statement
-import Parse.Statement.Symbolic
+import Parse.Assumption (Assumption(..))
+import Parse.Declaration (Declaration(..), Axiom(..), Theorem(..))
+import Parse.Definition (Definition(..), DefinitionBody(..), PredicateHead(..))
+import Parse.Document (Document(..))
 
 import Data.Text.Prettyprint.Doc
+
+todo :: forall a. a
+todo = error "desugar"
+
 
 
 prettyDocument :: forall ann. Document -> Doc ann
 prettyDocument (Document decls) =
-  vsep (toList (prettyDeclaration <$> decls))
+   vsep (toList ((\decl -> prettyDeclaration decl <> line) <$> decls))
 
 prettyDeclaration :: forall ann. Declaration -> Doc ann
 prettyDeclaration = \case
-  DeclAxiom axiom -> prettyAxiom axiom
-  DeclDefinition definition -> prettyDefinition definition
-  DeclTheorem theorem -> prettyTheorem theorem
+   DeclAxiom axiom -> prettyAxiom axiom
+   DeclDefinition definition -> prettyDefinition definition
+   DeclTheorem theorem -> prettyTheorem theorem
 
 prettyAxiom :: forall ann. Axiom -> Doc ann
 prettyAxiom (Axiom asms stmt) = vsep
-  [ "Axiom:"
-  , indent 2 $ prettyAssumptions asms
-  , indent 2 $ prettyStatement stmt
-  ]
+   [ "Axiom:"
+   , indent 2 $ prettyAssumptions asms
+   , indent 2 $ prettyProp stmt
+   ]
 
 prettyDefinition :: forall ann. Definition -> Doc ann
 prettyDefinition (Definition asms bodies) = vsep
-  [ "Definition:"
-  , indent 2 $ prettyAssumptions asms
-  , indent 2 $ prettyDefinitionBodies bodies
-  ]
+   [ "Definition:"
+   , indent 2 $ prettyAssumptions asms
+   , indent 2 $ prettyDefinitionBodies bodies
+   ]
 
 prettyDefinitionBodies :: forall ann. (NonEmpty DefinitionBody) -> Doc ann
 prettyDefinitionBodies bodies = vsep (toList (prettyDefinitionBody <$> bodies))
 
 prettyDefinitionBody :: forall ann. DefinitionBody -> Doc ann
 prettyDefinitionBody (DefinePredicate head stmt) = vsep
-  [ (vsep ["Definiendum:", indent 2 $ prettyHead head])
-  , "Definiens:" <+> prettyStatement stmt
-  ]
-  where
-    prettyHead = \case
+   [ (vsep ["Definiendum:", indent 2 $ prettyHead head])
+   , "Definiens:" <+> prettyProp stmt
+   ]
+   where
+   prettyHead = \case
       PredicateAdjPattern vs pat -> vsep
-        [ "Variables:" <+> prettyVarInfo vs
-        , "Pattern" <+> prettyPattern pat
-        ]
+         [ "Variables:" <+> prettyVarInfo vs
+         , "Pattern:" <+> prettyPattern pat
+         ]
       PredicateVerbPattern vs pat -> vsep
-        [ "Variables:" <+> prettyVarInfo vs
-        , "Pattern" <+> prettyPattern pat
-        ]
+         [ "Variables:" <+> prettyVarInfo vs
+         , "Pattern:" <+> prettyPattern pat
+         ]
+      PredicateRelator (a, rel, b) -> vsep
+         [ "Variables:" <+> pretty a <+> "and" <+> pretty b
+         , "Pattern:" <+> pretty rel
+         ]
 
 prettyVarInfo :: forall ann. NonEmpty (Var, Maybe Typ) -> Doc ann
 prettyVarInfo vs = hsep $ punctuate comma $ toList $ prettyVar <$> vs
-  where
-    prettyVar (v, Nothing) = viaShow v
-    prettyVar (v, Just ty) = viaShow v <+> ":" <+> viaShow ty
+   where
+   prettyVar (v, Nothing) = pretty v
+   prettyVar (v, Just ty) = pretty v <+> ":" <+> prettyExpr ty
 
 prettyPattern :: forall ann. Pattern -> Doc ann
-prettyPattern shapes = foldr1 (<+>) (prettyShape <$> shapes)
-  where
-    prettyShape Slot = "_"
-    prettyShape (Word ws) = viaShow ws
+prettyPattern shapes = foldr1 (<>) (prettyShape <$> shapes)
+   where
+   prettyShape Slot = "_"
+   prettyShape (Word w) = pretty w
 
 prettyTheorem :: forall ann. Theorem -> Doc ann
 prettyTheorem (Theorem asms stmt) = vsep
-  [ "Theorem:"
-  , indent 2 $ prettyAssumptions asms
-  , indent 2 $ prettyStatement stmt
-  ]
+   [ "Theorem:"
+   , indent 2 $ prettyAssumptions asms
+   , indent 2 $ prettyProp stmt
+   ]
 
 prettyAssumptions :: forall ann. [Assumption] -> Doc ann
 prettyAssumptions asms = vsep (prettyAssumption <$> asms)
 
 prettyAssumption :: Assumption -> Doc ann
 prettyAssumption asm = "Assumption:" <+> case asm of
-  AssumptionPretyping vs -> prettyTyping vs
-  Assumption stmt -> prettyStatement stmt
+   AssumptionPretyping vs -> prettyTyping vs
+   Assumption stmt -> prettyProp stmt
 
 prettyTyping :: forall t v ty ann. (Foldable t, Pretty v, Pretty ty)
   => t (Typing v ty) -> Doc ann
 prettyTyping vs = foldr alg "" vs
-  where
-    alg :: Typing v ty -> Doc ann -> Doc ann
-    alg (v `Inhabits` ty) pvs = pretty v <+> ":" <> pretty ty <> pvs
+   where
+   alg :: Typing v ty -> Doc ann -> Doc ann
+   alg (v `Inhabits` ty) pvs = pretty v <+> ":" <> pretty ty <> pvs
 
-prettyStatement :: forall ann. Statement -> Doc ann
-prettyStatement = \case
-  StatementHeaded hstmt -> case hstmt of
-    StatementQuantified quants stmt -> undefined
-    StatementImplication stmt1 stmt2 ->
-      prettyStatement stmt1 <+> "=>" <+> prettyStatement stmt2
-    StatementNegated stmt ->
-      "Not:" <+> prettyStatement stmt
-  StatementUnheaded uhstmt -> case uhstmt of
-    StatementConjunction stmt1 stmt2 ->
-      prettyAtomicStatement stmt1 <+> "/\\" <+> prettyStatement stmt2
-    StatementDisjunction stmt1 stmt2 ->
-      prettyAtomicStatement stmt1 <+> "\\/" <+> prettyStatement stmt2
-    StatementIff stmt1 stmt2 ->
-      prettyAtomicStatement stmt1 <+> "<=>" <+> prettyStatement stmt2
-    StatementImplies stmt1 stmt2 ->
-      prettyAtomicStatement stmt1 <+> "=>" <+> prettyStatement stmt2
-    StatementWhere stmt whereStmt ->
-      prettyAtomicStatement stmt <> "," <+> "where" <+> prettyWhereStatement whereStmt
-    StatementAtomic stmt -> prettyAtomicStatement stmt
+prettyProp :: forall ann. Prop -> Doc ann
+prettyProp = \case
+   Falsum -> "F"
+   Verum -> "T"
+   Squashed e -> "|" <> prettyExpr e <> "|"
+   Predicate p -> pretty p
+   Rel tok -> viaShow tok
+   PredicatePattern pat -> prettyPattern pat
+   Not p -> "¬" <+> prettyProp p
+   p `PredApp` e -> "(" <> prettyProp p <+> prettyExpr e <> ")"
+   e1 `Equals` e2 -> "(" <> prettyExpr e1 <+> "=" <+> prettyExpr e2 <> ")"
+   p `And` q -> "(" <> prettyProp p <+> "/\\" <+> prettyProp q <> ")"
+   p `Or` q -> "(" <> prettyProp p <+> "\\/" <+> prettyProp q <> ")"
+   p `Implies` q -> "(" <> prettyProp p <+> "=>" <+> prettyProp q <> ")"
+   Quantify quant v ty p ->
+      prettyQuantifier quant <+> pretty v <> ":" <> prettyExpr ty <> prettyProp p
 
-prettyAtomicStatement :: forall ann. AtomicStatement -> Doc ann
-prettyAtomicStatement = \case
+prettyQuantifier :: forall ann. Quantifier -> Doc ann
+prettyQuantifier = \case
+   Universal      -> "∀"
+   Existential    -> "∃"
+   Nonexistential -> "∄"
 
-  Contradiction -> "A contradiction."
-  SymbolicStatement stmt -> prettySymbolicStatement stmt
-  PredicativeAdj t (pat, args) -> prettyPredicate pat (t:args)
-  PredicativeVerb t (pat, args) -> prettyPredicate pat (t:args)
-
-prettyPredicate :: forall ann. Pattern -> [Term] -> Doc ann
-prettyPredicate pat args = prettyPattern pat <> list (prettyTerm <$> args)
-
-prettyTerm :: forall ann. Term -> Doc ann
-prettyTerm = \case
-  TermDefiniteSymbolic expr -> pretty expr
-  TermDefiniteNoun -> "DEFINITE NOUN"
-  TermQuantified quant vs expr -> case vs of
-    Nothing -> "QUANTIFIED TERM"
-    Just vs -> "QUANTIFIED TERM"
-
-prettyWhereStatement :: forall ann. WhereStatement -> Doc ann
-prettyWhereStatement whereStmt = undefined
-
-prettySymbolicStatement :: forall ann. SymbolicStatement -> Doc ann
-prettySymbolicStatement stmt = undefined
+prettyExpr :: forall ann. Expr -> Doc ann
+prettyExpr = \case
+   Hole -> "[?]"
+   Const c -> pretty c
+   ConstPattern pat -> prettyPattern pat
+   Bottom -> "∅"
+   Top -> "*"
+   Free v -> pretty v
+   e1 `Times` e2 -> "(" <> prettyExpr e1 <+> "×" <+> prettyExpr e2 <> ")"
+   e1 `Plus` e2  -> "(" <> prettyExpr e1 <+> "+" <+> prettyExpr e2 <> ")"
+   e1 `To` e2    -> "(" <> prettyExpr e1 <+> "->" <+> prettyExpr e2 <> ")"
+   e1 `App` e2 -> "(" <> prettyExpr e1 <+> prettyExpr e2 <> ")"
+   _ -> error "missing case in prettyExpr"

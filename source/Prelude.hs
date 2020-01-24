@@ -2,6 +2,7 @@
 
 module Prelude
   ( module Export
+  , compose
   ) where
 
 import BasePrelude as Export hiding
@@ -19,3 +20,6 @@ import Data.Set as Export (Set)
 import Data.Set1 as Export (Set1)
 import Data.Text as Export (Text)
 import Data.Tree as Export (Tree(..))
+
+compose :: Foldable f => f (a -> a) -> a -> a
+compose = foldr (.) id

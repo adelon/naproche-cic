@@ -8,11 +8,14 @@ import Base.Parser
 import Base.Registry (initRegistry)
 import Parse.Document
 import Parse.Token (TokStream(..))
+import Pretty
 import Tokenize
 
 import Control.Monad.State.Strict
+import Data.Text.Prettyprint.Doc.Render.Text (hPutDoc)
 import System.Directory (getDirectoryContents, createDirectoryIfMissing)
 import Text.Megaparsec.Error (errorBundlePretty)
+import System.IO (IOMode(WriteMode), withFile)
 
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
@@ -51,8 +54,8 @@ work file = do
       result' <- parse document inPath stream
       case result' of
         Left err -> Text.writeFile outPath (Text.pack (errorBundlePretty err))
-        Right doc -> Text.writeFile outPath ((Text.pack . show) doc)
-
+        --Right doc -> Text.writeFile outPath ((Text.pack . show) doc)
+        Right doc -> withFile outPath WriteMode (\h -> hPutDoc h (prettyDocument doc))
 
 dumpTokens :: TokStream -> Text
 dumpTokens = Text.pack . show . fmap unLocated . unTokStream

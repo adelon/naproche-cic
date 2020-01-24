@@ -10,4 +10,4 @@ instance Show Var where
   show (Var v) = show v
 
 instance Pretty Var where
-  pretty = viaShow
+  pretty (Var v) = pretty v
