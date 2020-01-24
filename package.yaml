@@ -1,4 +1,4 @@
-name: napcic
+name: lore
 version: 0.0.0.0
 license: MIT
 github: adelon/naproche-cic
@@ -44,19 +44,17 @@ library:
   source-dirs: source/
 
 executables:
-  napcic:
+  lore:
     main: Main.hs
     source-dirs: app/
     dependencies:
-      - napcic
-      - hspec
-      - hspec-megaparsec
+      - lore
 
 tests:
-  napcic-test:
+  lore-test:
     main: Spec.hs
     source-dirs: test/
     dependencies:
-      - napcic
+      - lore
       - hspec
       - hspec-megaparsec

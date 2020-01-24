@@ -12,4 +12,4 @@ You can start GHCi with `stack repl` and build the project using `stack build`.
 
 ## Running
 
-After building, use `stack exec napcic` to run the program on all example files in `work/in/`.
+After building, use `stack exec lore` to run the program on all example files in `work/in/`.
