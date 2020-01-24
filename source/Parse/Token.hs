@@ -1,13 +1,12 @@
 {-# LANGUAGE RecordWildCards   #-}
 
+-- Definition of the token stream, functions on that token stream and
+-- basic token parsers.
+--
+-- This module reexports some basic functions from 'Tokenize' to enable using
+-- this module without a second import (in most cases).
 
 module Parse.Token (module Parse.Token, module Export) where
-
-
-{-
-  Follows this section (by the main author of megaparsec):
-  https://markkarpov.com/tutorial/megaparsec.html#working-with-custom-input-streams
--}
 
 
 import Tokenize as Export (Tok(..), Delim(..), printTok, Located(..))
@@ -20,13 +19,18 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Set as Set
 import qualified Data.Text as Text
 
--- | A token stream for as input stream for a parser. Contains the raw input
+-- |
+-- A token stream for as input stream for a parser. Contains the raw input
 -- before tokenization as @Text@ for showing error messages.
+--
 data TokStream = TokStream
    { rawInput :: Text
    , unTokStream :: [Located Tok]
    } deriving (Show, Eq)
 
+
+-- The stream instance follows this guide (by the main maintainer of megaparsec):
+-- https://markkarpov.com/tutorial/megaparsec.html#working-with-custom-input-streams
 
 instance Stream TokStream where
 
@@ -122,9 +126,11 @@ instance Stream TokStream where
 pxy :: Proxy TokStream
 pxy = Proxy
 
--- | Parses only the specified token. Note the polymorphic type.
+-- |
+-- Parses only the specified token. Note the polymorphic type.
 -- We do not want to depend on or import any of the particularities
 -- of the main parser (such as state) at the moment.
+--
 exactly :: (MonadParsec e s p, Token s ~ Located Tok) => Tok -> p Tok
 exactly c = token matcher expectation
    where
@@ -286,7 +292,7 @@ period :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 period = void (symbol ".")
 {-# INLINE period #-}
 
--- Parses the word 'iff' or the phrase 'if and only if'.
+-- | Parses the word 'iff' or the phrase 'if and only if'.
 -- Commits to the phrase after parsing 'only'. Returns 'iff' on
 -- success, so that we can easily pattern match on the result.
 iff :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
@@ -298,7 +304,7 @@ thereExists :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 thereExists = void $ try $ word "there" *> (word "exist" <|> word "exists")
 {-# INLINE thereExists #-}
 
--- Parses the phrase 'such that'. Backtracks.
+-- | Parses the phrase 'such that'. Backtracks.
 suchThat :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 suchThat = void $ try $ word "such" *> word "that"
 {-# INLINE suchThat #-}
