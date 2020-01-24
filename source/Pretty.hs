@@ -2,7 +2,6 @@ module Pretty where
 
 import Language.Expression
 import Language.Common (Var(..))
-import Language.Quantifier (Quantifier(..))
 import Language.Pattern
 import Parse.Assumption (Assumption(..))
 import Parse.Declaration (Declaration(..), Axiom(..), Theorem(..))
@@ -112,13 +111,9 @@ prettyProp = \case
    p `Or` q -> "(" <> prettyProp p <+> "\\/" <+> prettyProp q <> ")"
    p `Implies` q -> "(" <> prettyProp p <+> "=>" <+> prettyProp q <> ")"
    Quantify quant v ty p ->
-      prettyQuantifier quant <+> pretty v <> ":" <> prettyExpr ty <> prettyProp p
+      pretty quant <+> pretty v <> ":" <> prettyExpr ty <> prettyProp p
 
-prettyQuantifier :: forall ann. Quantifier -> Doc ann
-prettyQuantifier = \case
-   Universal      -> "∀"
-   Existential    -> "∃"
-   Nonexistential -> "∄"
+
 
 prettyExpr :: forall ann. Expr -> Doc ann
 prettyExpr = \case
