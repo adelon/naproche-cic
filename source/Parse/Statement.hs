@@ -100,6 +100,8 @@ quantifiedNominal = label "quantified nominal" (universal <|> nonexistential <|>
       symbolicInfo = math typing
 
 
+-- TODO: Implement proper precedence parsing.
+--
 unheadedStatement :: Parser Prop
 unheadedStatement = do
    stmt1 <- atomicStatement
@@ -119,13 +121,18 @@ unheadedStatement = do
          stmt2 <- statement
          return (stmt1 `Implies` stmt2)
       -- Just (Word "where") -> do
-      --   info <- whereStatement
-      --   return (StatementWhere stmt1 info)
+      --    info <- whereStatement
+      --    return (StatementWhere stmt1 info)
       _otherwise -> pure stmt1
    where
    continue :: Parser Tok
    continue = word "and" <|> word "or" <|> iff <|> word "where" <|> word "implies"
 
+   -- TODO: Implement where statements.
+   --
+   -- The information could either be stored in the parse tree or added to some
+   -- local environment.
+   --
    -- whereStatement :: Parser WhereStatement
    -- whereStatement = sepByComma1 do
    --   begin "math"
