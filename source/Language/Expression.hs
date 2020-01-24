@@ -55,8 +55,6 @@ data Prop
    deriving (Show, Eq, Ord)
 
 
--- quantify = undefined
-
 patternPredication :: Pattern -> [Expr] -> Prop
 patternPredication pat args = foldl PredApp (PredicatePattern pat) args
 
