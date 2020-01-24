@@ -1,5 +1,4 @@
-License
-=======
+## BSD-2-Clause + Patents License
 
 Copyright © 2020 Adrian De Lon and Anton Felix Lorenzen
 
