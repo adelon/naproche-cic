@@ -161,10 +161,6 @@ makePredication pat arg quantify info =
       quantifies = fst <$> info
 
 
-
--- TODO: Check if returning Either (Quantification, Expr) Expr is faster than
--- returning (id, e) for definite terms.
-
 term :: Parser (Prop -> Prop, Expr)
 term = quantifiedTerm <|> definiteTerm
    where

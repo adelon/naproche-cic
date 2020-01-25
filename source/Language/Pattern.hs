@@ -66,7 +66,7 @@ fromPatterns (pat:pats) = insertPattern pat (fromPatterns pats)
 
 
 -- Testing
--- TODO: Implement the correponding tests elsewhere.
+-- TODO: Implement the corresponding tests elsewhere.
 
 pat1, pat2, pat3, pat4 :: Pattern
 pat1 = Seq1.fromNonEmpty ["natural", "number"]
