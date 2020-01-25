@@ -31,7 +31,7 @@
 | st     | state
 | stmt   | statement
 | struct | structure
-| sub    | substitution / substitute
+| subst  | substitution / substitute
 | surf   | surface
 | symb   | symbol / symbolic
 | thm    | theorem

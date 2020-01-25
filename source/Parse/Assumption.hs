@@ -2,10 +2,9 @@ module Parse.Assumption where
 
 
 import Base.Parser
-import Language.Expression
-import Parse.Expression (typing)
-import Parse.Statement
-import Parse.Token
+import Parse.Expression (Typing, Var, Typ, typing)
+import Parse.Statement (Statement, statement)
+import Parse.Token (word, math, period)
 
 
 data Assumption
