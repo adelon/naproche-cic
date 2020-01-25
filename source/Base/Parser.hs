@@ -3,17 +3,19 @@
 module Base.Parser (module Base.Parser, module Export) where
 
 
+import Language.Common (Var(..))
 import Language.Expression (Expr(..), Prop(..))
 import Language.Pattern (Patterns, Pattern, Shape(..), insertPattern, fromPatterns, makePattern)
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
-import Control.Monad.State.Strict (State, get, put)
+import Control.Monad.State.Strict (State, get, put, modify)
 import Text.Megaparsec as Export hiding (State, parse, sepBy1)
 
 import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
+import qualified Data.Text as Text
 
 
 -- TODO: Replace `Void` with proper error component.
@@ -26,7 +28,7 @@ data Registry = Registry
    , verbs :: Patterns
    , operators :: [[Operator Parser Expr]]
    , relators :: Map Tok (Expr -> Expr -> Prop)
-   , idCount :: Natural
+   , varCount :: Word64
    }
 
 initRegistry :: Registry
@@ -37,7 +39,7 @@ initRegistry = Registry
    , verbs = primVerbs
    , operators = primOperators
    , relators = primRelators
-   , idCount = 0
+   , varCount = 0
    }
    where
    primOperators :: [[Operator Parser Expr]]
@@ -139,6 +141,15 @@ registerVerb pat = do
    st <- get
    let pats = verbs st
    put st{verbs = insertPattern pat pats}
+
+getFreshVar :: Parser Var
+getFreshVar = do
+   regis <- get
+   let k = varCount regis
+   modify \st -> st{varCount = succ k}
+   return (Var ("x_" <> Text.pack (show k)))
+   -- let regis' = regis{varCount = succ varCount}
+   -- put regis'
 
 noop :: (Applicative f) => f ()
 noop = pure ()

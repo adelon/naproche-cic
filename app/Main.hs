@@ -5,7 +5,6 @@ module Main where
 
 
 import Base.Parser
-import Base.Registry (initRegistry)
 import Parse.Document
 import Parse.Token (TokStream(..))
 import Pretty

@@ -10,7 +10,6 @@ import Parse.Pattern (Pattern, patternWith)
 import Parse.Token
 import Parse.Var (varList)
 
-
 import qualified Data.Map.Strict as Map
 
 type Statement = Prop
@@ -48,57 +47,47 @@ headedStatement = quantified <|> ifThen <|> negated
 -- Parses a quantification returning a quantification function.
 --
 quantifierChain :: Parser (Prop -> Prop)
-quantifierChain = do
-   (quant, vs) <- quantifiedNominal
-   let quantifications = (\(v `Inhabits` ty) -> Quantify quant v ty) <$> vs
---
---                     TODO: Check that this is actually the correct
---                     order of composition for quantifications!
---                     (This matters obviously, as they do not commute!)
---
---                     This takes a list of function [a -> a] and a starting value
---                     and applies all the functions to that starting value.
---                     vvvvvvv
-   let quantify prop = compose quantifications prop
-   return quantify
-
-
-quantifiedNominal :: Parser (Quantifier, NonEmpty (Typing Var Typ))
-quantifiedNominal = label "quantified nominal" (universal <|> nonexistential <|> existential)
+quantifierChain = label "quantified nominal" (universal <|> nonexistential <|> existential)
    where
-   universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
+   -- universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
    universal = do
       word "all" <|> try (word "for" >> (word "every" <|> word "all"))
-      vs <- varInfo
+      (quantify, vs) <- varInfo
       -- TODO this needs to be registered as local variable information.
       optional (word "we" >> word "have" >> word "that")
-      return (Universal, vs)
+      return (makeQuantification quantify Universal vs)
    nonexistential = do
       try (thereExists >> word "no")
-      vs <- varInfo
+      (quantify, vs) <- varInfo
       optional suchThat
       -- TODO this needs to be registered as local variable information.
-      return (Nonexistential, vs)
+      return (makeQuantification quantify Nonexistential vs)
    existential = do
       thereExists
       optional (word "a")
       unique <- optional (word "unique")
-      vs <- varInfo
+      (quantify, vs) <- varInfo
       optional suchThat
       -- TODO this needs to be registered as local variable information.
       return case unique of
-         Nothing -> (Existential, vs)
-         Just _  -> (UniqueExistential, vs)
-   varInfo :: Parser (NonEmpty (Typing Var Typ))
+         Nothing -> makeQuantification quantify Existential vs
+         Just _  -> makeQuantification quantify UniqueExistential vs
+   varInfo :: Parser (Prop -> Prop, NonEmpty (Typing Var Typ))
    varInfo = nominalInfo <|> symbolicInfo
       where
       nominalInfo = do
-         (pat, ts) <- nominal
-         let ty = (foldl App (ConstPattern pat) ts)
+         (pat, info) <- nominal
+         let quantifies = fst <$> info
+         let args = snd <$> info
+         let ty = (foldl App (ConstPattern pat) args)
          vs <- math varList
-         return ((`Inhabits` ty) <$> vs)
-      symbolicInfo = math typing
+         return (compose quantifies, (`Inhabits` ty) <$> vs)
+      symbolicInfo = (\vs -> (id, vs)) <$> math typing
 
+makeQuantification :: (Prop -> Prop) -> Quantifier -> NonEmpty (Typing Var Typ) -> (Prop -> Prop)
+makeQuantification quantify quant vs = \p -> compose quantifications (quantify p)
+   where
+   quantifications = (\(v `Inhabits` ty) -> Quantify quant v ty) <$> vs
 
 -- TODO: Implement proper precedence parsing.
 --
@@ -151,34 +140,65 @@ atomicStatement = predication <|> contradiction <|> symbolicStatement
 
    predication :: Parser Prop
    predication = do
-      n <- try term
+      (quantify, arg) <- try term
       peeking <- optional continue
       case peeking of
          Just (Word "is") -> do
-            (pat, args) <- adjective
-            pure (patternPredication pat (n : args))
+            (pat, info) <- adjective
+            pure (makePredication pat arg quantify info)
          _otherwise -> do
-            (pat, args) <- verb
-            pure (patternPredication pat (n : args))
+            (pat, info) <- verb
+            pure (makePredication pat arg quantify info)
       where
          continue :: Parser Tok
          continue = word "is"
 
--- TODO: implement quantified terms.
--- They could be implemented as functions that get applied when desugaring and
--- quantify their surrounding expression.
+makePredication :: Pattern -> Expr -> (Prop -> Prop) -> [(Prop -> Prop, Expr)] -> Prop
+makePredication pat arg quantify info =
+   quantify (compose quantifies (patternPredication pat (arg : args)))
+      where
+      args = snd <$> info
+      quantifies = fst <$> info
 
-term :: Parser (Expr)
-term = math expression
 
-type Nominal = (Pattern, [Expr])
+
+-- TODO: Check if returning Either (Quantification, Expr) Expr is faster than
+-- returning (id, e) for definite terms.
+
+term :: Parser (Prop -> Prop, Expr)
+term = quantifiedTerm <|> definiteTerm
+   where
+   definiteTerm = (\e -> (id, e)) <$> math expression
+
+quantifiedTerm :: Parser (Prop -> Prop, Expr)
+quantifiedTerm = label "quantified term" (universal <|> almostUniversal <|> existential <|> nonexistential)
+   where
+   universal, almostUniversal, existential, nonexistential :: Parser (Prop -> Prop, Expr)
+   universal = word "every" *> indefiniteTerm Universal
+   almostUniversal = try (word "almost" *> word "every") *> indefiniteTerm AlmostUniversal
+   nonexistential = word "no" *> indefiniteTerm Nonexistential
+   existential = word "some" *> do
+      unique <- optional (word "unique")
+      case unique of
+         Nothing -> indefiniteTerm Existential
+         Just _  -> indefiniteTerm UniqueExistential
+   indefiniteTerm quant = do
+      (pat, info) <- nominal
+      let quantifies = fst <$> info
+      let args = snd <$> info
+      v <- getFreshVar
+      let ty = (foldl App (ConstPattern pat) args)
+      let quantify = Quantify quant v ty
+      return (quantify . compose quantifies, Free v)
+
+type Nominal = (Pattern, [(Prop -> Prop, Expr)])
 
 nominal :: Parser Nominal
 nominal = do
    pats <- getNominals
    patternWith term pats
 
-type Adj = (Pattern, [Expr])
+type Adj = (Pattern, [(Prop -> Prop, Expr)])
 
 adjective :: Parser Adj
 adjective = label "adjective" do
@@ -186,7 +206,7 @@ adjective = label "adjective" do
    patternWith term pats
 
 
-type Verb = (Pattern, [Expr])
+type Verb = (Pattern, [(Prop -> Prop, Expr)])
 
 verb :: Parser Verb
 verb = label "verb" do

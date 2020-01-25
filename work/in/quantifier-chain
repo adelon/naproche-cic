@@ -1,0 +1,4 @@
+\begin{axiom}
+  For every natural number \( n \) there exists a natural number \( m \)
+  such that \( n\neq m \).
+\end{axiom}
