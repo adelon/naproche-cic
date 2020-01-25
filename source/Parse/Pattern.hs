@@ -91,5 +91,5 @@ patterns__ slot = \case
 
 
 shape_ :: forall a. Parser a -> Shape -> Parser (Either Text a)
-shape_ _  (Word w) = Left  <$> (word w >> pure w)
+shape_ _  (Word w) = Left  <$> (word w *> pure w)
 shape_ slot (Slot) = Right <$> slot

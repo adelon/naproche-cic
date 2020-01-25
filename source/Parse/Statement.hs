@@ -26,7 +26,7 @@ headedStatement = quantified <|> ifThen <|> negated
    quantified = do
       quantify <- quantifierChain
       optional comma
-      optional (word "we" >> word "have" >> optional (word "that"))
+      optional (word "we" *> word "have" *> optional (word "that"))
       stmt <- statement
       return (quantify stmt)
 
@@ -48,17 +48,24 @@ headedStatement = quantified <|> ifThen <|> negated
 -- Parses a quantification returning a quantification function.
 --
 quantifierChain :: Parser (Prop -> Prop)
-quantifierChain = label "quantified nominal" (universal <|> nonexistential <|> existential)
+quantifierChain = label "quantified nominal"
+   (universal <|> almostUniversal <|> nonexistential <|> existential)
    where
-   -- universal, existential, nonexistential :: Parser (Quantifier, NonEmpty (Typing Var Typ))
+   universal, almostUniversal, existential, nonexistential :: Parser (Prop -> Prop)
    universal = do
-      word "all" <|> try (word "for" >> (word "every" <|> word "all"))
+      word "all" <|> try (word "for" *> (word "every" <|> word "all"))
       (quantify, vs) <- varInfo
       -- TODO this needs to be registered as local variable information.
-      optional (word "we" >> word "have" >> word "that")
+      optional (word "we" *> word "have" *> word "that")
+      return (makeQuantification quantify Universal vs)
+   almostUniversal = do
+      try (word "almost" *> word "all") <|> try (word "for" *> word "almost" *> word "every" <|> word "all")
+      (quantify, vs) <- varInfo
+      -- TODO this needs to be registered as local variable information.
+      optional (word "we" *> word "have" *> word "that")
       return (makeQuantification quantify Universal vs)
    nonexistential = do
-      try (thereExists >> word "no")
+      try (thereExists *> word "no")
       (quantify, vs) <- varInfo
       optional suchThat
       -- TODO this needs to be registered as local variable information.
@@ -168,7 +175,8 @@ term = quantifiedTerm <|> definiteTerm
    definiteTerm = (\e -> (id, e)) <$> math expression
 
 quantifiedTerm :: Parser (Prop -> Prop, Expr)
-quantifiedTerm = label "quantified term" (universal <|> almostUniversal <|> existential <|> nonexistential)
+quantifiedTerm = label "quantified term"
+   (universal <|> almostUniversal <|> existential <|> nonexistential)
    where
    universal, almostUniversal, existential, nonexistential :: Parser (Prop -> Prop, Expr)
    universal = word "every" *> indefiniteTerm Universal

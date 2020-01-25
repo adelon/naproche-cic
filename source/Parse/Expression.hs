@@ -26,7 +26,7 @@ varInfo = do
 typing :: Parser (NonEmpty (Typing Var Typ))
 typing = do
    vs <- var `sepBy1` comma
-   ty <- (symbol ":" <|> command "in" >> expression) <|> return Hole
+   ty <- ((symbol ":" <|> command "in") *> expression) <|> return Hole
    return ((`Inhabits` ty) <$> vs)
 
 expression :: Parser Expr

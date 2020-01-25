@@ -35,7 +35,7 @@ definitionBody = do
    return (DefinePredicate head stmt)
    where
    weSay :: Parser ()
-   weSay = void (try (word "we" >> word "say") >> optional (word "that"))
+   weSay = void (try (word "we" *> word "say") *> optional (word "that"))
 
 data PredicateHead
    = PredicateAdjPattern (NonEmpty (Var, Maybe Typ)) Pattern

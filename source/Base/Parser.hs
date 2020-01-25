@@ -62,7 +62,7 @@ initRegistry = Registry
       ]
 
    makeOp :: forall op a. Parser op -> a -> Parser a
-   makeOp op constr = op >> return constr
+   makeOp op constr = op *> return constr
    {-# INLINE makeOp #-}
 
    primCollectiveAdjs :: Patterns
@@ -83,7 +83,7 @@ initRegistry = Registry
       ]
 
 makePrimOp :: forall op. Parser op -> Text -> Parser (Expr -> Expr -> Expr)
-makePrimOp op prim = op >> return (\x y -> Const prim `App` x `App` y)
+makePrimOp op prim = op *> return (\x y -> Const prim `App` x `App` y)
 
 getOperators :: Parser [[Operator Parser Expr]]
 getOperators = operators <$> get
