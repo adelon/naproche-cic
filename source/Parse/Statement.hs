@@ -16,7 +16,7 @@ import qualified Data.Map.Strict as Map
 type Statement = Prop
 
 statement :: Parser Statement
-statement = headedStatement <|> unheadedStatement
+statement = headedStatement <|> (unheadedStatement <**> lateQuantification)
 
 
 headedStatement :: Parser Prop
@@ -48,27 +48,24 @@ headedStatement = quantified <|> ifThen <|> negated
 -- Parses a quantification returning a quantification function.
 --
 quantifierChain :: Parser (Prop -> Prop)
-quantifierChain = label "quantified nominal"
+quantifierChain = label "quantification"
    (universal <|> almostUniversal <|> nonexistential <|> existential)
    where
    universal, almostUniversal, existential, nonexistential :: Parser (Prop -> Prop)
    universal = do
       word "all" <|> try (word "for" *> (word "every" <|> word "all"))
       (quantify, vs) <- varInfo
-      -- TODO this needs to be registered as local variable information.
       optional (word "we" *> word "have" *> word "that")
       return (makeQuantification quantify Universal vs)
    almostUniversal = do
       try (word "almost" *> word "all") <|> try (word "for" *> word "almost" *> word "every" <|> word "all")
       (quantify, vs) <- varInfo
-      -- TODO this needs to be registered as local variable information.
       optional (word "we" *> word "have" *> word "that")
       return (makeQuantification quantify Universal vs)
    nonexistential = do
       try (thereExists *> word "no")
       (quantify, vs) <- varInfo
       optional suchThat
-      -- TODO this needs to be registered as local variable information.
       return (makeQuantification quantify Nonexistential vs)
    existential = do
       thereExists
@@ -76,26 +73,44 @@ quantifierChain = label "quantified nominal"
       unique <- optional (word "unique")
       (quantify, vs) <- varInfo
       optional suchThat
-      -- TODO this needs to be registered as local variable information.
       return case unique of
          Nothing -> makeQuantification quantify Existential vs
          Just _  -> makeQuantification quantify UniqueExistential vs
-   varInfo :: Parser (Prop -> Prop, NonEmpty (Typing Var Typ))
-   varInfo = nominalInfo <|> symbolicInfo
-      where
-      nominalInfo = do
-         (pat, info) <- nominal
-         let quantifies = fst <$> info
-         let args = snd <$> info
-         let ty = (foldl App (ConstPattern pat) args)
-         vs <- math varList
-         return (compose quantifies, (`Inhabits` ty) <$> vs)
-      symbolicInfo = (\vs -> (id, vs)) <$> math typing
 
 makeQuantification :: (Prop -> Prop) -> Quantifier -> NonEmpty (Typing Var Typ) -> (Prop -> Prop)
 makeQuantification quantify quant vs = \p -> compose quantifications (quantify p)
    where
    quantifications = (\(v `Inhabits` ty) -> Quantify quant v ty) <$> vs
+
+
+-- | Parses an optional late quantification
+-- Returns a quantifying function, defaulting to @id@ if there is
+-- no late quantification.
+lateQuantification :: Parser (Prop -> Prop)
+lateQuantification = label "late quantification"
+   (word "for" *> (universal <|> existential)) <|> pure id
+   where
+   universal, existential :: Parser (Prop -> Prop)
+   universal = do
+      word "all" <|> word "every"
+      (quantify, vs) <- varInfo
+      return (makeQuantification quantify Universal vs)
+   existential = do
+      word "some"
+      (quantify, vs) <- varInfo
+      return (makeQuantification quantify Existential vs)
+
+varInfo :: Parser (Prop -> Prop, NonEmpty (Typing Var Typ))
+varInfo = nominalInfo <|> symbolicInfo
+   where
+   nominalInfo = do
+      (pat, info) <- nominal
+      let quantifies = fst <$> info
+      let args = snd <$> info
+      let ty = (foldl App (ConstPattern pat) args)
+      vs <- math varList
+      return (compose quantifies, (`Inhabits` ty) <$> vs)
+   symbolicInfo = (\vs -> (id, vs)) <$> math typing
 
 -- TODO: Implement proper precedence parsing.
 --
