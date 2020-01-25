@@ -12,9 +12,10 @@ import Parse.Var (varList)
 
 import qualified Data.Map.Strict as Map
 
+
 type Statement = Prop
 
-statement :: Parser Prop
+statement :: Parser Statement
 statement = headedStatement <|> unheadedStatement
 
 
@@ -187,22 +188,20 @@ quantifiedTerm = label "quantified term" (universal <|> almostUniversal <|> exis
       let quantify = Quantify quant v ty
       return (quantify . compose quantifies, Free v)
 
+
 type Nominal = (Pattern, [(Prop -> Prop, Expr)])
+type Adj     = (Pattern, [(Prop -> Prop, Expr)])
+type Verb    = (Pattern, [(Prop -> Prop, Expr)])
 
 nominal :: Parser Nominal
 nominal = do
    pats <- getNominals
    patternWith term pats
 
-type Adj = (Pattern, [(Prop -> Prop, Expr)])
-
 adjective :: Parser Adj
 adjective = label "adjective" do
    pats <- getAdjs
    patternWith term pats
-
-
-type Verb = (Pattern, [(Prop -> Prop, Expr)])
 
 verb :: Parser Verb
 verb = label "verb" do
