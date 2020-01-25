@@ -83,9 +83,11 @@ makeQuantification quantify quant vs = \p -> compose quantifications (quantify p
    quantifications = (\(v `Inhabits` ty) -> Quantify quant v ty) <$> vs
 
 
--- | Parses an optional late quantification
--- Returns a quantifying function, defaulting to @id@ if there is
--- no late quantification.
+-- | Parses an optional late quantification.
+-- Returns a quantifying function, defaulting to @id@ if there are
+-- no late quantifications. This parser would usually be used with
+-- the applicative combinator @(<**>)@, which applies the quantifying
+-- function to the proceeding parser.
 lateQuantification :: Parser (Prop -> Prop)
 lateQuantification = label "late quantification"
    (word "for" *> (universal <|> existential)) <|> pure id
