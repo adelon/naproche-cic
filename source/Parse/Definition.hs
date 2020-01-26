@@ -57,17 +57,17 @@ predicateHead = patterned <|> relator
             maybeIndefinite <- optional indefinite
             case maybeIndefinite of
                Just (Word "an") -> do
-                  (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
+                  (pat, vs) <- anyPatternBut patternEndings
                   registerNominal pat
                   let vars = v :| vs
                   return (PredicateNominalPattern vars pat)
                _otherwise -> do
-                  (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
+                  (pat, vs) <- anyPatternBut patternEndings
                   registerAdj pat
                   let vars = v :| vs
                   return (PredicateAdjPattern vars pat)
          _otherwise -> do
-            (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
+            (pat, vs) <- anyPatternBut patternEndings
             registerVerb pat
             let vars = v :| vs
             return (PredicateVerbPattern vars pat)
@@ -75,6 +75,8 @@ predicateHead = patterned <|> relator
       copula, indefinite :: Parser Tok
       copula = word "is"
       indefinite = (word "a" <|> word "an") >> pure (Word "an")
+
+      patternEndings = Set.fromList ["if", "iff", "whenever"]
 
    relator :: Parser PredicateHead
    relator = PredicateRelator <$> math do

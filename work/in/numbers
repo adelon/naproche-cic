@@ -3,7 +3,7 @@
   \( d\mid n \) iff
     there exists \( k \) such that \( k\cdot d = n \).
 
-  % We say that \( d \) is a divisor of \( n \) whenever \( d\mid n \).
+  We say that \( d \) is a divisor of \( n \) whenever \( d\mid n \).
 
   \( m \) is coprime to \( n \) iff
     \( d\mid m, n \) implies that \( d = 1 \).

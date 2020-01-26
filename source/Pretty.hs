@@ -44,21 +44,21 @@ prettyDefinitionBodies bodies = vsep (toList (prettyDefinitionBody <$> bodies))
 prettyDefinitionBody :: forall ann. DefinitionBody -> Doc ann
 prettyDefinitionBody (DefinePredicate head stmt) = vsep
    [ (vsep ["Definiendum:", indent 2 $ prettyHead head])
-   , "Definiens:" <+> prettyProp stmt
+   , "Definiens:" <+> prettyProp stmt <> line
    ]
    where
    prettyHead = \case
       PredicateAdjPattern vs pat -> vsep
          [ "Variables:" <+> prettyVarInfo vs
-         , "Pattern:" <+> pretty pat
+         , "Pattern:" <+> "<?>_is_" <> pretty pat
          ]
       PredicateVerbPattern vs pat -> vsep
          [ "Variables:" <+> prettyVarInfo vs
-         , "Pattern:" <+> pretty pat
+         , "Pattern:" <+> "<?>_" <> pretty pat
          ]
       PredicateNominalPattern vs pat -> vsep
          [ "Variables:" <+> prettyVarInfo vs
-         , "Pattern:" <+> pretty pat
+         , "Pattern:" <+> "<?>_is_a_" <> pretty pat
          ]
       PredicateRelator (a, rel, b) -> vsep
          [ "Variables:" <+> pretty a <+> "and" <+> pretty b
