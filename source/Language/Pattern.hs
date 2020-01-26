@@ -25,10 +25,10 @@ makePattern = Seq1.fromNonEmpty
 
 instance Pretty Pattern where
   pretty :: forall ann. Pattern -> Doc ann
-  pretty shapes = foldr1 (<>) (prettyShape <$> shapes)
+  pretty shapes = pretty $ Text.dropWhileEnd (== '_') $ foldr1 (<>) (prettyShape <$> shapes)
     where
-    prettyShape Slot = "_"
-    prettyShape (Word w) = pretty w
+    prettyShape Slot = "<?>_"
+    prettyShape (Word w) = w <> "_"
 
 
 -- INVARIANT: Map in MustGo must be nonempty.

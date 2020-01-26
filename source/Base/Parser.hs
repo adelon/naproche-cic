@@ -57,7 +57,8 @@ initRegistry = Registry
       [ (Symbol "=", \x y -> Predicate "prim_eq" `PredApp` x `PredApp` y)
       , (Command "neq", \x y -> Predicate "prim_not_eq" `PredApp` x `PredApp` y)
       , (Symbol "<", \x y -> Predicate "prim_less" `PredApp` x `PredApp` y)
-      , (Command "leq", \x y -> Predicate "prim_less_eq" `PredApp` x `PredApp` y)
+      , (Command "leq", \x y -> Predicate "prim_leq" `PredApp` x `PredApp` y)
+      , (Command "geq", \x y -> Predicate "prim_geq" `PredApp` x `PredApp` y)
       , (Command "mid", \x y -> Predicate "prim_divides" `PredApp` x `PredApp` y)
       ]
 

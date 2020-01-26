@@ -26,7 +26,7 @@ headedStatement = quantified <|> ifThen <|> negated
    quantified = do
       quantify <- quantifierChain
       optional comma
-      optional (word "we" *> word "have" *> optional (word "that"))
+      optional weHave
       stmt <- statement
       return (quantify stmt)
 
@@ -55,12 +55,12 @@ quantifierChain = label "quantification"
    universal = do
       word "all" <|> try (word "for" *> (word "every" <|> word "all"))
       (quantify, vs) <- varInfo
-      optional (word "we" *> word "have" *> word "that")
+      optional weHave
       return (makeQuantification quantify Universal vs)
    almostUniversal = do
       try (word "almost" *> word "all") <|> try (word "for" *> word "almost" *> word "every" <|> word "all")
       (quantify, vs) <- varInfo
-      optional (word "we" *> word "have" *> word "that")
+      optional weHave
       return (makeQuantification quantify Universal vs)
    nonexistential = do
       try (thereExists *> word "no")

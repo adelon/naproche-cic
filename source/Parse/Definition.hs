@@ -58,7 +58,7 @@ predicateHead = patterned <|> relator
             case maybeIndefinite of
                Just (Word "an") -> do
                   (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
-                  trace ("registering:" <> show pat) $ registerNominal pat
+                  registerNominal pat
                   let vars = v :| vs
                   return (PredicateNominalPattern vars pat)
                _otherwise -> do

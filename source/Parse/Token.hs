@@ -308,3 +308,6 @@ thereExists = void $ try $ word "there" *> (word "exist" <|> word "exists")
 suchThat :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 suchThat = void $ try $ word "such" *> word "that"
 {-# INLINE suchThat #-}
+
+weHave :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
+weHave = void $ word "we" *> word "have" *> optional (word "that")

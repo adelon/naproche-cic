@@ -9,6 +9,7 @@ import Text.Megaparsec
 
 import qualified Data.Text as Text
 import qualified Text.Megaparsec.Char as Lex
+import qualified Text.Megaparsec.Char.Lexer as Lexer
 
 
 type Tokenizer = Parsec Void Text
@@ -213,12 +214,11 @@ lexeme p = do
    start <- getSourcePos
    startOffset <- getOffset
    t <- p
-   Lex.space
-   optional comment
-   Lex.space
+   space
    stop <- getSourcePos
    stopOffset <- getOffset
    let l = stopOffset - startOffset
    return (Located start stop l t)
-   where
-      comment = Lex.char '%' *> manyTill anySingle Lex.eol
+
+space :: Tokenizer ()
+space = Lexer.space Lex.space1 (Lexer.skipLineComment "%") (empty)
