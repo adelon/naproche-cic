@@ -32,6 +32,5 @@
 \begin{definition}
 
   We say that \( d \) is a greatest common divisor of \( m \) and \( n \) iff
-    %\( d \mid m,n \) and for all \( k \mid m,n \) we have \( d \geq k \).
-    \( d \mid m,n \) and for all \( k \) we have if \( k\mid m,n \) then \( d \geq k \).
+    \( d \mid m,n \) and for all \( k \mid m,n \) we have \( d \geq k \).
 \end{definition}

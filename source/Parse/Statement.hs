@@ -2,13 +2,12 @@ module Parse.Statement where
 
 
 import Base.Parser
-import Language.Common (Var)
 import Language.Expression
 import Language.Quantifier
-import Parse.Expression (expression, typing)
+import Parse.Expression (expression)
 import Parse.Pattern (Pattern, patternWith)
 import Parse.Token
-import Parse.Var (varList)
+import Parse.Var (Var(..), var, varList)
 
 import qualified Data.Map.Strict as Map
 
@@ -54,24 +53,24 @@ quantifierChain = label "quantification"
    universal, almostUniversal, existential, nonexistential :: Parser (Prop -> Prop)
    universal = do
       word "all" <|> try (word "for" *> (word "every" <|> word "all"))
-      (quantify, vs) <- varInfo
+      (quantify, vs) <- varInfo Implies
       optional weHave
       return (makeQuantification quantify Universal vs)
    almostUniversal = do
       try (word "almost" *> word "all") <|> try (word "for" *> word "almost" *> word "every" <|> word "all")
-      (quantify, vs) <- varInfo
+      (quantify, vs) <- varInfo Implies
       optional weHave
       return (makeQuantification quantify Universal vs)
    nonexistential = do
       try (thereExists *> word "no")
-      (quantify, vs) <- varInfo
+      (quantify, vs) <- varInfo And
       optional suchThat
       return (makeQuantification quantify Nonexistential vs)
    existential = do
       thereExists
       optional (word "a")
       unique <- optional (word "unique")
-      (quantify, vs) <- varInfo
+      (quantify, vs) <- varInfo And
       optional suchThat
       return case unique of
          Nothing -> makeQuantification quantify Existential vs
@@ -95,15 +94,18 @@ lateQuantification = label "late quantification"
    universal, existential :: Parser (Prop -> Prop)
    universal = do
       word "all" <|> word "every"
-      (quantify, vs) <- varInfo
+      (quantify, vs) <- varInfo Implies
       return (makeQuantification quantify Universal vs)
    existential = do
       word "some"
-      (quantify, vs) <- varInfo
+      (quantify, vs) <- varInfo And
       return (makeQuantification quantify Existential vs)
 
-varInfo :: Parser (Prop -> Prop, NonEmpty (Typing Var Typ))
-varInfo = nominalInfo <|> symbolicInfo
+-- The operator `op` is used for the case of a quantification bounded by a proposition.
+-- We replace this operator with `Implies` for the universal cases and `And` for the
+-- existential cases.
+varInfo :: (Prop -> Prop -> Prop) -> Parser (Prop -> Prop, NonEmpty (Typing Var Typ))
+varInfo op = nominalInfo <|> symbolicInfo
    where
    nominalInfo = do
       (pat, info) <- nominal
@@ -112,7 +114,17 @@ varInfo = nominalInfo <|> symbolicInfo
       let ty = (foldl App (ConstPattern pat) args)
       vs <- math varList
       return (compose quantifies, (`Inhabits` ty) <$> vs)
-   symbolicInfo = (\vs -> (id, vs)) <$> math typing
+   symbolicInfo = math do
+      vs <- var `sepBy1` comma
+      related <- optional relator
+      case related of
+         Just rel -> do
+            vs' <- var `sepBy1` comma
+            let trafo p = makeChain (Free <$> toList vs) [(rel, Free <$> toList vs')] `op` p
+            return (trafo, (\v -> v `Inhabits` Hole) <$> vs)
+         Nothing -> do
+            ty <- ((symbol ":" <|> command "in") *> expression) <|> return Hole
+            return (id, (`Inhabits` ty) <$> vs)
 
 -- TODO: Implement proper precedence parsing.
 --
