@@ -214,7 +214,11 @@ lexeme p = do
    startOffset <- getOffset
    t <- p
    Lex.space
+   optional comment
+   Lex.space
    stop <- getSourcePos
    stopOffset <- getOffset
    let l = stopOffset - startOffset
    return (Located start stop l t)
+   where
+      comment = Lex.char '%' *> manyTill anySingle Lex.eol

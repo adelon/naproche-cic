@@ -1,6 +1,0 @@
-\begin{definition}
-  \( p\in\mathbb{N} \) is prime iff
-  \( p\neq 0,1 \) and
-  for every \( k\mid p \) we have
-  \( k = 0 \) or \( k = 1 \).
-\end{definition}
