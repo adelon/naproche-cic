@@ -31,7 +31,7 @@ getFiles :: FilePath -> IO [FilePath]
 getFiles dir = do
   contents <- getDirectoryContents dir
   let contents' = filter nontrivial contents
-  return contents'
+  pure contents'
   where
     nontrivial :: String -> Bool
     nontrivial = \case
@@ -64,11 +64,11 @@ tokenize path = do
   raw <- Text.readFile path
   let result = runParser toks path raw
   case result of
-    Left err -> return (Left err)
-    Right stream -> return (Right (TokStream raw stream))
+    Left err -> pure (Left err)
+    Right stream -> pure (Right (TokStream raw stream))
 
 
 parse :: Parser a -> String -> TokStream -> IO (Either (ParseErrorBundle TokStream Void) a)
 parse p path stream = do
   let (result, _finalState) = runState (runParserT p path stream) initRegistry
-  return result
+  pure result

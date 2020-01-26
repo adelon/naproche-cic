@@ -30,7 +30,7 @@ axiom = environment "axiom" do
    asms <- many assumption
    optional (word "then")
    stmt <- statement `endedBy` period
-   return (Axiom asms stmt)
+   pure (Axiom asms stmt)
 
 
 data Theorem = Theorem
@@ -43,4 +43,4 @@ theorem = environment "theorem" do
    asms <- many assumption
    optional (word "then")
    thm <- statement `endedBy` period
-   return (Theorem asms thm)
+   pure (Theorem asms thm)

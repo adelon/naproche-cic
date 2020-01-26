@@ -15,19 +15,19 @@ annotated = do
    e <- expression
    symbol ":" <|> command "in"
    ty <- expression
-   return (e `Inhabits` ty)
+   pure (e `Inhabits` ty)
 
 varInfo :: Parser (Var, Maybe Expr)
 varInfo = do
    v <- var
    ty <- optional $ (command "in" <|> symbol ":") *> expression
-   return (v, ty)
+   pure (v, ty)
 
 typing :: Parser (NonEmpty (Typing Var Typ))
 typing = do
    vs <- var `sepBy1` comma
-   ty <- ((symbol ":" <|> command "in") *> expression) <|> return Hole
-   return ((`Inhabits` ty) <$> vs)
+   ty <- ((symbol ":" <|> command "in") *> expression) <|> pure Hole
+   pure ((`Inhabits` ty) <$> vs)
 
 expression :: Parser Expr
 expression = label "expression" do
@@ -46,14 +46,14 @@ pi = do
    symbol "_"
    vs <- braced typing
    e <- expression
-   return (foldr (\(v `Inhabits` ty) ex -> Pi v ty ex) e vs)
-   -- return (Pi v ty e)
-   -- return (foldr1 (\vs (v `Inhabits` ty) ->) )
+   pure (foldr (\(v `Inhabits` ty) ex -> Pi v ty ex) e vs)
+   -- pure (Pi v ty e)
+   -- pure (foldr1 (\vs (v `Inhabits` ty) ->) )
    --foldPi :: Expr -> (NonEmpty (Typing Var Typ)) -> Expr
    --foldPi e vs = foldr (\(v `Inhabits` ty) ex -> Pi v ty ex) e vs
 
 number :: Parser Expr
 number = label "number" do
    n <- anyNumber
-   return (Const n)
+   pure (Const n)
 {-# INLINE number #-}

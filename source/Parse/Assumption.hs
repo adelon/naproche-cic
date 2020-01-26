@@ -20,11 +20,11 @@ suppose = Assumption <$> do
    word "suppose"
    stmt <- statement
    period
-   return stmt
+   pure stmt
 
 pretyping :: Parser Assumption
 pretyping = do
    word "let"
    asm <- math typing
    period
-   return (AssumptionPretyping asm)
+   pure (AssumptionPretyping asm)

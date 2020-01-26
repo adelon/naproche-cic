@@ -63,7 +63,7 @@ initRegistry = Registry
       ]
 
    makeOp :: forall op a. Parser op -> a -> Parser a
-   makeOp op constr = op *> return constr
+   makeOp op constr = op *> pure constr
    {-# INLINE makeOp #-}
 
    primCollectiveAdjs :: Patterns
@@ -84,7 +84,7 @@ initRegistry = Registry
       ]
 
 makePrimOp :: forall op. Parser op -> Text -> Parser (Expr -> Expr -> Expr)
-makePrimOp op prim = op *> return (\x y -> Const prim `App` x `App` y)
+makePrimOp op prim = op *> pure (\x y -> Const prim `App` x `App` y)
 
 getOperators :: Parser [[Operator Parser Expr]]
 getOperators = operators <$> get
@@ -113,7 +113,7 @@ getAdjs :: Parser Patterns
 getAdjs = do
    st <- get
    -- TODO: biased merge potentially incorrect.
-   return (collectiveAdjs st <> distributiveAdjs st)
+   pure (collectiveAdjs st <> distributiveAdjs st)
 {-# INLINE getAdjs #-}
 
 registerAdj :: Pattern -> Parser ()
@@ -148,7 +148,7 @@ getFreshVar = do
    regis <- get
    let k = varCount regis
    modify \st -> st{varCount = succ k}
-   return (Var ("x_" <> Text.pack (show k)))
+   pure (Var ("x_" <> Text.pack (show k)))
    -- let regis' = regis{varCount = succ varCount}
    -- put regis'
 
@@ -174,7 +174,7 @@ endedBy :: forall a end. Parser a -> Parser end -> Parser a
 p `endedBy` end = do
    result <- p
    end
-   return result
+   pure result
 {-# INLINE endedBy #-}
 
 -- | @sepEndedBy1 p sep@ parses one or more occurrences

@@ -189,6 +189,7 @@ anySymbol = label "any word" $ token matcher Set.empty
       _ -> Nothing
 {-# INLINE anySymbol #-}
 
+-- TODO: This should probably return an actual number instead of Text.
 anyNumber :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 anyNumber = label "any number" $ token matcher Set.empty
    where
@@ -235,7 +236,7 @@ surroundedBy start stop p = do
    start
    content <- p
    stop
-   return content
+   pure content
 {-# INLINE surroundedBy #-}
 
 environment :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p a -> p a

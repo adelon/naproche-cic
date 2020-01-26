@@ -28,16 +28,16 @@ anyPatternTill :: forall stop. Parser stop -> Parser (Pattern, [Var])
 anyPatternTill stop = do
    (shapes, vars) <- concatUnzip <$> someTill (wordShape <|> slotShape) stop
    let pat = makePattern (NonEmpty.fromList shapes)
-   return (pat, vars)
+   pure (pat, vars)
    where
       wordShape :: Parser ([Shape], [Var])
       wordShape = do
          w <- anyWord
-         return ([Word w], [])
+         pure ([Word w], [])
       slotShape :: Parser ([Shape], [Var])
       slotShape = do
          v <- math var
-         return ([Slot], [v])
+         pure ([Slot], [v])
       concatUnzip :: [([a],[b])] -> ([a], [b])
       concatUnzip asbs = (concat *** concat) (unzip asbs)
 
@@ -45,16 +45,16 @@ anyPatternBut :: Set Text -> Parser (Pattern, [(Var, Maybe Typ)])
 anyPatternBut buts = do
    (shapes, vars) <- concatUnzip <$> some (wordShape <|> slotShape)
    let pat = makePattern (NonEmpty.fromList shapes)
-   return (pat, vars)
+   pure (pat, vars)
    where
       wordShape :: Parser ([Shape], [(Var, Maybe Typ)])
       wordShape = do
          w <- anyWordBut buts
-         return ([Word w], [])
+         pure ([Word w], [])
       slotShape :: Parser ([Shape], [(Var, Maybe Typ)])
       slotShape = do
          v <- math varInfo
-         return ([Slot], [v])
+         pure ([Slot], [v])
       concatUnzip :: [([a],[b])] -> ([a], [b])
       concatUnzip asbs = (concat *** concat) (unzip asbs)
 

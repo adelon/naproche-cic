@@ -65,13 +65,13 @@ toks = go id
    go f = do
       r <- optional tok
       case r of
-         Nothing -> return (f [])
+         Nothing -> pure (f [])
          Just t@(Located _ _ _ (BeginEnv "math")) -> go' (f . (t:))
          Just t -> go (f . (t:))
    go' f = do
       r <- optional mathTok
       case r of
-         Nothing -> return (f [])
+         Nothing -> pure (f [])
          Just t@(Located _ _ _ (EndEnv "math")) -> go (f . (t:))
          Just t -> go' (f . (t:))
 {-# INLINE toks #-}
@@ -88,26 +88,26 @@ mathTok = var <|> symbol <|> number <|> begin <|> end <|> open <|> close <|> com
 mathBegin :: Tokenizer (Located Tok)
 mathBegin = lexeme do
    try (Lex.string "\\(" <|> Lex.string "\\[" <|> Lex.string "$")
-   return (BeginEnv "math")
+   pure (BeginEnv "math")
 
 -- | Parses a single end math token.
 mathEnd :: Tokenizer (Located Tok)
 mathEnd = lexeme do
    try (Lex.string "\\)" <|> Lex.string "\\]" <|> Lex.string "$")
-   return (EndEnv "math")
+   pure (EndEnv "math")
 
 -- | Parses a word. Words are returned casefolded, since we want to ignore their case later on.
 word :: Tokenizer (Located Tok)
 word = lexeme do
    w <- some Lex.letterChar
    let t = Word (Text.toCaseFold (Text.pack w))
-   return t
+   pure t
 
 number :: Tokenizer (Located Tok)
 number = lexeme do
    n <- some Lex.digitChar
    let t = Number (Text.pack n)
-   return t
+   pure t
 
 var :: Tokenizer (Located Tok)
 var = lexeme $ Variable <$> (letter <|> bb <|> greek)
@@ -120,7 +120,7 @@ var = lexeme $ Variable <$> (letter <|> bb <|> greek)
       Lex.char '\\'
       l <- asum (makeSymbolParser <$> greeks)
       notFollowedBy Lex.letterChar
-      return l
+      pure l
 
    greeks :: [(Text,Text)]
    greeks =
@@ -143,7 +143,7 @@ var = lexeme $ Variable <$> (letter <|> bb <|> greek)
       try (Lex.string "\\mathbb{")
       l <- asum (makeSymbolParser <$> bbs)
       Lex.char '}'
-      return l
+      pure l
 
    bbs :: [(Text,Text)]
    bbs =
@@ -160,12 +160,12 @@ var = lexeme $ Variable <$> (letter <|> bb <|> greek)
    makeSymbolParser :: (Text, b) -> Tokenizer b
    makeSymbolParser (cmd, symb) = do
       Lex.string cmd
-      return symb
+      pure symb
 
 symbol :: Tokenizer (Located Tok)
 symbol = lexeme do
    symb <- some (satisfy (`elem` symbols))
-   return (Symbol (Text.pack symb))
+   pure (Symbol (Text.pack symb))
       where
       symbols :: [Char]
       symbols = ".,:;!?@=+-/^><*"
@@ -175,7 +175,7 @@ command :: Tokenizer (Located Tok)
 command = lexeme $ try do
   Lex.char '\\'
   cmd <- some Lex.letterChar
-  return (Command (Text.pack cmd))
+  pure (Command (Text.pack cmd))
 
 -- | Parses the beginning of an environment. Commits only after having seen "\begin{".
 begin :: Tokenizer (Located Tok)
@@ -183,7 +183,7 @@ begin = lexeme do
   try (Lex.string "\\begin{")
   env <- some Lex.letterChar
   Lex.char '}'
-  return (BeginEnv (Text.pack env))
+  pure (BeginEnv (Text.pack env))
 
 -- | Parses the end of an environment. Commits only after having seen "\end{".
 end :: Tokenizer (Located Tok)
@@ -191,7 +191,7 @@ end = lexeme do
   try (Lex.string "\\end{")
   env <- some Lex.letterChar
   Lex.char '}'
-  return (EndEnv (Text.pack env))
+  pure (EndEnv (Text.pack env))
 
 -- | Parses an opening delimiter.
 open :: Tokenizer (Located Tok)
@@ -218,7 +218,7 @@ lexeme p = do
    stop <- getSourcePos
    stopOffset <- getOffset
    let l = stopOffset - startOffset
-   return (Located start stop l t)
+   pure (Located start stop l t)
 
 space :: Tokenizer ()
 space = Lexer.space Lex.space1 (Lexer.skipLineComment "%") (empty)

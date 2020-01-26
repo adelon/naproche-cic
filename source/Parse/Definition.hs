@@ -20,7 +20,7 @@ definition :: Parser Definition
 definition = environment "definition" do
    asms <- many assumption
    body <- many1 definitionBody
-   return (Definition asms body)
+   pure (Definition asms body)
 
 data DefinitionBody
    = DefinePredicate PredicateHead Statement
@@ -32,7 +32,7 @@ definitionBody = do
    head <- predicateHead
    iff
    stmt <- statement `endedBy` period
-   return (DefinePredicate head stmt)
+   pure (DefinePredicate head stmt)
    where
    weSay :: Parser ()
    weSay = void (try (word "we" *> word "say") *> optional (word "that"))
@@ -60,17 +60,17 @@ predicateHead = patterned <|> relator
                   (pat, vs) <- anyPatternBut patternEndings
                   registerNominal pat
                   let vars = v :| vs
-                  return (PredicateNominalPattern vars pat)
+                  pure (PredicateNominalPattern vars pat)
                _otherwise -> do
                   (pat, vs) <- anyPatternBut patternEndings
                   registerAdj pat
                   let vars = v :| vs
-                  return (PredicateAdjPattern vars pat)
+                  pure (PredicateAdjPattern vars pat)
          _otherwise -> do
             (pat, vs) <- anyPatternBut patternEndings
             registerVerb pat
             let vars = v :| vs
-            return (PredicateVerbPattern vars pat)
+            pure (PredicateVerbPattern vars pat)
       where
       copula, indefinite :: Parser Tok
       copula = word "is"
@@ -83,4 +83,4 @@ predicateHead = patterned <|> relator
       x1 <- var
       rel <- anyCommand
       x2 <- var
-      return (x1, rel, x2)
+      pure (x1, rel, x2)

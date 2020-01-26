@@ -27,7 +27,7 @@ headedStatement = quantified <|> ifThen <|> negated
       optional comma
       optional weHave
       stmt <- statement
-      return (quantify stmt)
+      pure (quantify stmt)
 
    negated :: Parser Prop
    negated = do
@@ -41,7 +41,7 @@ headedStatement = quantified <|> ifThen <|> negated
       optional comma
       word "then"
       stmt2 <- statement
-      return (stmt1 `Implies` stmt2)
+      pure (stmt1 `Implies` stmt2)
 
 
 -- Parses a quantification returning a quantification function.
@@ -55,24 +55,24 @@ quantifierChain = label "quantification"
       word "all" <|> try (word "for" *> (word "every" <|> word "all"))
       (quantify, vs) <- varInfo Implies
       optional weHave
-      return (makeQuantification quantify Universal vs)
+      pure (makeQuantification quantify Universal vs)
    almostUniversal = do
       try (word "almost" *> word "all") <|> try (word "for" *> word "almost" *> word "every" <|> word "all")
       (quantify, vs) <- varInfo Implies
       optional weHave
-      return (makeQuantification quantify Universal vs)
+      pure (makeQuantification quantify Universal vs)
    nonexistential = do
       try (thereExists *> word "no")
       (quantify, vs) <- varInfo And
       optional suchThat
-      return (makeQuantification quantify Nonexistential vs)
+      pure (makeQuantification quantify Nonexistential vs)
    existential = do
       thereExists
       optional (word "a")
       unique <- optional (word "unique")
       (quantify, vs) <- varInfo And
       optional suchThat
-      return case unique of
+      pure case unique of
          Nothing -> makeQuantification quantify Existential vs
          Just _  -> makeQuantification quantify UniqueExistential vs
 
@@ -95,11 +95,11 @@ lateQuantification = label "late quantification"
    universal = do
       word "all" <|> word "every"
       (quantify, vs) <- varInfo Implies
-      return (makeQuantification quantify Universal vs)
+      pure (makeQuantification quantify Universal vs)
    existential = do
       word "some"
       (quantify, vs) <- varInfo And
-      return (makeQuantification quantify Existential vs)
+      pure (makeQuantification quantify Existential vs)
 
 -- The operator `op` is used for the case of a quantification bounded by a proposition.
 -- We replace this operator with `Implies` for the universal cases and `And` for the
@@ -113,7 +113,7 @@ varInfo op = nominalInfo <|> symbolicInfo
       let args = snd <$> info
       let ty = (foldl App (ConstPattern pat) args)
       vs <- math varList
-      return (compose quantifies, (`Inhabits` ty) <$> vs)
+      pure (compose quantifies, (`Inhabits` ty) <$> vs)
    symbolicInfo = math do
       vs <- var `sepBy1` comma
       related <- optional relator
@@ -121,10 +121,10 @@ varInfo op = nominalInfo <|> symbolicInfo
          Just rel -> do
             vs' <- var `sepBy1` comma
             let trafo p = makeChain (Free <$> toList vs) [(rel, Free <$> toList vs')] `op` p
-            return (trafo, (\v -> v `Inhabits` Hole) <$> vs)
+            pure (trafo, (\v -> v `Inhabits` Hole) <$> vs)
          Nothing -> do
-            ty <- ((symbol ":" <|> command "in") *> expression) <|> return Hole
-            return (id, (`Inhabits` ty) <$> vs)
+            ty <- ((symbol ":" <|> command "in") *> expression) <|> pure Hole
+            pure (id, (`Inhabits` ty) <$> vs)
 
 -- TODO: Implement proper precedence parsing.
 --
@@ -135,20 +135,20 @@ unheadedStatement = do
    case peeking of
       Just (Word "and") -> do
          stmt2 <- statement
-         return (stmt1 `And` stmt2)
+         pure (stmt1 `And` stmt2)
       Just (Word "or") -> do
          stmt2 <- statement
-         return (stmt1 `Or` stmt2)
+         pure (stmt1 `Or` stmt2)
       Just (Word "iff") -> do
          stmt2 <- statement
-         return (stmt1 `Or` stmt2)
+         pure (stmt1 `Or` stmt2)
       Just (Word "implies") -> do
          optional (word "that")
          stmt2 <- statement
-         return (stmt1 `Implies` stmt2)
+         pure (stmt1 `Implies` stmt2)
       -- Just (Word "where") -> do
       --    info <- whereStatement
-      --    return (StatementWhere stmt1 info)
+      --    pure (StatementWhere stmt1 info)
       _otherwise -> pure stmt1
    where
    continue :: Parser Tok
@@ -166,7 +166,7 @@ unheadedStatement = do
    --   symbol "=" <|> (end "math" *> word "is" *> begin "math")
    --   expr <- expression
    --   end "math"
-   --   return (v, expr)
+   --   pure (v, expr)
 
 
 atomicStatement :: Parser Prop
@@ -223,7 +223,7 @@ quantifiedTerm = label "quantified term"
       v <- getFreshVar
       let ty = (foldl App (ConstPattern pat) args)
       let quantify = Quantify quant v ty
-      return (quantify . compose quantifies, Free v)
+      pure (quantify . compose quantifies, Free v)
 
 
 type Nominal = (Pattern, [(Prop -> Prop, Expr)])
@@ -253,13 +253,13 @@ relatorChain :: Parser Prop
 relatorChain = do
    expr <- toList <$> expression `sepBy1` comma
    ch <- many chain
-   return (makeChain (expr) ch)
+   pure (makeChain (expr) ch)
    where
       chain :: Parser (Relator, [Expr])
       chain = do
          rel <- relator
          expr <- toList <$> expression `sepBy1` comma
-         return (rel, expr)
+         pure (rel, expr)
 
 makeChain :: [Expr] -> [(Relator, [Expr])] -> Prop
 makeChain lhs body =
