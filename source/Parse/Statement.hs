@@ -234,17 +234,19 @@ nominal :: Parser Nominal
 nominal = do
    pats <- getNominals
    patternWith term pats
+{-# INLINE nominal #-}
 
 adjective :: Parser Adj
 adjective = label "adjective" do
    pats <- getAdjs
    patternWith term pats
+{-# INLINE adjective #-}
 
 verb :: Parser Verb
 verb = label "verb" do
    pats <- getVerbs
    patternWith term pats
-
+{-# INLINE verb #-}
 
 symbolicStatement :: Parser Prop
 symbolicStatement = label "symbolic statement" $ math relatorChain
