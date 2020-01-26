@@ -164,11 +164,10 @@ fixVar v ty = do
 -- assigned to that variable if the variable has been fixed
 -- and 'Hole' otherwise.
 lookupVar :: Var -> Parser Typ
-lookupVar v = do
-   mtyp <- gets (Map.lookup v . fixedVars)
-   pure case mtyp of
-      Nothing -> Hole
-      Just typ -> typ
+lookupVar v = gets (Map.findWithDefault Hole v . fixedVars)
+
+lookupVars :: NonEmpty Var -> Parser (NonEmpty Typ)
+lookupVars vs = traverse lookupVar vs
 
 noop :: (Applicative f) => f ()
 noop = pure ()

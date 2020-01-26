@@ -9,6 +9,7 @@ import Parse.Pattern (Pattern, patternWith)
 import Parse.Token
 import Parse.Var (Var(..), var, varList)
 
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
 
 
@@ -115,7 +116,7 @@ varInfo op = nominalInfo <|> symbolicInfo
       vs <- math varList
       pure (compose quantifies, (`Inhabits` ty) <$> vs)
    symbolicInfo = math do
-      vs@(v0 :| _) <- var `sepBy1` comma
+      vs <- var `sepBy1` comma
       related <- optional relator
       case related of
          Just rel -> do
@@ -123,8 +124,8 @@ varInfo op = nominalInfo <|> symbolicInfo
             let trafo p = makeChain (Free <$> toList vs) [(rel, Free <$> toList vs')] `op` p
             pure (trafo, (\v -> v `Inhabits` Hole) <$> vs)
          Nothing -> do
-            ty <- ((symbol ":" <|> command "in") *> expression) <|> lookupVar v0
-            pure (id, (`Inhabits` ty) <$> vs)
+            typs <- ((symbol ":" <|> command "in") *> (pure <$> expression)) <|> lookupVars vs
+            pure (id, NonEmpty.zipWith Inhabits vs typs)
 
 -- TODO: Implement proper precedence parsing.
 --
