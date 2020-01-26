@@ -40,6 +40,7 @@ definitionBody = do
 data PredicateHead
    = PredicateAdjPattern (NonEmpty (Var, Maybe Typ)) Pattern
    | PredicateVerbPattern (NonEmpty (Var, Maybe Typ)) Pattern
+   | PredicateNominalPattern (NonEmpty (Var, Maybe Typ)) Pattern
    | PredicateRelator (Var, Text, Var)
    deriving (Show, Eq)
 
@@ -50,21 +51,31 @@ predicateHead = patterned <|> relator
    patterned = do
       -- TODO: nominals, x-of-y
       v <- try (math varInfo)
-      peeking <- optional continue
-      case peeking of
+      maybeCopula <- optional copula
+      case maybeCopula of
          Just (Word "is") -> do
-            (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
-            registerAdj pat
-            let vars = v :| vs
-            return (PredicateAdjPattern vars pat)
+            maybeIndefinite <- optional indefinite
+            case maybeIndefinite of
+               Just (Word "an") -> do
+                  (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
+                  trace ("registering:" <> show pat) $ registerNominal pat
+                  let vars = v :| vs
+                  return (PredicateNominalPattern vars pat)
+               _otherwise -> do
+                  (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
+                  registerAdj pat
+                  let vars = v :| vs
+                  return (PredicateAdjPattern vars pat)
          _otherwise -> do
             (pat, vs) <- anyPatternBut (Set.fromList ["if", "iff"])
             registerVerb pat
             let vars = v :| vs
             return (PredicateVerbPattern vars pat)
       where
-      continue :: Parser Tok
-      continue = word "is"
+      copula, indefinite :: Parser Tok
+      copula = word "is"
+      indefinite = (word "a" <|> word "an") >> pure (Word "an")
+
    relator :: Parser PredicateHead
    relator = PredicateRelator <$> math do
       x1 <- var

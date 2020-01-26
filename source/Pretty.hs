@@ -2,7 +2,6 @@ module Pretty where
 
 import Language.Expression
 import Language.Common (Var(..))
-import Language.Pattern
 import Parse.Assumption (Assumption(..))
 import Parse.Declaration (Declaration(..), Axiom(..), Theorem(..))
 import Parse.Definition (Definition(..), DefinitionBody(..), PredicateHead(..))
@@ -51,11 +50,15 @@ prettyDefinitionBody (DefinePredicate head stmt) = vsep
    prettyHead = \case
       PredicateAdjPattern vs pat -> vsep
          [ "Variables:" <+> prettyVarInfo vs
-         , "Pattern:" <+> prettyPattern pat
+         , "Pattern:" <+> pretty pat
          ]
       PredicateVerbPattern vs pat -> vsep
          [ "Variables:" <+> prettyVarInfo vs
-         , "Pattern:" <+> prettyPattern pat
+         , "Pattern:" <+> pretty pat
+         ]
+      PredicateNominalPattern vs pat -> vsep
+         [ "Variables:" <+> prettyVarInfo vs
+         , "Pattern:" <+> pretty pat
          ]
       PredicateRelator (a, rel, b) -> vsep
          [ "Variables:" <+> pretty a <+> "and" <+> pretty b
@@ -67,12 +70,6 @@ prettyVarInfo vs = hsep $ punctuate comma $ toList $ prettyVar <$> vs
    where
    prettyVar (v, Nothing) = pretty v
    prettyVar (v, Just ty) = pretty v <+> ":" <+> prettyExpr ty
-
-prettyPattern :: forall ann. Pattern -> Doc ann
-prettyPattern shapes = foldr1 (<>) (prettyShape <$> shapes)
-   where
-   prettyShape Slot = "_"
-   prettyShape (Word w) = pretty w
 
 prettyTheorem :: forall ann. Theorem -> Doc ann
 prettyTheorem (Theorem asms stmt) = vsep
@@ -103,7 +100,7 @@ prettyProp = \case
    Squashed e -> "|" <> prettyExpr e <> "|"
    Predicate p -> pretty p
    Rel tok -> viaShow tok
-   PredicatePattern pat -> prettyPattern pat
+   PredicatePattern pat -> pretty pat
    Not p -> "¬" <+> prettyProp p
    p `PredApp` e -> "(" <> prettyProp p <+> prettyExpr e <> ")"
    e1 `Equals` e2 -> "(" <> prettyExpr e1 <+> "=" <+> prettyExpr e2 <> ")"
@@ -119,7 +116,7 @@ prettyExpr :: forall ann. Expr -> Doc ann
 prettyExpr = \case
    Hole -> "[?]"
    Const c -> pretty c
-   ConstPattern pat -> prettyPattern pat
+   ConstPattern pat -> pretty pat
    Bottom -> "∅"
    Top -> "*"
    Free v -> pretty v

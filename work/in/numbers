@@ -10,6 +10,7 @@
 
 \end{definition}
 
+
 \begin{definition}
 
   \( p\in\mathbb{N} \) is prime iff
@@ -19,9 +20,19 @@
 
 \end{definition}
 
+
 \begin{theorem}
 
   If \( p \) is prime and \( p \mid m\cdot n \)
     then \( p \mid m \) or \( p \mid n \).
 
 \end{theorem}
+
+
+\begin{definition}
+
+  We say that \( d \) is a greatest common divisor of \( m \) and \( n \) iff
+    %\( d \mid m,n \) and for all \( k \mid m,n \) we have \( d \geq k \).
+    \( d \mid m,n \) and for all \( k \) we have if \( k\mid m,n \) then \( d \geq k \).
+
+\end{definition}

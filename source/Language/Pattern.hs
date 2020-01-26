@@ -2,6 +2,9 @@
 
 module Language.Pattern where
 
+
+import Data.Text.Prettyprint.Doc
+
 import qualified Data.Sequence1 as Seq1
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
@@ -20,6 +23,12 @@ type Pattern = Seq1 Shape
 makePattern :: NonEmpty Shape -> Pattern
 makePattern = Seq1.fromNonEmpty
 
+instance Pretty Pattern where
+  pretty :: forall ann. Pattern -> Doc ann
+  pretty shapes = foldr1 (<>) (prettyShape <$> shapes)
+    where
+    prettyShape Slot = "_"
+    prettyShape (Word w) = pretty w
 
 
 -- INVARIANT: Map in MustGo must be nonempty.
