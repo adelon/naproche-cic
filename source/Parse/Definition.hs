@@ -72,10 +72,6 @@ predicateHead = patterned <|> relator
             let vars = v :| vs
             pure (PredicateVerbPattern vars pat)
       where
-      copula, indefinite :: Parser Tok
-      copula = word "is"
-      indefinite = (word "a" <|> word "an") >> pure (Word "an")
-
       patternEndings = Set.fromList ["if", "iff", "whenever"]
 
    relator :: Parser PredicateHead

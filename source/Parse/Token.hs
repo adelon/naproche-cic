@@ -312,3 +312,12 @@ suchThat = void $ try $ word "such" *> word "that"
 
 weHave :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 weHave = void $ word "we" *> word "have" *> optional (word "that")
+
+copula :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
+copula = (word "is" <|> word "are") >> pure (Word "is")
+
+indefinite :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
+indefinite = (word "a" <|> word "an") >> pure (Word "an")
+
+definite :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
+definite = word "the"

@@ -19,7 +19,6 @@ declaration = DeclAxiom <$> axiom
    <|> DeclDefinition <$> definition
    <|> DeclTheorem <$> theorem
 
-
 data Axiom = Axiom
    { assumptions :: ![Assumption]
    , content :: !Statement

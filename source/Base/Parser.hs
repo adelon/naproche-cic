@@ -4,12 +4,12 @@ module Base.Parser (module Base.Parser, module Export) where
 
 
 import Language.Common (Var(..))
-import Language.Expression (Expr(..), Prop(..))
+import Language.Expression (Expr(..), Typ, Prop(..))
 import Language.Pattern (Patterns, Pattern, Shape(..), insertPattern, fromPatterns, makePattern)
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
-import Control.Monad.State.Strict (State, get, put, modify)
+import Control.Monad.State.Strict (State, get, gets, put, modify)
 import Text.Megaparsec as Export hiding (State, parse, sepBy1)
 
 import qualified Control.Monad.Combinators.NonEmpty as NonEmpty
@@ -29,6 +29,7 @@ data Registry = Registry
    , operators :: [[Operator Parser Expr]]
    , relators :: Map Tok (Expr -> Expr -> Prop)
    , varCount :: Word64
+   , fixedVars :: Map Var Typ
    }
 
 initRegistry :: Registry
@@ -40,6 +41,7 @@ initRegistry = Registry
    , operators = primOperators
    , relators = primRelators
    , varCount = 0
+   , fixedVars = mempty
    }
    where
    primOperators :: [[Operator Parser Expr]]
@@ -151,6 +153,22 @@ getFreshVar = do
    pure (Var ("x_" <> Text.pack (show k)))
    -- let regis' = regis{varCount = succ varCount}
    -- put regis'
+
+fixVar :: Var -> Typ -> Parser ()
+fixVar v ty = do
+   info <- gets fixedVars
+   let info' = Map.insert v ty info
+   modify \st -> st{fixedVars = info'}
+
+-- | See if a variable has been fixed beforehand. Returns the type
+-- assigned to that variable if the variable has been fixed
+-- and 'Hole' otherwise.
+lookupVar :: Var -> Parser Typ
+lookupVar v = do
+   mtyp <- gets (Map.lookup v . fixedVars)
+   pure case mtyp of
+      Nothing -> Hole
+      Just typ -> typ
 
 noop :: (Applicative f) => f ()
 noop = pure ()
