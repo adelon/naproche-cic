@@ -18,6 +18,7 @@ dependencies:
   - prettyprinter
   - text
   - transformers
+  - trie-simple
   - unordered-containers
 
 default-extensions:

@@ -1,13 +1,19 @@
-{-# LANGUAGE OverloadedLists #-}
-
-module Language.Pattern where
+module Language.Pattern
+  ( Shape(..)
+  , Pattern
+  , Patterns
+  , makePattern
+  , fromPattern, fromPatterns
+  , insertPattern
+  , interpretPattern
+  ) where
 
 
 import Data.Text.Prettyprint.Doc
+import Data.Trie.Map (TMap)
 
-import qualified Data.Sequence1 as Seq1
-import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
+import qualified Data.Trie.Map as Trie
 
 
 data Shape
@@ -18,73 +24,35 @@ data Shape
 instance IsString Shape where
   fromString w = Word (Text.pack w)
 
-type Pattern = Seq1 Shape
+---instance Pretty Pattern where
+--  pretty :: forall ann. Pattern -> Doc ann
+--  pretty shapes = pretty $ Text.dropWhileEnd (== '_') $ foldr1 (<>) (prettyShape <$> shapes)
 
-makePattern :: NonEmpty Shape -> Pattern
-makePattern = Seq1.fromNonEmpty
-
-instance Pretty Pattern where
-  pretty :: forall ann. Pattern -> Doc ann
-  pretty shapes = pretty $ Text.dropWhileEnd (== '_') $ foldr1 (<>) (prettyShape <$> shapes)
-    where
-    prettyShape Slot = "<?>_"
-    prettyShape (Word w) = w <> "_"
+instance Pretty Shape where
+  pretty :: forall ann. Shape -> Doc ann
+  pretty Slot = "_" -- "<?>"
+  pretty (Word w) = pretty w <> ""
 
 
--- INVARIANT: Map in MustGo must be nonempty.
+type Patterns = TMap Shape Interpretation
+type Interpretation = ()
+type Pattern = [Shape]
 
-data PatternDecision
-  = MustGo (Map Shape PatternDecision)
-  | MayStop (Map Shape PatternDecision)
-  deriving (Show, Eq, Ord)
+makePattern :: [Shape] -> Pattern
+makePattern = id
 
---
-
-type Patterns = Map Shape PatternDecision
-
+-- |
+-- Singleton pattern.
 fromPattern :: Pattern -> Patterns
-fromPattern = \case
-  shape :<|| IsEmpty ->
-    Map.singleton shape (MayStop mempty)
-  shape :<|| (IsSeq1 pat) ->
-    Map.singleton shape (MustGo (fromPattern pat))
+fromPattern pat = Trie.singleton pat ()
+
+-- TODO: Add interpretation instead of ().
+fromPatterns :: [Pattern] -> Patterns
+fromPatterns pats = Trie.fromList
+   ((\pat -> (pat, ())) <$> pats)
 
 insertPattern :: Pattern -> Patterns -> Patterns
-insertPattern pat@(head :<|| tail) pats = case Map.lookup head pats of
-  Nothing -> fromPattern pat <> pats
-  Just _dec -> case tail of
-    IsEmpty -> Map.adjust mayStop head pats
-    IsSeq1 pat' -> Map.adjust (merge pat') head pats
+insertPattern pat = Trie.insert pat ()
 
-mayStop :: PatternDecision -> PatternDecision
-mayStop = \case
-  MustGo  pats -> MayStop pats
-  MayStop pats -> MayStop pats
-
-merge :: Pattern -> PatternDecision -> PatternDecision
-merge pat = \case
-  MustGo  pats -> MustGo  (insertPattern pat pats)
-  MayStop pats -> MayStop (insertPattern pat pats)
-
-
-fromPatterns :: [Pattern] -> Patterns
-fromPatterns [] = mempty
-fromPatterns [pat] = fromPattern pat
-fromPatterns (pat:pats) = insertPattern pat (fromPatterns pats)
-
-
-
--- Testing
--- TODO: Implement the corresponding tests elsewhere.
-
-pat1, pat2, pat3, pat4 :: Pattern
-pat1 = Seq1.fromNonEmpty ["natural", "number"]
-pat2 = Seq1.fromNonEmpty ["natural"]
-pat3 = Seq1.fromNonEmpty ["natural", "isomorphism"]
-pat4 = Seq1.fromNonEmpty ["integer"]
-
-pats1, pats2, pats3, pats4 :: Patterns
-pats1 = fromPattern pat1
-pats2 = insertPattern pat2 pats1
-pats3 = insertPattern pat3 pats1
-pats4 = insertPattern pat4 pats1
+interpretPattern :: Pattern -> Patterns -> Maybe ()
+interpretPattern = Trie.lookup
