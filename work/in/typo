@@ -1,0 +1,10 @@
+\begin{axiom}
+
+  % This typo should always lead to a helpful error message:
+  % For example: "unexpected 'numbre', expecting 'number'."
+  %
+
+  For every natural numbre \( n \)
+  we have \( n = n \).
+
+\end{axiom}
