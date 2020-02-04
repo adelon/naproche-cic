@@ -154,6 +154,11 @@ word :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 word w = exactly (Word (Text.toCaseFold w))
 {-# INLINE word #-}
 
+-- | @word@ parses a specified list of word tokens, discarding the result. Case-insensitive.
+words :: (MonadParsec e s p, Token s ~ Located Tok) => [Text] -> p ()
+words ws = for_ ws word
+{-# INLINE words #-}
+
 anyWord :: (MonadParsec e s m, Token s ~ Located Tok) => m Text
 anyWord = label "any word" $ token matcher Set.empty
    where

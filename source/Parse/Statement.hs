@@ -32,7 +32,7 @@ headedStatement = quantified <|> ifThen <|> negated
 
    negated :: Parser Prop
    negated = do
-      try (word "it" *> word "is" *> word "not" *> word "the" *> word "case" *> word "that")
+      try (words ["it", "is", "not", "the", "case", "that"])
       Not <$> statement
 
    ifThen :: Parser Prop

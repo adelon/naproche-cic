@@ -10,7 +10,7 @@ import BasePrelude as Export hiding
    , (<+>)
    , head, last, init, tail, lines
    , try, some, many
-   , pi, app
+   , words, pi, app
    )
 
 import Data.Map.Strict as Export (Map)
