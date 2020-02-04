@@ -1,7 +1,7 @@
 # Contributing
 
 
-## Literature on similar systems
+## Linguistics and controlled natural languages
 
 
 [Mohan Ganesalingam](https://www.crunchbase.com/person/mohan-ganesalingam) |
@@ -19,15 +19,18 @@ Theorem proving and proof verification in the system SAD
 
 ## Type theory
 
-Thorsten Altenkirch | [Naive Type Theory](http://www.cs.nott.ac.uk/~psztxa/publ/fomus19.pdf)
+[Thorsten Altenkirch](http://www.cs.nott.ac.uk/~psztxa/) |
+ [Naive Type Theory](http://www.cs.nott.ac.uk/~psztxa/publ/fomus19.pdf)
 
-Per Martin-Löf | [Intuitionistic Type Theory](http://archive-pml.github.io/martin-lof/pdfs/Bibliopolis-Book-retypeset-1984.pdf)
+[Per Martin-Löf](https://en.wikipedia.org/wiki/Per_Martin-L%C3%B6f) |
+[Intuitionistic Type Theory](http://archive-pml.github.io/martin-lof/pdfs/Bibliopolis-Book-retypeset-1984.pdf)
 
 [Homotopy type theory](https://homotopytypetheory.org/book/)
 
-Martín Escardó | [Introduction to Univalent Foundations of Mathematics with Agda](https://www.cs.bham.ac.uk/~mhe/HoTT-UF-in-Agda-Lecture-Notes/HoTT-UF-Agda.html)
+[Martín Escardó](https://www.cs.bham.ac.uk/~mhe/) |
+[Introduction to Univalent Foundations of Mathematics with Agda](https://www.cs.bham.ac.uk/~mhe/HoTT-UF-in-Agda-Lecture-Notes/HoTT-UF-Agda.html)
 
-[Calculus of Inductive Constructions (Coq manual)](Calculus of Inductive Constructions)
+[Calculus of Inductive Constructions (Coq manual)](https://coq.inria.fr/refman/language/cic.html)
 
 
 
@@ -81,11 +84,20 @@ Key points: very little structures, very little prerequisites, relatively rich v
 
 (...)
 
-### Set theory
+### Set theory and Logic
+
+Jesse Han + Floris van Doorn |
+A formalization of forcing and the unprovability of the continuum hypothesis
+[(paper)](https://arxiv.org/abs/1904.10570)
+[(Lean sources)](https://github.com/flypitch/flypitch)
 
 [set theory in Lean](https://leanprover.github.io/logic_and_proof/sets_in_lean.html) (from "Logic and Proof")
 
-[ZF in Agda](https://github.com/shinji-kono/zf-in-agda)
+Shinji Kono |
+ZF in Agda
+[(source)](https://github.com/shinji-kono/zf-in-agda)
+
+
 
 
 ## Constructive mathematics
@@ -94,7 +106,8 @@ Key points: very little structures, very little prerequisites, relatively rich v
 nlab
 
 
-Lombardi + Quitté | Commutative algebra: Constructive methods
+Lombardi + Quitté |
+Commutative algebra: Constructive methods
 
 
 Andrej Bauer |
