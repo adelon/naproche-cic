@@ -127,7 +127,7 @@ varInfo op = nominalInfo <|> symbolicInfo
             typs <- ((symbol ":" <|> command "in") *> (pure <$> expression)) <|> lookupVars vs
             pure (id, NonEmpty.zipWith Inhabits vs typs)
 
--- TODO: Implement proper precedence parsing.
+-- TODO: Implement ForTheL-like chain parsing.
 --
 unheadedStatement :: Parser Prop
 unheadedStatement = do

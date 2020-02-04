@@ -10,6 +10,3 @@ import Parse.Definition
 import Parse.Document
 import Parse.Statement
 -}
-
-todo :: forall a. a
-todo = error "desugar"

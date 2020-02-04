@@ -9,8 +9,6 @@ import Parse.Document (Document(..))
 
 import Data.Text.Prettyprint.Doc
 
-todo :: forall a. a
-todo = error "desugar"
 
 
 

@@ -215,6 +215,7 @@ trySepBy1 :: (MonadParsec e s f) => f a -> f sep -> f (NonEmpty a)
 trySepBy1 p sep = NonEmpty.fromList <$> trySepBy1' p sep
 {-# INLINE trySepBy1 #-}
 
+-- Helper function for the definition that uses NonEmpty.
 trySepBy1' :: (MonadParsec e s f) => f a -> f sep -> f [a]
 trySepBy1' p sep = liftA2 (:) p (many (try (sep *> p)))
 {-# INLINE trySepBy1' #-}
