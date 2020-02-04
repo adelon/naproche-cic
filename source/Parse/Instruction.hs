@@ -3,7 +3,7 @@ module Parse.Instruction where
 
 import Base.Parser
 import Parse.Expression (Expr(Hole))
-import Parse.Token (word, words, comma, indefinite)
+import Parse.Token
 import Parse.Var (var)
 
 
@@ -17,8 +17,8 @@ fixVars = do
    fixVar v ty
 
 -- Importing of a separate module.
-using :: Parser ()
-using = do
+use :: Parser ()
+use = do
    thisSection
    words ["we", "use", "the"]
    word "definitions" <|> word "notation" <|> word "conventions"
@@ -26,7 +26,7 @@ using = do
    ref <- moduleRef
    importModule ref
    where
-      moduleRef = error "Instruction.moduleRef undefined"
+      moduleRef = command "use" *> grouped anyWord
       importModule = error "Instruction.importModule undefined"
 
 thisSection :: Parser ()
