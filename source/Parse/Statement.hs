@@ -92,15 +92,22 @@ lateQuantification :: Parser (Prop -> Prop)
 lateQuantification = label "late quantification"
    (word "for" *> (universal <|> existential)) <|> pure id
    where
-   universal, existential :: Parser (Prop -> Prop)
+   universal, existential, nonexistential :: Parser (Prop -> Prop)
    universal = do
       word "all" <|> word "every"
       (quantify, vs) <- varInfo Implies
       pure (makeQuantification quantify Universal vs)
    existential = do
       word "some"
+      unique <- optional (word "unique")
       (quantify, vs) <- varInfo And
-      pure (makeQuantification quantify Existential vs)
+      pure case unique of
+         Nothing -> makeQuantification quantify Existential vs
+         Just _  -> makeQuantification quantify UniqueExistential vs
+   nonexistential = do
+      word "no"
+      (quantify, vs) <- varInfo And
+      pure (makeQuantification quantify Nonexistential vs)
 
 -- The operator `op` is used for the case of a quantification bounded by a proposition.
 -- We replace this operator with `Implies` for the universal cases and `And` for the
