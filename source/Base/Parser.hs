@@ -26,19 +26,32 @@ data Registry = Registry
    , distributiveAdjs :: Patterns
    , nominals :: Patterns
    , verbs :: Patterns
+
    , operators :: [[Operator Parser Expr]]
+   , funs :: Map Tok Text
+
    , relators :: Map Tok (Expr -> Expr -> Prop)
+
+   -- Counter used for generating fresh variables.
    , varCount :: Word64
+
+   -- `proVar` tracks what the pronoun 'it' refers to.
+   --
+   , proVar :: Maybe Var
+   , proCounter :: Word64
+
+   --
    , fixedVars :: Map Var Typ
    }
 
 initRegistry :: Registry
 initRegistry = Registry
-   { collectiveAdjs = primCollectiveAdjs
-   , distributiveAdjs = mempty
+   { collectiveAdjs = mempty
+   , distributiveAdjs = primDistributiveAdjs
    , nominals = primNominals
    , verbs = primVerbs
    , operators = primOperators
+   , funs = primFuns
    , relators = primRelators
    , varCount = 0
    , fixedVars = mempty
@@ -54,13 +67,21 @@ initRegistry = Registry
       , InfixR (makeOp (command "sqcup") (Plus))
       ]
       ]
+   primFuns :: Map Tok Text
+   primFuns = Map.fromList
+      [ (Command "binom", "nat.choose") -- n choose k (defined in data/nat/basic.lean)
+      , (Command "fact", "nat.fact")    -- factorial  (defined in data/nat/basic.lean)
+      , (Command "distNat", "nat.dist") -- distance   (defined in data/nat/dist.lean)
+      ]
+
    primRelators :: Map Tok (Expr -> Expr -> Prop)
    primRelators = Map.fromList
-      [ (Symbol "=", \x y -> Predicate "prim_eq" `PredApp` x `PredApp` y)
-      , (Command "neq", \x y -> Predicate "prim_not_eq" `PredApp` x `PredApp` y)
-      , (Symbol "<", \x y -> Predicate "prim_less" `PredApp` x `PredApp` y)
-      , (Command "leq", \x y -> Predicate "prim_leq" `PredApp` x `PredApp` y)
-      , (Command "geq", \x y -> Predicate "prim_geq" `PredApp` x `PredApp` y)
+      [ (Symbol "=", \x y -> Predicate "eq" `PredApp` x `PredApp` y)
+      , (Command "neq", \x y -> Not (Predicate "eq" `PredApp` x `PredApp` y))
+      , (Symbol ">", \x y -> Predicate "gt" `PredApp` x `PredApp` y)
+      , (Symbol "<", \x y -> Predicate "gt" `PredApp` y `PredApp` x)
+      , (Command "geq", \x y -> Predicate "ge" `PredApp` x `PredApp` y)
+      , (Command "leq", \x y -> Predicate "ge" `PredApp` y `PredApp` x)
       , (Command "mid", \x y -> Predicate "prim_divides" `PredApp` x `PredApp` y)
       ]
 
@@ -68,8 +89,8 @@ initRegistry = Registry
    makeOp op constr = op *> pure constr
    {-# INLINE makeOp #-}
 
-   primCollectiveAdjs :: Patterns
-   primCollectiveAdjs = fromPatterns
+   primDistributiveAdjs :: Patterns
+   primDistributiveAdjs = fromPatterns
       [ makePattern ["even"]
       , makePattern ["odd"]
       ]
