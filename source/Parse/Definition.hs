@@ -30,7 +30,7 @@ definitionBody :: Parser DefinitionBody
 definitionBody = do
    optional weSay
    head <- predicateHead
-   iff
+   iff'
    stmt <- statement `endedBy` period
    pure (DefinePredicate head stmt)
    where

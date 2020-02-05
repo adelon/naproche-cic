@@ -306,13 +306,24 @@ period :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 period = void (symbol ".")
 {-# INLINE period #-}
 
--- | Parses the word 'iff', 'whenever' or the phrase 'if and only if'.
--- Commits to the phrase after parsing 'only'. Always returns 'iff' on
+-- | 
+-- Parses the word 'iff', 'whenever' or the phrase 'if and only if'.
+-- Commits to the latter phrase after parsing 'only'. Always returns 'iff' on
 -- success, so that we can easily pattern match on the result.
 iff :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
 iff = Word "iff" <$ do
-   word "whenever" <|> word "iff" <|> (try (word "if" *> word "and" *> word "only") *> word "if")
+   word "whenever" <|> word "iff"
+   <|> (try (words ["if", "and", "only"]) *> word "if")
 {-# INLINE iff #-}
+
+-- |
+-- A laxer version of `iff`, which also accepts 'if'.
+-- Intended for use in defining phrases.
+iff' :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
+iff' = Word "iff" <$ do
+   word "whenever" <|> word "iff"
+   <|> (word "if" <* optional (words ["and", "only", "if"]))
+{-# INLINE iff' #-}
 
 thereExists :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
 thereExists = void $ try $ word "there" *> (word "exist" <|> word "exists")
