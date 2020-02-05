@@ -149,6 +149,14 @@ exactly c = token matcher expectation
       pos :: SourcePos
       pos = initialPos ""
 
+anyTokenBut :: (MonadParsec e s m, Token s ~ Located Tok) => Set Tok -> m Tok
+anyTokenBut toks = token matcher Set.empty
+   where
+   matcher :: Token TokStream -> Maybe Tok
+   matcher (Located _start _end _length tok) =
+      if tok `Set.member` toks then Nothing else Just tok
+{-# INLINE anyTokenBut #-}
+
 -- | @word@ parses a single word token. Case-insensitive.
 word :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p Tok
 word w = exactly (Word (Text.toCaseFold w))

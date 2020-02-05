@@ -21,6 +21,7 @@ prettyDeclaration = \case
    DeclAxiom axiom -> prettyAxiom axiom
    DeclDefinition definition -> prettyDefinition definition
    DeclTheorem theorem -> prettyTheorem theorem
+   DeclRemark _remark -> "<remark>"
 
 prettyAxiom :: forall ann. Axiom -> Doc ann
 prettyAxiom (Axiom asms stmt) = vsep

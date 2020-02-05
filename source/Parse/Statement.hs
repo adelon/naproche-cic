@@ -90,7 +90,7 @@ makeQuantification quantify quant vs = \p -> compose quantifications (quantify p
 -- function to the proceeding parser.
 lateQuantification :: Parser (Prop -> Prop)
 lateQuantification = label "late quantification"
-   (word "for" *> (universal <|> existential)) <|> pure id
+   (word "for" *> (universal <|> existential <|> nonexistential)) <|> pure id
    where
    universal, existential, nonexistential :: Parser (Prop -> Prop)
    universal = do
