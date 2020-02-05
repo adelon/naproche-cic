@@ -1,0 +1,12 @@
+\begin{structure}
+  A monoid $A$ consists of
+  \begin{itemize}
+    \item an operation $\op\in A\to A\to A$
+    \item $1 \in A$
+  \end{itemize}
+  such that
+  \begin{itemize}
+    \item $\op$ is associative
+    \item $1\op a = a = a\op 1$ for all $a\in G$.
+  \end{itemize}
+\end{structure}
