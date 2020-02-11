@@ -54,6 +54,8 @@ initRegistry = Registry
    , funs = primFuns
    , relators = primRelators
    , varCount = 0
+   , proVar = Nothing
+   , proCounter = 0
    , fixedVars = mempty
    }
    where
