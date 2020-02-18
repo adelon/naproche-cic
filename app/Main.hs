@@ -48,11 +48,10 @@ work file = do
   case result of
     Left err -> Text.writeFile debugPath (Text.pack (errorBundlePretty err))
     Right stream -> do
-      Text.writeFile debugPath (dumpTokens stream)
+      -- Text.writeFile debugPath (dumpTokens stream)
       result' <- parse document inPath stream
       case result' of
         Left err -> Text.writeFile outPath (Text.pack (errorBundlePretty err))
-        --Right doc -> Text.writeFile outPath ((Text.pack . show) doc)
         Right doc -> withFile outPath WriteMode (\h -> hPutDoc h (prettyDocument doc))
 
 dumpTokens :: TokStream -> Text
