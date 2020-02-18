@@ -13,7 +13,6 @@ import Tokenize
 import Control.Monad.State.Strict
 import Data.Text.Prettyprint.Doc.Render.Text (hPutDoc)
 import System.Directory (getDirectoryContents, createDirectoryIfMissing)
-import Text.Megaparsec.Error (errorBundlePretty)
 import System.IO (IOMode(WriteMode), withFile)
 
 import qualified Data.Text as Text

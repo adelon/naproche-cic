@@ -325,8 +325,13 @@ iff' = Word "iff" <$ do
    <|> (word "if" <* optional (words ["and", "only", "if"]))
 {-# INLINE iff' #-}
 
+-- An informal survey of mathematical texts (and English texts in general)
+-- showed that we may commit to an existential on the word 'there' already.
+-- Thus `thereExists` does not backtrack. We also allow a copula with an existential
+-- meaning, as in 'there is a natural number n suh that ...'.
+--
 thereExists :: (MonadParsec e s p, Token s ~ Located Tok) => p ()
-thereExists = void $ try $ word "there" *> (word "exist" <|> word "exists")
+thereExists = void $ word "there" *> (word "exist" <|> word "exists" <|> copula)
 {-# INLINE thereExists #-}
 
 -- | Parses the phrase 'such that'. Backtracks.
@@ -339,6 +344,9 @@ weHave = void $ word "we" *> word "have" *> optional (word "that")
 
 copula :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
 copula = (word "is" <|> word "are") >> pure (Word "is")
+
+copulaPlural :: (MonadParsec e s p, Token s ~ Located Tok) => Int -> p Tok
+copulaPlural = plural (word "is") (word "are")
 
 indefinite :: (MonadParsec e s p, Token s ~ Located Tok) => p Tok
 indefinite = (word "a" <|> word "an") >> pure (Word "an")

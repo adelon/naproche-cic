@@ -1,7 +1,6 @@
 module Pretty where
 
 import Language.Expression
-import Language.Common (Var(..))
 import Parse.Assumption (Assumption(..))
 import Parse.Declaration (Declaration(..), Axiom(..), Theorem(..))
 import Parse.Definition (Definition(..), DefinitionBody(..), PredicateHead(..))

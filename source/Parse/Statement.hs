@@ -7,7 +7,7 @@ import Language.Quantifier
 import Parse.Expression (expression)
 import Parse.Pattern (Pattern, patternWith)
 import Parse.Token
-import Parse.Var (Var(..), var, varList)
+import Parse.Var (var, varList)
 
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map.Strict as Map
@@ -31,7 +31,7 @@ headedStatement = quantified <|> ifThen <|> negated
       pure (quantify stmt)
 
    negated :: Parser Prop
-   negated = do
+   negated = label "negated statement" do
       try (words ["it", "is", "not", "the", "case", "that"])
       Not <$> statement
 
@@ -48,34 +48,43 @@ headedStatement = quantified <|> ifThen <|> negated
 -- Parses a quantification returning a quantification function.
 --
 quantifierChain :: Parser (Prop -> Prop)
-quantifierChain = label "quantification"
-   (universal <|> almostUniversal <|> nonexistential <|> existential)
+quantifierChain = label "quantification" (universal <|> existential)
    where
-   universal, almostUniversal, existential, nonexistential :: Parser (Prop -> Prop)
+   universal, existential :: Parser (Prop -> Prop)
    universal = do
-      word "all" <|> try (word "for" *> (word "every" <|> word "all"))
+--
+--    We require the use of the word 'for' before the word 'every'
+--    in quantifications, to distinguish it from the use of
+--    'every' in quantifier terms. Consider the following examples.
+--
+--    'for every natural number n we have that n <predication>' (quantification)
+--    'every natural number <predication>'                     (quantified term)
+--
+--    vvvvvvvvvv
+      word "for"
+      almost <- optional (word "almost")
+      word "every" <|> word "all"
       (quantify, vs) <- varInfo Implies
       optional weHave
-      pure (makeQuantification quantify Universal vs)
-   almostUniversal = do
-      try (word "almost" *> word "all") <|> try (word "for" *> word "almost" *> word "every" <|> word "all")
-      (quantify, vs) <- varInfo Implies
-      optional weHave
-      pure (makeQuantification quantify Universal vs)
-   nonexistential = do
-      try (thereExists *> word "no")
-      (quantify, vs) <- varInfo And
-      optional suchThat
-      pure (makeQuantification quantify Nonexistential vs)
+      case almost of
+         Nothing -> pure (makeQuantification quantify Universal vs)
+         Just _  -> pure (makeQuantification quantify AlmostUniversal vs)
    existential = do
       thereExists
-      optional (word "a")
-      unique <- optional (word "unique")
-      (quantify, vs) <- varInfo And
-      optional suchThat
-      pure case unique of
-         Nothing -> makeQuantification quantify Existential vs
-         Just _  -> makeQuantification quantify UniqueExistential vs
+      no <- optional (word "no")
+      case no of
+         Just _ -> do
+            (quantify, vs) <- varInfo And
+            optional suchThat
+            pure (makeQuantification quantify Nonexistential vs)
+         Nothing -> do
+            optional (word "a")
+            unique <- optional (word "unique")
+            (quantify, vs) <- varInfo And
+            optional suchThat
+            pure case unique of
+               Nothing -> makeQuantification quantify Existential vs
+               Just _  -> makeQuantification quantify UniqueExistential vs
 
 makeQuantification :: (Prop -> Prop) -> Quantifier -> NonEmpty (Typing Var Typ) -> (Prop -> Prop)
 makeQuantification quantify quant vs = \p -> compose quantifications (quantify p)
@@ -176,27 +185,87 @@ unheadedStatement = do
    --   end "math"
    --   pure (v, expr)
 
-
 atomicStatement :: Parser Prop
-atomicStatement = predication <|> contradiction <|> symbolicStatement
-   where
-   contradiction :: Parser Prop
-   contradiction = Falsum <$ try (optional (word "a") *> word "contradiction")
+atomicStatement = atomicStatementSymbolic <|> atomicStatementTextual
 
-   predication :: Parser Prop
-   predication = do
-      (quantify, arg) <- try term
-      peeking <- optional continue
-      case peeking of
-         Just (Word "is") -> do
-            (pat, info) <- adjective
-            pure (makePredication pat arg quantify info)
-         _otherwise -> do
-            (pat, info) <- verb
-            pure (makePredication pat arg quantify info)
-      where
-         continue :: Parser Tok
-         continue = word "is"
+-- Atomic statements beginning with symbols.
+--
+atomicStatementSymbolic :: Parser Prop
+atomicStatementSymbolic = do
+   begin "math"
+   exprs <- toList <$> expression `sepBy1` comma
+   ended <- optional (end "math")
+   case ended of
+--
+--    Here we continue with a textual statement.
+--    vvvvvvvvvvvvvvvv
+      Just _end -> predication id exprs
+--
+--    In this case the statement must be purely symbolic,
+--    and hence a predication or a chain of relators.
+--    vvvvvvv
+      _notEnded -> do
+         ch <- many chain
+         end "math"
+         pure (makeChain exprs ch)
+   where
+      chain :: Parser (Relator, [Expr])
+      chain = label "relator chain" do
+         rel <- relator
+         exprs <- toList <$> expression `sepBy1` comma
+         pure (rel, exprs)
+
+
+makeChain :: [Expr] -> [(Relator, [Expr])] -> Prop
+makeChain lhs body =
+   let combos = [ Rel rel `PredApp` e1 `PredApp` e2 | e1 <- lhs, (rel, rhs) <- body, e2 <- rhs ]
+   in  foldr1 And combos
+
+
+-- Atomic statements beginning with words.
+--
+atomicStatementTextual :: Parser Prop
+atomicStatementTextual = contradiction <|> do
+   (quantify, arg) <- try term
+   peeking <- optional (word "is")
+   case peeking of
+      Just (Word "is") -> do
+         (pat, info) <- adjective
+         pure (makePredication pat arg quantify info)
+      _otherwise -> do
+         (pat, info) <- verb
+         pure (makePredication pat arg quantify info)
+
+contradiction :: Parser Prop
+contradiction = Falsum <$ try (optional (word "a") *> word "contradiction")
+
+-- Predication, depending on the subjects `args` and pending quantifications `quantify`.
+--
+predication :: (Prop -> Prop) -> [Expr] -> Parser Prop
+predication quantify args = do
+   let num = length args
+   peeking <- optional (copulaPlural num)
+   case peeking of
+--
+--    The peeking token was a copula of matching grammatical number.
+--    vvvvvv
+      Just _ -> do
+         (pat, info) <- adjective
+         pure case args of
+            [arg]  -> makePredication pat arg quantify info
+            -- TODO: here we need to distinguish between collective and distributive adjectives.
+            _multi -> error "plural predication not implemented yet!"
+--
+--    We continue with a (non-copula) verbal pattern.
+--    vvvvv
+      Nothing -> do
+         -- TODO: require a verb of correct grammatical number.
+         (pat, info) <- verb
+         pure case args of
+            [arg]  -> makePredication pat arg quantify info
+            -- Desugar predications with regular verbs and multi-subjects.
+            _multi -> error "plural predication not implemented yet!"
+
 
 makePredication :: Pattern -> Expr -> (Prop -> Prop) -> [(Prop -> Prop, Expr)] -> Prop
 makePredication pat arg quantify info =
@@ -256,25 +325,6 @@ verb = label "verb" do
    patternWith term pats
 {-# INLINE verb #-}
 
-symbolicStatement :: Parser Prop
-symbolicStatement = label "symbolic statement" $ math relatorChain
-
-relatorChain :: Parser Prop
-relatorChain = do
-   expr <- toList <$> expression `sepBy1` comma
-   ch <- many chain
-   pure (makeChain (expr) ch)
-   where
-      chain :: Parser (Relator, [Expr])
-      chain = do
-         rel <- relator
-         expr <- toList <$> expression `sepBy1` comma
-         pure (rel, expr)
-
-makeChain :: [Expr] -> [(Relator, [Expr])] -> Prop
-makeChain lhs body =
-   let combos = [ Rel rel `PredApp` e1 `PredApp` e2 | e1 <- lhs, (rel, rhs) <- body, e2 <- rhs ]
-   in  foldr1 And combos
 
 type Relator = Tok
 

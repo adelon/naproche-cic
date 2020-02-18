@@ -42,7 +42,7 @@ expression' = parenthesized expression
 
 pi :: Parser Expr
 pi = do
-   try (command "Pi")
+   command "Pi"
    symbol "_"
    vs <- braced typing
    e <- expression
