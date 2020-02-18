@@ -1,5 +1,26 @@
 # Contributing
 
+## Differences to SAD/Naproche-SAD
+
+Already implemented:
+
+- TEX-style input and separation between text and math modes.
+- Less ambiguities, since variables are syntactically distinct withing math environments.
+- Less backtracking and better error locality in parse errors.
+- In some cases you could not chain existential quantifications in SAD. This has been fixed.
+- Separation between quantifications ('for every natural number n ...') and quantified (indefinite) terms ('every natural number ...').
+- More efficient pattern storage and pattern traversal.
+- New quantifiers: unique existential and almost universal.
+
+
+
+In progress:
+
+- Support for structures.
+- First class functions.
+- Precedence parsing for symbolic expressions.
+
+
 
 ## Linguistics and controlled natural languages
 
