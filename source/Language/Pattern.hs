@@ -6,6 +6,7 @@ module Language.Pattern
   , fromPattern, fromPatterns
   , insertPattern
   , interpretPattern
+  , makeInterpretation
   ) where
 
 
@@ -35,24 +36,34 @@ instance Pretty Shape where
 
 
 type Patterns = TMap Shape Interpretation
-type Interpretation = ()
 type Pattern = [Shape]
+
+-- An interpretation of a pattern is the corresponding Lean function.
+-- They are typically determined from the shapes of the pattern, but
+-- some built-in patterns may map to functions from stdlib or mathlib.
+--
+type Interpretation = Text
 
 makePattern :: [Shape] -> Pattern
 makePattern = id
 
 -- |
 -- Singleton pattern.
-fromPattern :: Pattern -> Patterns
-fromPattern pat = Trie.singleton pat ()
+fromPattern :: Pattern -> Interpretation -> Patterns
+fromPattern pat interpr = Trie.singleton pat interpr
 
 -- TODO: Add interpretation instead of ().
-fromPatterns :: [Pattern] -> Patterns
-fromPatterns pats = Trie.fromList
-   ((\pat -> (pat, ())) <$> pats)
+fromPatterns :: [(Pattern, Interpretation)] -> Patterns
+fromPatterns = Trie.fromList
 
-insertPattern :: Pattern -> Patterns -> Patterns
-insertPattern pat = Trie.insert pat ()
+insertPattern :: Pattern -> Interpretation -> Patterns -> Patterns
+insertPattern pat interpr = Trie.insert pat interpr
 
-interpretPattern :: Pattern -> Patterns -> Maybe ()
+interpretPattern :: Pattern -> Patterns -> Maybe Text
 interpretPattern = Trie.lookup
+
+makeInterpretation :: Pattern -> Interpretation
+makeInterpretation = \case
+  [] -> "_"
+  Slot : pat -> "__" <> makeInterpretation pat
+  Word w : pat -> w <> "_" <> makeInterpretation pat

@@ -5,7 +5,7 @@ module Base.Parser (module Base.Parser, module Export) where
 
 import Language.Common (Var(..))
 import Language.Expression (Expr(..), Typ, Prop(..))
-import Language.Pattern (Patterns, Pattern, Shape(..), insertPattern, fromPatterns, makePattern)
+import Language.Pattern
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
 import Control.Monad.Combinators.Expr as Export (Operator(..), makeExprParser)
@@ -93,19 +93,19 @@ initRegistry = Registry
 
    primDistributiveAdjs :: Patterns
    primDistributiveAdjs = fromPatterns
-      [ makePattern ["even"]
-      , makePattern ["odd"]
+      [ (makePattern ["even"], "even")
+      , (makePattern ["odd"], "odd")
       ]
 
    primNominals :: Patterns
    primNominals = fromPatterns
-      [ makePattern ["natural", "number"]
-      , makePattern ["rational", "number"]
+      [ (makePattern ["natural", "number"], "ℕ")
+      , (makePattern ["rational", "number"], "ℚ")
       ]
 
    primVerbs :: Patterns
    primVerbs = fromPatterns
-      [ makePattern ["divides", Slot]
+      [ (makePattern ["divides", Slot], "dvd") -- MathLib's `has_dvd`.
       ]
 
 makePrimOp :: forall op. Parser op -> Text -> Parser (Expr -> Expr -> Expr)
@@ -145,7 +145,7 @@ registerAdj :: Pattern -> Parser ()
 registerAdj adj = do
    st <- get
    let adjs = collectiveAdjs st
-   let adjs' = insertPattern adj adjs
+   let adjs' = insertPattern adj (makeInterpretation adj) adjs
    put st{collectiveAdjs = adjs'}
 
 getNominals :: Parser Patterns
@@ -156,7 +156,7 @@ registerNominal :: Pattern -> Parser ()
 registerNominal pat = do
    st <- get
    let pats = nominals st
-   put st{nominals = insertPattern pat pats}
+   put st{nominals = insertPattern pat (makeInterpretation pat) pats}
 
 getVerbs :: Parser Patterns
 getVerbs = verbs <$> get
@@ -166,7 +166,7 @@ registerVerb :: Pattern -> Parser ()
 registerVerb pat = do
    st <- get
    let pats = verbs st
-   put st{verbs = insertPattern pat pats}
+   put st{verbs = insertPattern pat (makeInterpretation pat) pats}
 
 getFreshVar :: Parser Var
 getFreshVar = do
