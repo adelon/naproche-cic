@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Kernel.CoC where
+
+import Base
 
 import Data.List (head)
 
@@ -110,10 +113,10 @@ etaReduce :: LambdaCalculus -> LambdaCalculus
 etaReduce (Lam v a l) = case Lam v (etaReduce a)
                                    (etaReduce l) of
   lam@(Lam _ _ (App f (Var w))) ->
-    if v == w && Prelude.not (Set.member v (fv f))
+    if v == w && not (Set.member v (fv f))
       then etaReduce f else lam
   lam@(Pi _ _ (App f (Var w))) ->
-    if v == w && Prelude.not (Set.member v (fv f))
+    if v == w && not (Set.member v (fv f))
       then etaReduce f else lam
   lam -> lam
 etaReduce (App l1 l2) = App (etaReduce l1) (etaReduce l2)

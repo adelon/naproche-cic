@@ -1,11 +1,15 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-
-module Prelude
+module Base
    ( module Export
-   , compose
    , plural
+   , compose
    ) where
 
+--
+--     This module is basically the maximal prelude consisting of
+--     definitions from the `base` library. This spares us from
+--     importing some of the ubiquitous defitions from Applicative,
+--     Monad, Traversable, etc.
+--     vvvvvvvvvvv
 import BasePrelude as Export hiding
    ( Word, TypeError, Const
    , (<+>)
@@ -23,5 +27,8 @@ import Data.Text as Export (Text)
 import Data.Tree as Export (Tree(..))
 import Data.Text.Prettyprint.Doc (plural)
 
+
+-- `compose [f, g, h, <..>]` is equivalent to `f . g . h . <..>`.
+--
 compose :: Foldable f => f (a -> a) -> a -> a
 compose = foldr (.) id

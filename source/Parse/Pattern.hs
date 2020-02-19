@@ -3,6 +3,8 @@ module Parse.Pattern
   , module Language.Pattern
   ) where
 
+
+import Base
 import Base.Parser
 import Language.Pattern
 import Parse.Token (math, word, anyWord, anyWordBut)
@@ -10,7 +12,6 @@ import Parse.Var (Var, var)
 import Parse.Expression (Typ, varInfo)
 
 import qualified Data.Trie.Map as Trie
-
 
 
 -- Parses a generic pattern with variables in slots until

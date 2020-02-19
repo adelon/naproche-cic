@@ -5,6 +5,9 @@ module Tokenize where
    and turn is into a list of tokens for further parsing.
 -}
 
+
+import Base
+
 import Text.Megaparsec
 
 import qualified Data.Text as Text

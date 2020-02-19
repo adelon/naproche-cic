@@ -1,6 +1,7 @@
 module Parse.Declaration where
 
 
+import Base
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
 import Parse.Statement (Statement, statement)

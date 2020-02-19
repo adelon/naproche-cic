@@ -4,6 +4,7 @@ module Parse.Expression
   ) where
 
 
+import Base
 import Base.Parser
 import Language.Expression
 import Parse.Token

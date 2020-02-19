@@ -1,6 +1,7 @@
 module Parse.Document where
 
 
+import Base
 import Base.Parser (Parser, many1)
 
 import Parse.Declaration

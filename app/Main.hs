@@ -3,7 +3,7 @@
 
 module Main where
 
-
+import Base
 import Base.Parser
 import Parse.Document
 import Parse.Token (TokStream(..))

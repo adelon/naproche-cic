@@ -1,5 +1,6 @@
 module Language.Common where
 
+import Base
 
 import Data.Text.Prettyprint.Doc
 

@@ -1,5 +1,8 @@
 module Language.Quantifier where
 
+
+import Base
+
 import Data.Text.Prettyprint.Doc (Doc, Pretty(..))
 
 

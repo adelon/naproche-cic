@@ -9,6 +9,7 @@
 module Parse.Token (module Parse.Token, module Export) where
 
 
+import Base
 import Tokenize as Export (Tok(..), Delim(..), printTok, Located(..))
 
 import Text.Megaparsec

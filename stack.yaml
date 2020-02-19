@@ -5,4 +5,3 @@ resolver: lts-15.0
 # differ between 7.x/8.x, so we chose the more recent version.
 extra-deps:
   - trie-simple-0.4.1.1
-  - base-noprelude-4.13.0.0

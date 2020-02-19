@@ -1,6 +1,7 @@
 module Parse.Statement where
 
 
+import Base
 import Base.Parser
 import Language.Expression
 import Language.Quantifier

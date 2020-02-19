@@ -1,5 +1,7 @@
 module Pretty where
 
+
+import Base
 import Language.Expression
 import Parse.Assumption (Assumption(..))
 import Parse.Declaration (Declaration(..), Axiom(..), Theorem(..))
@@ -7,8 +9,6 @@ import Parse.Definition (Definition(..), DefinitionBody(..), PredicateHead(..))
 import Parse.Document (Document(..))
 
 import Data.Text.Prettyprint.Doc
-
-
 
 
 prettyDocument :: forall ann. Document -> Doc ann

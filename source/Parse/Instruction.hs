@@ -1,6 +1,7 @@
 module Parse.Instruction where
 
 
+import Base
 import Base.Parser
 import Parse.Expression (Expr(Hole))
 import Parse.Token

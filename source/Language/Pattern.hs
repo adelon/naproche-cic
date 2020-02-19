@@ -10,6 +10,8 @@ module Language.Pattern
   ) where
 
 
+import Base
+
 import Data.Text.Prettyprint.Doc
 import Data.Trie.Map (TMap)
 

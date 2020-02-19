@@ -2,7 +2,7 @@
 
 module Base.Parser (module Base.Parser, module Export) where
 
-
+import Base
 import Language.Common (Var(..))
 import Language.Expression (Expr(..), Typ, Prop(..))
 import Language.Pattern

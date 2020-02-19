@@ -1,6 +1,7 @@
 module Parse.Assumption where
 
 
+import Base
 import Base.Parser
 import Parse.Expression (Typing, Var, Typ, typing)
 import Parse.Statement (Statement, statement)

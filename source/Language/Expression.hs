@@ -4,6 +4,7 @@ module Language.Expression
    ) where
 
 
+import Base
 import Language.Common (Var)
 import Language.Pattern (Pattern)
 import Language.Quantifier (Quantifier(..))

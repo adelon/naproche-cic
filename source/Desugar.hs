@@ -1,6 +1,7 @@
 module Desugar where
 
 {-
+import Base
 import Language.Expression
 import Language.Pattern
 import Language.Quantifier (Quantifier(..))

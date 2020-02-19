@@ -1,6 +1,8 @@
 module Language.Lean where
 
 
+import Base
+
 import qualified Data.Text as Text
 
 
