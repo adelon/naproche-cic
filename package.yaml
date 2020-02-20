@@ -1,6 +1,6 @@
 name: lore
 version: 0.0.0.0
-license: MIT
+license: BSD2
 github: adelon/naproche-cic
 
 extra-source-files:
@@ -8,8 +8,8 @@ extra-source-files:
   - license.md
 
 dependencies:
-  - base <4.13
-  - base-prelude <4.13
+  - base < 4.14
+  - base-prelude < 4.14
   - containers
   - directory
   - megaparsec
