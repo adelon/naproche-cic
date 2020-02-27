@@ -23,8 +23,8 @@ prettyDeclaration = \case
    DeclRemark _remark -> "<remark>"
 
 prettyAxiom :: forall ann. Axiom -> Doc ann
-prettyAxiom (Axiom asms stmt) = vsep
-   [ "Axiom:"
+prettyAxiom (Axiom name asms stmt) = vsep
+   [ "Axiom (" <> pretty name <> "):"
    , indent 2 $ prettyAssumptions asms
    , indent 2 $ prettyProp stmt
    ]
@@ -70,7 +70,7 @@ prettyVarInfo vs = hsep $ punctuate comma $ toList $ prettyVar <$> vs
    prettyVar (v, Just ty) = pretty v <+> ":" <+> prettyExpr ty
 
 prettyTheorem :: forall ann. Theorem -> Doc ann
-prettyTheorem (Theorem asms stmt) = vsep
+prettyTheorem (Theorem _name asms stmt) = vsep
    [ "Theorem:"
    , indent 2 $ prettyAssumptions asms
    , indent 2 $ prettyProp stmt

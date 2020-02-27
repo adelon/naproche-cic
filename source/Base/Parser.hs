@@ -177,6 +177,9 @@ getFreshVar = do
    -- let regis' = regis{varCount = succ varCount}
    -- put regis'
 
+incrVar :: Registry -> Registry
+incrVar regis@Registry{varCount = k} = regis{varCount = succ k}
+
 fixVar :: Var -> Typ -> Parser ()
 fixVar v ty = do
    info <- gets fixedVars

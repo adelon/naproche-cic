@@ -5,7 +5,7 @@ import Base
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
 import Parse.Statement (Statement, statement)
-import Parse.Token (Tok(EndEnv), environment, period, word, anyTokenBut)
+import Parse.Token
 import Parse.Definition (Definition, definition)
 
 import qualified  Data.Set as Set
@@ -25,29 +25,33 @@ declaration = DeclAxiom <$> axiom
    <|> DeclRemark <$> remark
 
 data Axiom = Axiom
-   { assumptions :: ![Assumption]
-   , content :: !Statement
+   { axiomName :: Maybe Text
+   , axiomAssumptions :: ![Assumption]
+   , axiomStatement :: !Statement
    } deriving (Show, Eq)
 
 axiom :: Parser Axiom
 axiom = environment "axiom" do
+   name <- optional (bracketed anyWord)
    asms <- many assumption
    optional (word "then")
    stmt <- statement `endedBy` period
-   pure (Axiom asms stmt)
+   pure (Axiom name asms stmt)
 
 
 data Theorem = Theorem
-   { theoremAssumptions :: ![Assumption]
+   { theoremName :: Maybe Text
+   , theoremAssumptions :: ![Assumption]
    , theoremStatement :: !Statement
    } deriving (Show, Eq)
 
 theorem :: Parser Theorem
 theorem = environment "theorem" do
+   name <- optional (bracketed anyWord)
    asms <- many assumption
    optional (word "then")
    thm <- statement `endedBy` period
-   pure (Theorem asms thm)
+   pure (Theorem name asms thm)
 
 
 newtype Remark = Remark [Tok] deriving (Show, Eq)
