@@ -53,7 +53,11 @@ Theorem proving and proof verification in the system SAD
 
 [Calculus of Inductive Constructions (Coq manual)](https://coq.inria.fr/refman/language/cic.html)
 
-
+Musa Al-hassy |
+3-for-1 monadic notation: do-it-yourself module types (advertised as solving the unbundling problem mentioned in Hales's review of Lean)
+[(draft)](https://github.com/alhassy/next-700-module-systems/blob/master/papers/Paper2.pdf)
+[(code)](https://github.com/alhassy/next-700-module-systems/blob/master/prototype/semantics-with-waist.agda)
+[(literate code)](https://github.com/alhassy/next-700-module-systems/tree/master/prototype)
 
 ## Lean specific resources
 
@@ -135,3 +139,7 @@ Andrej Bauer |
 Five Stages of Accepting Constructive Mathematics
 [(Talk)](https://www.youtube.com/watch?v=zmhd8clDd_Y)
 [(Paper)](https://www.ams.org/journals/bull/2017-54-03/S0273-0979-2016-01556-4/S0273-0979-2016-01556-4.pdf)
+
+
+Auke Booij |
+[Parametricity and excluded middle](https://www.cs.bham.ac.uk/~abb538/papers/2016-02-parametricity.pdf)
