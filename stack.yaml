@@ -1,4 +1,4 @@
-resolver: lts-15.0
+resolver: lts-15.1
 
 # Stackage currently only has the 7.x series of megaparsec.
 # We have a custom token stream, where the implementation would
