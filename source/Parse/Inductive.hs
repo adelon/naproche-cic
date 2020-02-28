@@ -2,7 +2,7 @@ module Parse.Inductive where
 
 
 data InferRule = InferRule
-  { inferPremise :: ()
+  { inferPremises :: ()
   , inferConclusion :: ()
   }
 
