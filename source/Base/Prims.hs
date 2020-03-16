@@ -1,6 +1,8 @@
 -- This module describes all the built-in definitions (primitives).
 -- We map nouns, verb, adjectives and symbolic expressions to their
--- respective interpretation in a target language.
+-- respective interpretation in a target language. We store pattern
+-- interpretations in the 'Patterns' trie data type, which allows both
+-- 'Map'-like lookup and generation of effective parsers.
 --
 -- In the future, the data described here could be specified by
 -- an external file, allowing users to modify the primitives.
