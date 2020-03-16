@@ -31,7 +31,7 @@ data Registry = Registry
    , operators :: [[Operator Parser Expr]]
    , funs :: Map Tok Text
 
-   , relators :: Map Tok (Expr -> Expr -> Prop)
+   , relators :: Map Tok Text
 
    -- Counter used for generating fresh variables.
    , varCount :: Word64
@@ -53,7 +53,7 @@ initRegistry = Registry
    , verbs = primVerbs
    , operators = primOperators
    , funs = primFuns
-   , relators = fmap applyRelator primRelators
+   , relators = primRelators
    , varCount = 0
    , proVar = Nothing
    , proCounter = 0
@@ -88,7 +88,7 @@ registerOperator op prim = do
    let ops' = ops <> [[InfixR (makePrimOp op prim)]]
    put st{operators = ops'}
 
-getRelators :: Parser (Map Tok (Expr -> Expr -> Prop))
+getRelators :: Parser (Map Tok Text)
 getRelators = relators <$> get
 {-# INLINE getRelators #-}
 
@@ -96,7 +96,7 @@ registerRelator :: Text -> Parser ()
 registerRelator rel = do
    st <- get
    let rels = relators st
-   let rels' = Map.insert (Command rel) (\x y -> Predicate rel `PredApp` x `PredApp` y) rels
+   let rels' = Map.insert (Command rel) rel rels
    put st{relators = rels'}
 
 getAdjs :: Parser Patterns
