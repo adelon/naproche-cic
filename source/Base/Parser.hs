@@ -3,6 +3,7 @@
 module Base.Parser (module Base.Parser, module Export) where
 
 import Base
+import Base.Prims
 import Language.Common (Var(..))
 import Language.Expression (Expr(..), Typ, Prop(..))
 import Language.Pattern
@@ -52,64 +53,28 @@ initRegistry = Registry
    , verbs = primVerbs
    , operators = primOperators
    , funs = primFuns
-   , relators = primRelators
+   , relators = fmap applyRelator primRelators
    , varCount = 0
    , proVar = Nothing
    , proCounter = 0
    , fixedVars = mempty
    }
    where
-   primOperators :: [[Operator Parser Expr]]
-   primOperators =
-      [ [ InfixR (makePrimOp (command "cdot") "prim_mul")
-      ]
-      , [ InfixR (makePrimOp (symbol "+") "prim_plus")
-      ]
-      , [ InfixR (makeOp (command "times") (Times))
-      , InfixR (makeOp (command "sqcup") (Plus))
-      ]
-      ]
-   primFuns :: Map Tok Text
-   primFuns = Map.fromList
-      [ (Command "binom", "nat.choose") -- n choose k (defined in data/nat/basic.lean)
-      , (Command "fact", "nat.fact")    -- factorial  (defined in data/nat/basic.lean)
-      , (Command "distNat", "nat.dist") -- distance   (defined in data/nat/dist.lean)
-      ]
+      primOperators :: [[Operator Parser Expr]]
+      primOperators =
+         [  [ InfixR (makePrimOp (command "mul") "mul")
+            ]
+            , [ InfixR (makePrimOp (symbol "+") "add")
+            ]
+         ]
+      makeOp :: forall op a. Parser op -> a -> Parser a
+      makeOp op constr = op *> pure constr
+      {-# INLINE makeOp #-}
 
-   primRelators :: Map Tok (Expr -> Expr -> Prop)
-   primRelators = Map.fromList
-      [ (Symbol "=", \x y -> Predicate "eq" `PredApp` x `PredApp` y)
-      , (Command "neq", \x y -> Not (Predicate "eq" `PredApp` x `PredApp` y))
-      , (Symbol ">", \x y -> Predicate "gt" `PredApp` x `PredApp` y)
-      , (Symbol "<", \x y -> Predicate "gt" `PredApp` y `PredApp` x)
-      , (Command "geq", \x y -> Predicate "ge" `PredApp` x `PredApp` y)
-      , (Command "leq", \x y -> Predicate "ge" `PredApp` y `PredApp` x)
-      , (Command "mid", \x y -> Predicate "prim_divides" `PredApp` x `PredApp` y)
-      ]
-
-   makeOp :: forall op a. Parser op -> a -> Parser a
-   makeOp op constr = op *> pure constr
-   {-# INLINE makeOp #-}
-
-   primDistributiveAdjs :: Patterns
-   primDistributiveAdjs = fromPatterns
-      [ (makePattern ["even"], "even")
-      , (makePattern ["odd"], "odd")
-      ]
-
-   primNominals :: Patterns
-   primNominals = fromPatterns
-      [ (makePattern ["natural", "number"], "ℕ")
-      , (makePattern ["rational", "number"], "ℚ")
-      ]
-
-   primVerbs :: Patterns
-   primVerbs = fromPatterns
-      [ (makePattern ["divides", Slot], "dvd") -- MathLib's `has_dvd`.
-      ]
 
 makePrimOp :: forall op. Parser op -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = op *> pure (\x y -> Const prim `App` x `App` y)
+
 
 getOperators :: Parser [[Operator Parser Expr]]
 getOperators = operators <$> get
