@@ -1,7 +1,7 @@
 \begin{definition}
 
   \( d\mid n \) iff
-    there exists \( k \) such that \( k\cdot d = n \).
+    there exists \( k \) such that \( k\mul d = n \).
 
   \( m \) is coprime to \( n \) iff
     \( d\mid m, n \) implies that \( d = 1 \).
@@ -19,7 +19,7 @@
 
 \begin{theorem}
 
-  If \( p \) is prime and \( p \mid m\cdot n \)
+  If \( p \) is prime and \( p \mid m\mul n \)
     then \( p \mid m \) or \( p \mid n \).
 
 \end{theorem}
@@ -29,7 +29,7 @@
 
   For every rational number \( q \)
     there exists \( m, n \) such that
-      \( m \) is coprime to \( n \) and \( m\cdot n = p \).
+      \( m \) is coprime to \( n \) and \( m\mul n = p \).
 
 \end{theorem}
 
@@ -38,6 +38,6 @@
   Suppose \( p \) is prime.
 
   There exists no rational number \( q \) such that
-    \( p = q\cdot q \).
+    \( p = q\mul q \).
 
 \end{theorem}

@@ -1,7 +1,7 @@
 \begin{definition}
 
   \( d\mid n \) iff
-    there exists \( k \) such that \( k\cdot d = n \).
+    there exists \( k \) such that \( k\mul d = n \).
 
   We say that \( d \) is a divisor of \( n \) whenever \( d\mid n \).
 
@@ -23,7 +23,7 @@
 
 \begin{theorem}
 
-  If \( p \) is prime and \( p \mid m\cdot n \)
+  If \( p \) is prime and \( p \mid m\mul n \)
     then \( p \mid m \) or \( p \mid n \).
 
 \end{theorem}
