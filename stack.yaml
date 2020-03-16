@@ -1,4 +1,4 @@
-resolver: lts-15.1
+resolver: lts-15.4
 
 extra-deps:
   - trie-simple-0.4.1.1
