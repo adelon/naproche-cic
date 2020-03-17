@@ -32,6 +32,7 @@ data Axiom = Axiom
 
 axiom :: Parser Axiom
 axiom = environment "axiom" do
+   _tag <- optional environmentTag
    name <- optional (bracketed anyWord)
    asms <- many assumption
    optional (word "then")
@@ -47,6 +48,7 @@ data Theorem = Theorem
 
 theorem :: Parser Theorem
 theorem = environment "theorem" do
+   _tag <- optional environmentTag
    name <- optional (bracketed anyWord)
    asms <- many assumption
    optional (word "then")

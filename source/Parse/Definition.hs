@@ -19,6 +19,7 @@ data Definition
 
 definition :: Parser Definition
 definition = environment "definition" do
+   _tag <- optional environmentTag
    asms <- many assumption
    body <- many1 definitionBody
    pure (Definition asms body)

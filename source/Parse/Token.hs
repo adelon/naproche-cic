@@ -257,6 +257,9 @@ environment :: (MonadParsec e s p, Token s ~ Located Tok) => Text -> p a -> p a
 environment env = surroundedBy (begin env) (end env)
 {-# INLINE environment #-}
 
+environmentTag :: (MonadParsec e s p, Token s ~ Located Tok) => p Text
+environmentTag = bracketed anyWord
+
 math :: (MonadParsec e s p, Token s ~ Located Tok) => p a -> p a
 math = environment "math"
 {-# INLINE math #-}
