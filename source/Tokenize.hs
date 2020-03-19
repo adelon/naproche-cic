@@ -171,7 +171,7 @@ symbol = lexeme do
    pure (Symbol (Text.pack symb))
       where
       symbols :: [Char]
-      symbols = ".,:;!?@=+-/^><*"
+      symbols = ".,:;!?@=+-/^><*&"
 
 -- | Parses a TEX-style command.
 command :: Tokenizer (Located Tok)
