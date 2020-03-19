@@ -23,7 +23,7 @@
 
 \end{definition}
 
-\begin{theorem}
+\begin{theorem}[Euclids lemma]
 
   If \( p \) is prime and \( p \mid m\mul n \)
     then \( p \mid m \) or \( p \mid n \).
@@ -31,7 +31,7 @@
 \end{theorem}
 
 
-\begin{theorem}[clear]
+\begin{theorem}
 
   For every rational number \( q \)
     there exists \( m, n \) such that
@@ -39,7 +39,7 @@
 
 \end{theorem}
 
-\begin{theorem}[primenosquare]
+\begin{theorem}[Prime no Square]
 
   Suppose \( p \) is prime.
 
