@@ -1,0 +1,46 @@
+\begin{structure}
+  A rewriting system $R$ is a set
+  equipped with an endorelation $\red{R}$.
+\end{structure}
+
+
+
+% We could say that the following phrasing makes the set
+% implicit in the Lean output:
+%
+% Let $r$ be an endorelation on a set.
+%
+\begin{inductive}
+  Let $S$ be a set.
+  %
+  % '\dir' or something similar would be a command reserved for
+  % ad-hoc relations using the symbol '\to'.
+  %
+  Let $\dir$ be an endorelation on $S$.
+  The reflexive transitive closure $\rtc{\dir}$ of $\dir$ is given
+  by the following rules.
+  %
+  \infer[base]{a\red{R} b}{a \rtc{\dir} b}
+  %
+  \infer[refl]{a \rtc{\dir} a}{}
+  %
+  \infer[trans]{a \rtc{\dir} c}{a \rtc{\dir} b & b \rtc{\dir} c}
+\end{inductive}
+
+
+\begin{definition}
+  Let $S$ be a set.
+  Let $\dir$ be an endorelation on $S$.
+  $\dir$ is locally confluent iff
+    for all $a, b, c \in S$,
+      if  $a \dir b, c$,
+      then there exists $d$ such that $b, c \dir d$.
+\end{definition}
+
+% Note the overloading of 'locally confluent'.
+%
+\begin{definition}
+  Let $R$ be a rewriting system.
+  $R$ is locally confluent iff
+    $\red{R}$ is locally confluent.
+\end{definition}
