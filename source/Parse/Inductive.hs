@@ -1,10 +1,39 @@
 module Parse.Inductive where
 
 
+import Base
+import Base.Parser (Parser, sepBy1)
+import Parse.Token (command, symbol, environment, grouped)
+
+
 data InferRule = InferRule
-  { inferPremises :: ()
+  { inferPremises :: NonEmpty ()
   , inferConclusion :: ()
   }
+
+
+-- Uses the concrete syntax for inference rules from 'proof.sty' for LaTeX. E.g.:
+--
+-- \begin{inductive}
+--    \infer{\succ{n}\in ℕ}{n\in ℕ}
+-- \end{inductive}
+--
+inductive :: Parser InferRule
+inductive = environment "inductive" do
+  command "infer"
+  concl <- grouped conclusion
+  prems <- grouped premises
+  pure (InferRule prems concl)
+  where
+    conclusion = pure ()
+    premises = pure () `sepBy1` symbol "&"
+
+
+-- TODO
+--
+-- It may be better to have specialized environments for various
+-- inductive definitions; 'inductiverel', 'inductiveprop' etc.
+
 
 
 
