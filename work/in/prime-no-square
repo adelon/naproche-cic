@@ -1,9 +1,15 @@
 \begin{definition}
 
+  Let \( n, d \in \mathbb{N} \). 
+  
   \( d\mid n \) iff
     there exists \( k \) such that \( k\mul d = n \).
 
-  \( m \) is coprime to \( n \) iff
+\end{definition}
+
+\begin{definition}
+
+  \( m \) is coprime to \( n \) iff for all \( d \)
     \( d\mid m, n \) implies that \( d = 1 \).
 
 \end{definition}
@@ -29,7 +35,7 @@
 
   For every rational number \( q \)
     there exists \( m, n \) such that
-      \( m \) is coprime to \( n \) and \( m\mul n = p \).
+      \( m \) is coprime to \( n \) and \( q\cdot m = n \).
 
 \end{theorem}
 
@@ -38,6 +44,6 @@
   Suppose \( p \) is prime.
 
   There exists no rational number \( q \) such that
-    \( p = q\mul q \).
+    \( q\cdot q = p \).
 
 \end{theorem}

@@ -62,9 +62,9 @@ initRegistry = Registry
    where
       primOperators :: [[Operator Parser Expr]]
       primOperators =
-         [  [ InfixR (makePrimOp (command "mul") "mul")
+         [  [ InfixR (makePrimOp (command "mul") "prim_mul")
             ]
-            , [ InfixR (makePrimOp (symbol "+") "add")
+            , [ InfixR (makePrimOp (symbol "+") "prim_add")
             ]
          ]
       makeOp :: forall op a. Parser op -> a -> Parser a

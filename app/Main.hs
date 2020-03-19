@@ -5,6 +5,7 @@ module Main where
 
 import Base
 import Base.Parser
+import Export
 import Parse.Document
 import Parse.Token (TokStream(..))
 import Pretty
@@ -52,7 +53,9 @@ work file = do
       result' <- parse document inPath stream
       case result' of
         Left err -> Text.writeFile outPath (Text.pack (errorBundlePretty err))
-        Right doc -> withFile outPath WriteMode (\h -> hPutDoc h (prettyDocument doc))
+        Right (doc, reg) -> do
+          Text.writeFile (outPath <> ".lean") (export doc reg)
+          withFile outPath WriteMode (\h -> hPutDoc h (prettyDocument doc))
 
 dumpTokens :: TokStream -> Text
 dumpTokens = Text.pack . show . fmap unLocated . unTokStream
@@ -66,7 +69,8 @@ tokenize path = do
     Right stream -> pure (Right (TokStream raw stream))
 
 
-parse :: Parser a -> String -> TokStream -> IO (Either (ParseErrorBundle TokStream Void) a)
+parse :: Parser a -> String -> TokStream 
+      -> IO (Either (ParseErrorBundle TokStream Void) (a, Registry))
 parse p path stream = do
   let (result, _finalState) = runState (runParserT p path stream) initRegistry
-  pure result
+  pure $ (,) <$> result <*> pure _finalState
