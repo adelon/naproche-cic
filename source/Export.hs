@@ -156,8 +156,8 @@ exportTheorem (Theorem nameMay asms stmt) = do
 lookupTok :: Registry -> Tok -> Maybe (Expr -> Expr -> Prop)
 lookupTok reg tok = Map.lookup tok (relators reg) >>= \case
   "eq" -> Just $ \x -> \y -> x `Equals` y
-  "neq" -> Just $ \x -> \y -> Not (x `Equals` y)
-  _ -> Nothing
+  "ne" -> Just $ \x -> \y -> Not (x `Equals` y)
+  t -> Just $ \x -> \y -> Predicate t `PredApp` x `PredApp` y
 
 prec :: Int -> Int -> Doc a -> Doc a
 prec ctx here d = if ctx >= here then "(" <> d <> ")" else d

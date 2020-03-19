@@ -35,7 +35,7 @@
 
   For every rational number \( q \)
     there exists \( m, n \) such that
-      \( m \) is coprime to \( n \) and \( q\cdot m = n \).
+      \( m \) is coprime to \( n \) and \( q\mul m = n \).
 
 \end{theorem}
 
@@ -44,6 +44,6 @@
   Suppose \( p \) is prime.
 
   There exists no rational number \( q \) such that
-    \( q\cdot q = p \).
+    \( q\mul q = p \).
 
 \end{theorem}
