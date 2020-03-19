@@ -25,35 +25,33 @@ declaration = DeclAxiom <$> axiom
    <|> DeclRemark <$> remark
 
 data Axiom = Axiom
-   { axiomName :: Maybe Text
+   { axiomTag :: Maybe Text
    , axiomAssumptions :: ![Assumption]
    , axiomStatement :: !Statement
    } deriving (Show, Eq)
 
 axiom :: Parser Axiom
 axiom = environment "axiom" do
-   _tag <- optional environmentTag
-   name <- optional (bracketed anyWord)
+   tag <- optional environmentTag
    asms <- many assumption
    optional (word "then")
    stmt <- statement `endedBy` period
-   pure (Axiom name asms stmt)
+   pure (Axiom tag asms stmt)
 
 
 data Theorem = Theorem
-   { theoremName :: Maybe Text
+   { theoremTag :: Maybe Text
    , theoremAssumptions :: ![Assumption]
    , theoremStatement :: !Statement
    } deriving (Show, Eq)
 
 theorem :: Parser Theorem
 theorem = environment "theorem" do
-   _tag <- optional environmentTag
-   name <- optional (bracketed anyWord)
+   tag <- optional environmentTag
    asms <- many assumption
    optional (word "then")
    thm <- statement `endedBy` period
-   pure (Theorem name asms thm)
+   pure (Theorem tag asms thm)
 
 
 newtype Remark = Remark [Tok] deriving (Show, Eq)

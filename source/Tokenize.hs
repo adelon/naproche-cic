@@ -198,17 +198,21 @@ end = lexeme do
 
 -- | Parses an opening delimiter.
 open :: Tokenizer (Located Tok)
-open = lexeme (paren <|> brace)
+open = lexeme (paren <|> brace <|> group <|> bracket)
    where
    brace = Open Brace <$ lexeme (try (Lex.string "\\{"))
+   group = Open Paren <$ lexeme (Lex.char '{')
    paren = Open Paren <$ lexeme (Lex.char '(')
+   bracket = Open Paren <$ lexeme (Lex.char '[')
 
 -- | Parses a closing delimiter.
 close :: Tokenizer (Located Tok)
-close = lexeme (paren <|> brace)
+close = lexeme (paren <|> brace <|> group <|> bracket)
    where
    brace = Open Brace <$ lexeme (try (Lex.string "\\}"))
+   group = Open Paren <$ lexeme (Lex.char '}')
    paren = Open Paren <$ lexeme (Lex.char ')')
+   bracket = Open Paren <$ lexeme (Lex.char ']')
 
 -- | Turns a tokenizer into one that tracks the source position of the token
 -- and consumes trailing whitespace.

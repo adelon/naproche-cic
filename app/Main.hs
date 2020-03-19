@@ -49,6 +49,7 @@ work file = do
   case result of
     Left err -> Text.writeFile debugPath (Text.pack (errorBundlePretty err))
     Right stream -> do
+      -- Uncomment this for debugging the tokenizer.
       -- Text.writeFile debugPath (dumpTokens stream)
       result' <- parse document inPath stream
       case result' of
@@ -69,7 +70,7 @@ tokenize path = do
     Right stream -> pure (Right (TokStream raw stream))
 
 
-parse :: Parser a -> String -> TokStream 
+parse :: Parser a -> String -> TokStream
       -> IO (Either (ParseErrorBundle TokStream Void) (a, Registry))
 parse p path stream = do
   let (result, _finalState) = runState (runParserT p path stream) initRegistry

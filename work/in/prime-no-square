@@ -1,7 +1,7 @@
 \begin{definition}
 
-  Let \( n, d \in \mathbb{N} \). 
-  
+  Let \( n, d \in \mathbb{N} \).
+
   \( d\mid n \) iff
     there exists \( k \) such that \( k\mul d = n \).
 
@@ -31,7 +31,7 @@
 \end{theorem}
 
 
-\begin{theorem}
+\begin{theorem}[clear]
 
   For every rational number \( q \)
     there exists \( m, n \) such that
@@ -39,7 +39,7 @@
 
 \end{theorem}
 
-\begin{theorem}
+\begin{theorem}[primenosquare]
 
   Suppose \( p \) is prime.
 
