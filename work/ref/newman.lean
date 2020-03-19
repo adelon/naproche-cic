@@ -16,9 +16,9 @@ structure RewrSys (t : Sort _) := (red : EndRel t)
 -- The reflexive transitive closure is given by an inductive definition analogous
 -- to the built-in definition of `tc`.
 inductive rtc {t} : EndRel t → EndRel t
-| base :  ∀ {r : EndRel t} (a b : t),   r a b → rtc r a b
-| refl :  ∀ {r : EndRel t} (a : t),     rtc r a a
-| trans : ∀ {r : EndRel t} (a b c : t), rtc r a b → rtc r b c → rtc r a c
+| base :  ∀ {r : EndRel t} {a b : t},   r a b → rtc r a b
+| refl :  ∀ {r : EndRel t} {a : t},     rtc r a a
+| trans : ∀ {r : EndRel t} {a b c : t}, rtc r a b → rtc r b c → rtc r a c
 
 -- Alternative definition.
 inductive rtc' {t} : EndRel t → EndRel t
