@@ -16,17 +16,16 @@
 
 \begin{definition}
 
-  \( p\in\mathbb{N} \) is prime iff
-    \( p\neq 0,1 \) and for every \( k \)
-      if \( k \mid p \)
-        then \( k = 0 \) or \( k = 1 \).
+  $p \in \mathbb{N}$ is prime iff
+    $ p \neq 0,1 $ and for every $k$
+      if $k \mid p$ then $k = p$ or $k = 1$.
 
 \end{definition}
 
 \begin{theorem}[Euclids lemma]
 
-  If \( p \) is prime and \( p \mid m\mul n \)
-    then \( p \mid m \) or \( p \mid n \).
+  If $p$ is prime and $p \mid m\mul n$
+    then $p \mid m$ or $p \mid n$.
 
 \end{theorem}
 
