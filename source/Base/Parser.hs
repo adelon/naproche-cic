@@ -5,7 +5,7 @@ module Base.Parser (module Base.Parser, module Export) where
 import Base
 import Base.Prims
 import Language.Common (Var(..))
-import Language.Expression (Expr(..), Typ, Prop(..))
+import Language.Expression (Expr(..), Typ)
 import Language.Pattern
 import Parse.Token (TokStream, Tok(..), symbol, command)
 
@@ -67,10 +67,6 @@ initRegistry = Registry
             , [ InfixR (makePrimOp (symbol "+") "prim_add")
             ]
          ]
-      makeOp :: forall op a. Parser op -> a -> Parser a
-      makeOp op constr = op *> pure constr
-      {-# INLINE makeOp #-}
-
 
 makePrimOp :: forall op. Parser op -> Text -> Parser (Expr -> Expr -> Expr)
 makePrimOp op prim = op *> pure (\x y -> Const prim `App` x `App` y)
