@@ -6,7 +6,7 @@ module Tokenize where
 -}
 
 
-import Base
+import Base hiding (group, bracket)
 
 import Text.Megaparsec
 
@@ -102,7 +102,7 @@ mathEnd = lexeme do
 -- | Parses a word. Words are returned casefolded, since we want to ignore their case later on.
 word :: Tokenizer (Located Tok)
 word = lexeme do
-   w <- some Lex.letterChar
+   w <- some (Lex.letterChar <|> Lex.char '\'')
    let t = Word (Text.toCaseFold (Text.pack w))
    pure t
 
