@@ -123,9 +123,10 @@ lateQuantification = label "late quantification"
 -- We replace this operator with `Implies` for the universal cases and `And` for the
 -- existential cases.
 varInfo :: (Prop -> Prop -> Prop) -> Parser (Prop -> Prop, NonEmpty (Typing Var Typ))
-varInfo op = nominalInfo <|> symbolicInfo
+varInfo op = symbolicInfo <|> nominalInfo
    where
    nominalInfo = do
+      optional indefinite -- WARN: This makes the parser commit immediately!
       (pat, info) <- nominal
       let quantifies = fst <$> info
       let args = snd <$> info
