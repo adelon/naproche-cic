@@ -1,48 +1,34 @@
 \begin{definition}
-
   Let \( n, d \in \mathbb{N} \).
-
   \( d\mid n \) iff
     there exists \( k \) such that \( k\mul d = n \).
-
 \end{definition}
 
 \begin{definition}
-
   \( m \) is coprime to \( n \) iff for all \( d \)
     \( d\mid m, n \) implies that \( d = 1 \).
-
 \end{definition}
 
 \begin{definition}
-
-  $p \in \mathbb{N}$ is prime iff
+  A natural number $p$ is prime iff
     $ p \neq 0,1 $ and for every $k$
       if $k \mid p$ then $k = p$ or $k = 1$.
-
 \end{definition}
 
 \begin{theorem}[Euclids lemma]
-
   If $p$ is prime and $p \mid m\mul n$
     then $p \mid m$ or $p \mid n$.
-
 \end{theorem}
 
 
 \begin{theorem}
-
   For every rational number \( q \)
     there exists \( m, n \) such that
       \( m \) is coprime to \( n \) and \( q\mul m = n \).
-
 \end{theorem}
 
 \begin{theorem}[Prime no Square]
-
   Suppose \( p \) is prime.
-
   There exists no rational number \( q \) such that
     \( q\mul q = p \).
-
 \end{theorem}
