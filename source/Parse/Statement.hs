@@ -66,10 +66,19 @@ quantifierChain = label "quantification" (universal <|> existential)
       almost <- optional (word "almost")
       word "every" <|> word "all"
       (quantify, vs) <- varInfo Implies
+      suchThatCond <- optional do
+         suchThat
+         stmt <- atomicStatement
+         comma
+         return stmt
+      let
+         quantify' = case suchThatCond of
+            Nothing -> quantify
+            Just stmt -> (stmt `Implies`) . quantify
       optional weHave
       case almost of
-         Nothing -> pure (makeQuantification quantify Universal vs)
-         Just _  -> pure (makeQuantification quantify AlmostUniversal vs)
+         Nothing -> pure (makeQuantification quantify' Universal vs)
+         Just _  -> pure (makeQuantification quantify' AlmostUniversal vs)
    existential = do
       thereExists
       no <- optional (word "no")
@@ -144,6 +153,7 @@ varInfo op = symbolicInfo <|> nominalInfo
          Nothing -> do
             typs <- ((symbol ":" <|> command "in") *> (pure <$> expression)) <|> lookupVars vs
             pure (id, NonEmpty.zipWith Inhabits vs typs)
+
 
 -- TODO: Implement ForTheL-like chain parsing.
 --

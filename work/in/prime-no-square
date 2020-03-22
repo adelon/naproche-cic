@@ -11,8 +11,8 @@
 
 \begin{definition}
   A natural number $p$ is prime iff
-    $ p \neq 0,1 $ and for every $k$
-      if $k \mid p$ then $k = p$ or $k = 1$.
+    $ p \neq 0,1 $ and for every $k$ such that $k \mid p$,
+    we have $k = p$ or $k = 1$.
 \end{definition}
 
 \begin{theorem}[Euclids lemma]
