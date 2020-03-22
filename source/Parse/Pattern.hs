@@ -9,7 +9,7 @@ import Base.Parser
 import Language.Pattern
 import Parse.Token (math, word, anyWord, anyWordBut)
 import Parse.Var (Var, var)
-import Parse.Expression (Typ, varInfo)
+import Parse.Expression (Typ, varInfoSymbolic)
 
 import qualified Data.Trie.Map as Trie
 
@@ -51,7 +51,7 @@ anyPatternBut buts = do
          pure ([Word w], [])
       slotShape :: Parser ([Shape], [(Var, Maybe Typ)])
       slotShape = do
-         v <- math varInfo
+         v <- math varInfoSymbolic
          pure ([Slot], [v])
       concatUnzip :: [([a],[b])] -> ([a], [b])
       concatUnzip asbs = (concat *** concat) (unzip asbs)

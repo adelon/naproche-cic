@@ -4,7 +4,7 @@ module Parse.Definition where
 import Base
 import Base.Parser
 import Parse.Assumption (Assumption, assumption)
-import Parse.Expression (Typ, varInfo)
+import Parse.Expression (Typ, varInfoSymbolic)
 import Parse.Pattern (Pattern, anyPatternBut)
 import Parse.Statement (Statement, statement)
 import Parse.Token

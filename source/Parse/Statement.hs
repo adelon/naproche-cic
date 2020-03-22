@@ -135,7 +135,6 @@ varInfo :: (Prop -> Prop -> Prop) -> Parser (Prop -> Prop, NonEmpty (Typing Var 
 varInfo op = symbolicInfo <|> nominalInfo
    where
    nominalInfo = do
-      optional indefinite -- WARN: This makes the parser commit immediately!
       (pat, info) <- nominal
       let quantifies = fst <$> info
       let args = snd <$> info

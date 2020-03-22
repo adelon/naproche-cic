@@ -18,8 +18,8 @@ annotated = do
    ty <- expression
    pure (e `Inhabits` ty)
 
-varInfo :: Parser (Var, Maybe Expr)
-varInfo = do
+varInfoSymbolic :: Parser (Var, Maybe Expr)
+varInfoSymbolic = do
    v <- var
    ty <- optional $ (command "in" <|> symbol ":") *> expression
    pure (v, ty)

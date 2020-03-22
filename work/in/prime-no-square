@@ -10,7 +10,8 @@
 \end{definition}
 
 \begin{definition}
-  A natural number $p$ is prime iff
+  %A natural number $p$ is prime iff
+  $p\in\mathbb{N}$ is prime iff
     $ p \neq 0,1 $ and for every $k$ such that $k \mid p$,
     we have $k = p$ or $k = 1$.
 \end{definition}
