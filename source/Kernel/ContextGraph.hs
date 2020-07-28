@@ -11,6 +11,7 @@ import qualified Data.IntMap as IntMap
 import qualified Data.IntSet as IntSet
 import qualified Data.Set as Set
 
+-- | The Context Graph 
 data ContextGraph a = ContextGraph
   { values :: IntMap.IntMap (Var, a)
   , indices :: Map.Map Var Int

@@ -61,6 +61,8 @@ exportDeclaration = \case
    DeclTheorem theorem -> exportTheorem theorem
    DeclRemark _remark -> pure ""
 
+-- | We turn a verb into a lean identifier,
+-- by joining the individual words by underscores
 patAsText :: Pattern -> Text
 patAsText = Text.intercalate "_" . filter (/="") . map (\case Word w -> w; Slot -> "")
 
@@ -78,8 +80,12 @@ splitAssumptions = go ([], [])
     go (ts, ss) ((AssumptionPretyping ns):xs) = go (ts ++ toList ns, ss) xs
     go (ts, ss) ((Assumption s):xs) = go (ts, ss ++ [s]) xs
 
+-- | An implicit variable is one in curly brackets {v}, 
+-- a normal variable is in normal brackets (v).
+-- Both may be typed {v : V}, (v : V).
 data LeanVar = Implicit (Maybe (Last Typ)) | Normal (Maybe (Last Typ))
 
+-- | We prefer normal variables
 instance Semigroup LeanVar where
   Implicit m1 <> Implicit m2 = Implicit (m1 <> m2)
   Implicit m1 <> Normal m2 = Normal (m1 <> m2)
@@ -89,6 +95,7 @@ instance Semigroup LeanVar where
 instance Monoid LeanVar where
   mempty = Implicit Nothing
 
+-- | Find all variables
 varsInPatt :: PredicateHead -> [(Var, Maybe Typ)]
 varsInPatt = \case
    PredicateAdjPattern vs _ -> toList vs
@@ -96,6 +103,7 @@ varsInPatt = \case
    PredicateNominalPattern vs _ -> toList vs
    PredicateRelator (v1, _, v2) -> [(v1, Nothing), (v2, Nothing)]
 
+-- | Get the variables in a linear order using the Context Graph.
 mkVars :: [Typing Var Typ] -> [(Var, Maybe Typ)] -> [Var] -> State ExportState [(Var, LeanVar)]
 mkVars ts vs frees = do
   let wrap v = (v, mempty)
@@ -153,6 +161,7 @@ exportTheorem (Theorem nameMay asms stmt) = do
   sig <- exportSignature [] asms stmt (exportProp r stmt)
   pure $ hsep $ ["theorem", pretty name, sig, ":=", "omitted"]
 
+-- | Tokens are symbols like = or /= in the text. We have to handle them explicitly.
 lookupTok :: Registry -> Tok -> Maybe (Expr -> Expr -> Prop)
 lookupTok reg tok = Map.lookup tok (relators reg) >>= \case
   "eq" -> Just $ \x -> \y -> x `Equals` y
@@ -162,9 +171,8 @@ lookupTok reg tok = Map.lookup tok (relators reg) >>= \case
 prec :: Int -> Int -> Doc a -> Doc a
 prec ctx here d = if ctx >= here then "(" <> d <> ")" else d
 
--- TODO(anton): We should have a monad here for keeping track of precedences
--- and prefix/infixr/infixl/..
--- Some of the precedences can be found in init/core.lean the rest is guessed
+-- | We export propositions and types with an extra argument for the precedence.
+-- We lower the precedence by one on one side to avoid brackets in associative clauses.
 exportProp :: Registry -> Prop -> Doc ann
 exportProp r = go 0
   where 
